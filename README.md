@@ -1,12 +1,13 @@
 # AC.Rogue.PatchFix
 
-ASI plugin for Assassin's Creed Rogue that fixes ultrawide/non-standard aspect ratios, corrects FOV, and unlocks region-locked languages.
+ASI plugin for Assassin's Creed Rogue that fixes ultrawide/non-standard aspect ratios, corrects FOV, unlocks the FPS cap, and unlocks region-locked languages.
 
 ## Features
 
 - **Ultrawide and non-standard aspect ratio support** — 21:9, 32:9, 16:10, 4:3, 5:4, and any custom ratio
 - **FOV correction** — Vert+ and Hor+ modes with adjustable multiplier
 - **Multi-monitor / triple-screen detection** — configurable threshold and manual override
+- **FPS unlock** — remove the ~64 FPS cap entirely or set a custom target (e.g., 120, 144)
 - **UI scaling** — configurable horizontal and vertical stretch to fill pillarbox/letterbox areas
 - **Language unlock** — all languages available regardless of purchase region
 - **UI language override** — force any language independent of system/registry settings
@@ -63,6 +64,12 @@ All settings are in `AC.Rogue.PatchFix.ini`. Changes are picked up automatically
 | `Mode`       | `Auto`  | `Auto`, `VertPlus`, `HorPlus` | Auto = Hor+ when narrower than 16:9, Vert+ when wider. |
 | `Multiplier` | `1.0`   | any positive float | Additional FOV multiplier. `1.0` = default, `>1.0` = wider, `<1.0` = narrower. |
 
+### \[FPS\]
+
+| Key      | Default | Values | Description |
+|----------|---------| ------ | ----------- |
+| `Target` | `0`     | `0` = uncapped, any positive value (e.g., `60`, `120`, `144`) | FPS cap. `0` removes the frame limiter entirely. |
+
 ### \[Language\]
 
 | Key          | Default | Values | Description |
@@ -81,6 +88,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `ViewportScaling`  | `true`  | UI coordinate scaling |
 | `DisplayDetection` | `true`  | Multi-monitor detection |
 | `FOVCorrection`    | `true`  | FOV adjustment |
+| `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
 | `LanguageUnlock`   | `true`  | Language unlock and override |
 
 ## How It Works
