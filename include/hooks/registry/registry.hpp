@@ -9,12 +9,7 @@
 #include "hooks/registry/hook_traits.hpp"
 
 // IWYU pragma: begin_exports
-#include "hooks/display_detection.hpp"
-#include "hooks/fov_correction.hpp"
-#include "hooks/game_state.hpp"
 #include "hooks/language_unlock.hpp"
-#include "hooks/viewport_fitting.hpp"
-#include "hooks/viewport_scaling.hpp"
 // IWYU pragma: end_exports
 
 namespace hooks {
