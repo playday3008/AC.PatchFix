@@ -48,7 +48,7 @@ namespace patterns {
         {.name="GET_GAME_ID",         .bytes="48 83 EC 28 B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 33 C9 84 C0 0F 95 C1 8D 81 ? ? ? ?", .offset=0x00, .field=&ResolvedAddresses::get_game_id},
         {.name="LANG_BF_WRITE",       .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05",                                            .offset=0x05, .field=&ResolvedAddresses::lang_bf_write},
         {.name="LANG_SETUP",          .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?",                                               .offset=0x00, .field=&ResolvedAddresses::lang_setup},
-        {.name="GET_LANGUAGE",        .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C",                                                    .offset=0x00, .field=&ResolvedAddresses::get_language},
+        {.name="GET_LANGUAGE",        .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C",                                                      .offset=0x00, .field=&ResolvedAddresses::get_language},
     });
     // clang-format on
 
