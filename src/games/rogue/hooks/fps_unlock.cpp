@@ -1,4 +1,4 @@
-#include "hooks/fps_unlock.hpp"
+#include "hooks/common/fps_unlock.hpp"
 
 #include <cstdint>
 
@@ -8,10 +8,14 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "hooks/registry/registry.hpp"
+#include "games/rogue/game_data.hpp"
+#include "games/rogue/registry.hpp"
 
 namespace hooks {
     namespace {
+        using G   = games::Rogue;
+        using Tag = FPSUnlockHook<G>;
+
         uintptr_t g_sleep_branch_addr   = 0;
         uintptr_t g_frame_time_addr     = 0;
         float     g_original_frame_time = 15.6666F;
@@ -37,13 +41,13 @@ namespace hooks {
         }
     } // namespace
 
-    void HookTraits<FPSUnlockHook>::on_reload(const Config &cfg) {
+    void HookTraits<Tag>::on_reload(const Config &cfg) {
         float target = cfg.target.get();
         log::get()->trace("FPSUnlockHook: on_reload target={}", target);
         apply_fps_patch(target);
     }
 
-    auto HookTraits<FPSUnlockHook>::install(const patterns::ResolvedAddresses &addrs) -> bool {
+    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         g_sleep_branch_addr = addrs.fps_sleep_branch.value();
         log::get()->trace("FPSUnlockHook: sleep branch at 0x{:X}", g_sleep_branch_addr);
 
@@ -56,7 +60,7 @@ namespace hooks {
                           g_original_frame_time,
                           1000.0F / g_original_frame_time);
 
-        apply_fps_patch(hooks::config<FPSUnlockHook>().target.get());
+        apply_fps_patch(games::rogue::g_registry.config<Tag>().target.get());
 
         log::get()->trace("FPSUnlockHook: installed");
         return true;

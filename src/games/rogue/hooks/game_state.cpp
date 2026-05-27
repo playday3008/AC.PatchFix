@@ -1,4 +1,4 @@
-#include "hooks/game_state.hpp"
+#include "hooks/common/game_state.hpp"
 
 #include <atomic>
 
@@ -7,33 +7,39 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "games/rogue/game_data.hpp"
+
 namespace hooks {
-    std::atomic<bool> g_is_in_game {false};
+    template<>
+    std::atomic<bool> g_is_in_game<games::Rogue> {false};
 
     namespace {
+        using G   = games::Rogue;
+        using Tag = GameStateHook<G>;
+
         struct GameUnpause {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game.store(true, std::memory_order_relaxed);
+                g_is_in_game<G>.store(true, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.rcx + 0x2C0) = 0;
             }
         };
 
         struct GamePause {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game.store(false, std::memory_order_relaxed);
+                g_is_in_game<G>.store(false, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.r8 + 0x2C0) = 1;
             }
         };
 
         struct GamePause2 {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game.store(false, std::memory_order_relaxed);
+                g_is_in_game<G>.store(false, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.rdi + 0x2C0) = 1;
             }
         };
     } // namespace
 
-    auto HookTraits<GameStateHook>::install(const patterns::ResolvedAddresses &addrs) -> bool {
+    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("GameStateHook: installing");
         auto unpause = addrs.game_unpause.value();
         auto pause   = addrs.game_pause.value();

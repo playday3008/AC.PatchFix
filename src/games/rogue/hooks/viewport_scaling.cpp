@@ -1,4 +1,4 @@
-#include "hooks/viewport_scaling.hpp"
+#include "hooks/common/viewport_scaling.hpp"
 
 #include <atomic>
 
@@ -7,55 +7,59 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "constants.hpp"
-#include "hooks/registry/registry.hpp"
+#include "games/rogue/game_data.hpp"
+#include "games/rogue/registry.hpp"
 
 namespace hooks {
-    static std::atomic<float> g_active_stretch {0.0F};
-
     namespace {
+        using G    = games::Rogue;
+        using Data = games::game_data<G>;
+        using Tag  = ViewportScalingHook<G>;
+
+        std::atomic<float> g_active_stretch {0.0F};
+
         struct ViewportScalingBranch {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
                 float w = regs.xmm8.f32[0];
                 float h = regs.xmm9.f32[0];
 
-                if (!hooks::enabled<ViewportScalingHook>()) {
+                if (!games::rogue::g_registry.enabled<Tag>()) {
                     g_active_stretch.store(0.0F, std::memory_order_relaxed);
                     if (w > h) {
-                        float fitted_h   = w * constants::k_inv_default_aspect;
+                        float fitted_h   = w * Data::k_inv_default_aspect;
                         regs.xmm6.f32[0] = w;
                         regs.xmm7.f32[0] = (h < fitted_h) ? h : fitted_h;
-                        regs.xmm4.f32[0] = regs.xmm7.f32[0] * constants::k_inv_base_height;
+                        regs.xmm4.f32[0] = regs.xmm7.f32[0] * Data::k_inv_base_height;
                     } else {
-                        float fitted_w   = h * constants::k_default_aspect;
+                        float fitted_w   = h * Data::k_default_aspect;
                         regs.xmm7.f32[0] = h;
                         regs.xmm6.f32[0] = (w < fitted_w) ? w : fitted_w;
-                        regs.xmm4.f32[0] = regs.xmm6.f32[0] * constants::k_inv_base_width;
+                        regs.xmm4.f32[0] = regs.xmm6.f32[0] * Data::k_inv_base_width;
                     }
                     return;
                 }
 
-                float scale_w = w * constants::k_inv_base_width;
-                float scale_h = h * constants::k_inv_base_height;
+                float scale_w = w * Data::k_inv_base_width;
+                float scale_h = h * Data::k_inv_base_height;
 
-                const auto &cfg = hooks::config<ViewportScalingHook>();
+                const auto &cfg = games::rogue::g_registry.config<Tag>();
 
                 if (scale_w <= scale_h) {
                     float stretch = cfg.ui_stretch_v.get();
                     g_active_stretch.store(stretch, std::memory_order_relaxed);
-                    float fitted_h   = w * constants::k_inv_default_aspect;
+                    float fitted_h   = w * Data::k_inv_default_aspect;
                     float clamped_h  = (h < fitted_h) ? h : fitted_h;
                     regs.xmm6.f32[0] = w;
                     regs.xmm7.f32[0] = clamped_h + (stretch * (h - clamped_h));
-                    regs.xmm4.f32[0] = regs.xmm7.f32[0] * constants::k_inv_base_height;
+                    regs.xmm4.f32[0] = regs.xmm7.f32[0] * Data::k_inv_base_height;
                 } else {
                     float stretch = cfg.ui_stretch_h.get();
                     g_active_stretch.store(stretch, std::memory_order_relaxed);
-                    float fitted_w   = h * constants::k_default_aspect;
+                    float fitted_w   = h * Data::k_default_aspect;
                     float clamped_w  = (w < fitted_w) ? w : fitted_w;
                     regs.xmm7.f32[0] = h;
                     regs.xmm6.f32[0] = clamped_w + (stretch * (w - clamped_w));
-                    regs.xmm4.f32[0] = regs.xmm6.f32[0] * constants::k_inv_base_width;
+                    regs.xmm4.f32[0] = regs.xmm6.f32[0] * Data::k_inv_base_width;
                 }
             }
         };
@@ -73,8 +77,7 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<ViewportScalingHook>::install(const patterns::ResolvedAddresses &addrs)
-        -> bool {
+    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("ViewportScalingHook: installing");
         auto start = addrs.scaling_branch_start.value();
         auto end   = addrs.scaling_branch_end.value();

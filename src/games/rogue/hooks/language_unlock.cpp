@@ -1,4 +1,4 @@
-#include "hooks/language_unlock.hpp"
+#include "games/rogue/hooks/language_unlock.hpp"
 
 #include <cstdint>
 
@@ -11,10 +11,12 @@
 #include "config/language.hpp"
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "hooks/registry/registry.hpp"
+#include "games/rogue/registry.hpp"
 
 namespace hooks {
     namespace {
+        using Tag = games::rogue::LanguageUnlockHook;
+
         enum class GameId : uint16_t {
             uplay_ww   = 0x37FU,
             steam_ww   = 0x3A6U,
@@ -68,10 +70,10 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<LanguageUnlockHook>::install(const patterns::ResolvedAddresses &addrs) -> bool {
+    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("LanguageUnlockHook: installing");
 
-        const auto &cfg        = config<LanguageUnlockHook>();
+        const auto &cfg        = games::rogue::g_registry.config<Tag>();
         bool        unlock_all = cfg.unlock_all.get();
         s_ui_language          = cfg.ui_language.get();
 

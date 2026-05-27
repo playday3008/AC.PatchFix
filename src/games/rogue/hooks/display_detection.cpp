@@ -1,4 +1,4 @@
-#include "hooks/display_detection.hpp"
+#include "hooks/common/display_detection.hpp"
 
 #include <cstdint>
 
@@ -10,25 +10,29 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "constants.hpp"
-#include "hooks/registry/registry.hpp"
+#include "games/rogue/game_data.hpp"
+#include "games/rogue/registry.hpp"
 
 namespace hooks {
-    static std::atomic<uintptr_t> g_display_object {0};
-
     namespace {
+        using G    = games::Rogue;
+        using Data = games::game_data<G>;
+        using Tag  = DisplayDetectionHook<G>;
+
+        std::atomic<uintptr_t> g_display_object {0};
+
         struct DisplayFlagHook {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
                 g_display_object.store(regs.rbx, std::memory_order_relaxed);
 
-                if (!hooks::enabled<DisplayDetectionHook>()) {
+                if (!games::rogue::g_registry.enabled<Tag>()) {
                     if (regs.xmm1.f32[0] < regs.xmm0.f32[0]) {
                         regs.rdx = regs.rsi;
                     }
                     return;
                 }
 
-                auto mode = hooks::config<DisplayDetectionHook>().multi_monitor.get();
+                auto mode = games::rogue::g_registry.config<Tag>().multi_monitor.get();
                 switch (mode) {
                     case MultiMonitor::ForceSingle:
                         regs.rdx = 0;
@@ -40,7 +44,7 @@ namespace hooks {
                         float w = *reinterpret_cast<float *>(regs.rbx + 0x10);
                         float h = *reinterpret_cast<float *>(regs.rbx + 0x14);
                         regs.rdx =
-                            (h > 0.0F && (w / h) >= constants::k_triple_screen_threshold) ? 1 : 0;
+                            (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                         break;
                     }
                     default:
@@ -50,7 +54,7 @@ namespace hooks {
         };
     } // namespace
 
-    void HookTraits<DisplayDetectionHook>::on_reload(const Config &cfg) {
+    void HookTraits<Tag>::on_reload(const Config &cfg) {
         uintptr_t obj = g_display_object.load(std::memory_order_relaxed);
         if (obj == 0) {
             return;
@@ -68,7 +72,7 @@ namespace hooks {
             case MultiMonitor::Auto: {
                 float w = *reinterpret_cast<float *>(obj + 0x10);
                 float h = *reinterpret_cast<float *>(obj + 0x14);
-                flag    = (h > 0.0F && (w / h) >= constants::k_triple_screen_threshold) ? 1 : 0;
+                flag    = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                 break;
             }
             default:
@@ -79,7 +83,7 @@ namespace hooks {
         if (flag != 0) {
             float w = *reinterpret_cast<float *>(obj + 0x10);
             *reinterpret_cast<uint32_t *>(obj + 0x1C) =
-                static_cast<uint32_t>(w * constants::k_multi_monitor_split);
+                static_cast<uint32_t>(w * Data::k_multi_monitor_split);
         }
 
         log::get()->info("DisplayDetection: poked flag={}, singleWidth={}",
@@ -87,8 +91,7 @@ namespace hooks {
                          (flag != 0) ? *reinterpret_cast<uint32_t *>(obj + 0x1C) : 0);
     }
 
-    auto HookTraits<DisplayDetectionHook>::install(const patterns::ResolvedAddresses &addrs)
-        -> bool {
+    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("DisplayDetectionHook: installing at 0x{:X}", addrs.display_flag.value());
         auto addr = addrs.display_flag.value();
         injector::MakeInline<DisplayFlagHook>(addr, addr + 7);
