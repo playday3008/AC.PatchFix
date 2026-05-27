@@ -5,25 +5,34 @@
 
 #include <mini/ini.h>
 
+#include "games/game_data.hpp"
+#include "games/tags.hpp"
 #include "config/enums.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
-#include "hooks/tags.hpp"
+#include "hooks/common/viewport_fitting.hpp"
+
+template<typename G>
+struct FOVCorrectionHook {};
+
+template<typename G>
+[[nodiscard]] auto compute_hor_plus_correction() -> float;
 
 namespace hooks {
-    [[nodiscard]] auto compute_hor_plus_correction() -> float;
+    template<typename G>
+    struct HookTraits<FOVCorrectionHook<G>> {
+        using Addrs       = typename games::game_data<G>::ResolvedAddresses;
+        using PatternField = std::optional<uintptr_t> Addrs::*;
 
-    template<>
-    struct HookTraits<FOVCorrectionHook> {
         static constexpr std::string_view name = "FOVCorrection";
 
-        using hard_deps = dep_list<ViewportFittingHook>;
+        using hard_deps = dep_list<ViewportFittingHook<G>>;
         using soft_deps = dep_list<>;
 
         static constexpr auto required_patterns = std::array<PatternField, 1> {
-            &patterns::ResolvedAddresses::fov_store,
+            &Addrs::fov_store,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
@@ -33,6 +42,6 @@ namespace hooks {
             static constexpr auto field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
         };
 
-        static auto install(const patterns::ResolvedAddresses &addrs) -> bool;
+        static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks

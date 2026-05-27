@@ -6,29 +6,38 @@
 
 #include <mini/ini.h>
 
+#include "games/game_data.hpp"
+#include "games/tags.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
-#include "hooks/tags.hpp"
+#include "hooks/common/game_state.hpp"
+
+template<typename G>
+struct ViewportFittingHook {};
 
 namespace hooks {
+    template<typename G>
     extern std::atomic<float> g_current_aspect;
 
-    template<>
-    struct HookTraits<ViewportFittingHook> {
+    template<typename G>
+    struct HookTraits<ViewportFittingHook<G>> {
+        using Addrs       = typename games::game_data<G>::ResolvedAddresses;
+        using PatternField = std::optional<uintptr_t> Addrs::*;
+
         static constexpr std::string_view name = "ViewportFitting";
 
         using hard_deps = dep_list<>;
-        using soft_deps = dep_list<GameStateHook>;
+        using soft_deps = dep_list<GameStateHook<G>>;
 
         static constexpr auto required_patterns = std::array<PatternField, 2> {
-            &patterns::ResolvedAddresses::viewport_ratio_load,
-            &patterns::ResolvedAddresses::viewport_ratio_mul,
+            &Addrs::viewport_ratio_load,
+            &Addrs::viewport_ratio_mul,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 1> {
-            &patterns::ResolvedAddresses::coord_transform,
+            &Addrs::coord_transform,
         };
 
         struct Config : config_base<Config> {
@@ -37,6 +46,6 @@ namespace hooks {
         };
 
         static void on_reload(const Config &cfg);
-        static auto install(const patterns::ResolvedAddresses &addrs) -> bool;
+        static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks

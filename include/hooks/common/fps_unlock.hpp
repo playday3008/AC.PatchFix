@@ -5,23 +5,31 @@
 
 #include <mini/ini.h>
 
+#include "games/game_data.hpp"
+#include "games/tags.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
-#include "hooks/tags.hpp"
+#include "hooks/common/game_state.hpp"
+
+template<typename G>
+struct FPSUnlockHook {};
 
 namespace hooks {
-    template<>
-    struct HookTraits<FPSUnlockHook> {
+    template<typename G>
+    struct HookTraits<FPSUnlockHook<G>> {
+        using Addrs       = typename games::game_data<G>::ResolvedAddresses;
+        using PatternField = std::optional<uintptr_t> Addrs::*;
+
         static constexpr std::string_view name = "FPSUnlock";
 
         using hard_deps = dep_list<>;
-        using soft_deps = dep_list<GameStateHook>;
+        using soft_deps = dep_list<GameStateHook<G>>;
 
         static constexpr auto required_patterns = std::array<PatternField, 2> {
-            &patterns::ResolvedAddresses::fps_sleep_branch,
-            &patterns::ResolvedAddresses::fps_frame_time,
+            &Addrs::fps_sleep_branch,
+            &Addrs::fps_frame_time,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
@@ -31,6 +39,6 @@ namespace hooks {
         };
 
         static void on_reload(const Config &cfg);
-        static auto install(const patterns::ResolvedAddresses &addrs) -> bool;
+        static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks

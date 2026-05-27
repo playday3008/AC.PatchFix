@@ -5,27 +5,34 @@
 
 #include <mini/ini.h>
 
+#include "games/game_data.hpp"
+#include "games/tags.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
-#include "hooks/tags.hpp"
+
+template<typename G>
+struct ViewportScalingHook {};
 
 namespace hooks {
-    template<>
-    struct HookTraits<ViewportScalingHook> {
+    template<typename G>
+    struct HookTraits<ViewportScalingHook<G>> {
+        using Addrs       = typename games::game_data<G>::ResolvedAddresses;
+        using PatternField = std::optional<uintptr_t> Addrs::*;
+
         static constexpr std::string_view name = "ViewportScaling";
 
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<>;
 
         static constexpr auto required_patterns = std::array<PatternField, 2> {
-            &patterns::ResolvedAddresses::scaling_branch_start,
-            &patterns::ResolvedAddresses::scaling_branch_end,
+            &Addrs::scaling_branch_start,
+            &Addrs::scaling_branch_end,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 1> {
-            &patterns::ResolvedAddresses::scaling_offsets,
+            &Addrs::scaling_offsets,
         };
 
         struct Config : config_base<Config> {
@@ -35,6 +42,6 @@ namespace hooks {
                 std::tuple {&Config::ui_stretch_h, &Config::ui_stretch_v};
         };
 
-        static auto install(const patterns::ResolvedAddresses &addrs) -> bool;
+        static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks
