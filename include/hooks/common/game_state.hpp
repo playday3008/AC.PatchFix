@@ -15,7 +15,6 @@ template<typename G>
 struct GameStateHook {};
 
 namespace hooks {
-    template<typename G>
     extern std::atomic<bool> g_is_in_game;
 
     template<typename G>

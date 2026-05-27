@@ -10,14 +10,36 @@
 #include "hooks/common/viewport_scaling.hpp"
 #include "hooks/registry/registry.hpp"
 
+// Definitions in src/games/rogue/hooks/*.cpp
+namespace hooks {
+    template<>
+    auto HookTraits<GameStateHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    auto HookTraits<DisplayDetectionHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    void HookTraits<DisplayDetectionHook<games::Rogue>>::on_reload(const Config &);
+    template<>
+    auto HookTraits<ViewportFittingHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    void HookTraits<ViewportFittingHook<games::Rogue>>::on_reload(const Config &);
+    template<>
+    auto HookTraits<ViewportScalingHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    auto HookTraits<FOVCorrectionHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    auto HookTraits<FPSUnlockHook<games::Rogue>>::install(const Addrs &) -> bool;
+    template<>
+    void HookTraits<FPSUnlockHook<games::Rogue>>::on_reload(const Config &);
+} // namespace hooks
+
 namespace games::rogue {
-    using AllHooks = hooks::hook_list< ::GameStateHook<Rogue>,
-                                       ::DisplayDetectionHook<Rogue>,
-                                       ::ViewportFittingHook<Rogue>,
-                                       ::ViewportScalingHook<Rogue>,
-                                       ::FOVCorrectionHook<Rogue>,
-                                       ::FPSUnlockHook<Rogue>,
-                                       LanguageUnlockHook>;
+    using AllHooks = hooks::hook_list<::GameStateHook<Rogue>,
+                                      ::DisplayDetectionHook<Rogue>,
+                                      ::ViewportFittingHook<Rogue>,
+                                      ::ViewportScalingHook<Rogue>,
+                                      ::FOVCorrectionHook<Rogue>,
+                                      ::FPSUnlockHook<Rogue>,
+                                      LanguageUnlockHook>;
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 

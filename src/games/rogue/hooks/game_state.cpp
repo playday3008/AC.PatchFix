@@ -10,8 +10,7 @@
 #include "games/rogue/game_data.hpp"
 
 namespace hooks {
-    template<>
-    std::atomic<bool> g_is_in_game<games::Rogue> {false};
+    std::atomic<bool> g_is_in_game {false};
 
     namespace {
         using G   = games::Rogue;
@@ -19,21 +18,21 @@ namespace hooks {
 
         struct GameUnpause {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game<G>.store(true, std::memory_order_relaxed);
+                g_is_in_game.store(true, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.rcx + 0x2C0) = 0;
             }
         };
 
         struct GamePause {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game<G>.store(false, std::memory_order_relaxed);
+                g_is_in_game.store(false, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.r8 + 0x2C0) = 1;
             }
         };
 
         struct GamePause2 {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
-                g_is_in_game<G>.store(false, std::memory_order_relaxed);
+                g_is_in_game.store(false, std::memory_order_relaxed);
                 *reinterpret_cast<uint8_t *>(regs.rdi + 0x2C0) = 1;
             }
         };

@@ -18,8 +18,7 @@ namespace hooks {
     using G    = games::Rogue;
     using Data = games::game_data<G>;
 
-    template<>
-    std::atomic<float> g_current_aspect<G> {Data::k_default_aspect};
+    std::atomic<float> g_current_aspect {Data::k_default_aspect};
 } // namespace hooks
 
 template<>
@@ -27,7 +26,7 @@ auto compute_hor_plus_correction<games::Rogue>() -> float {
     using G    = games::Rogue;
     using Data = games::game_data<G>;
 
-    float aspect = hooks::g_current_aspect<G>.load(std::memory_order_relaxed);
+    float aspect = hooks::g_current_aspect.load(std::memory_order_relaxed);
     if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
         return 1.0F;
     }
@@ -59,7 +58,7 @@ namespace hooks {
                 bool        apply_hor_plus = false;
                 switch (mode) {
                     case FovMode::Auto:
-                        apply_hor_plus = (g_current_aspect<G>.load(std::memory_order_relaxed) <
+                        apply_hor_plus = (g_current_aspect.load(std::memory_order_relaxed) <
                                           Data::k_default_aspect);
                         break;
                     case FovMode::VertPlus:

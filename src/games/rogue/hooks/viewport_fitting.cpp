@@ -18,21 +18,21 @@ namespace hooks {
         struct ViewportRatioLoad {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
                 if (!games::rogue::g_registry.enabled<Tag>() ||
-                    !g_is_in_game<G>.load(std::memory_order_relaxed)) {
+                    !g_is_in_game.load(std::memory_order_relaxed)) {
                     regs.xmm0.f32[0] = Data::k_inv_default_aspect;
                     return;
                 }
                 float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
                 if (ar > 0.0F) {
                     regs.xmm0.f32[0] = 1.0F / ar;
-                    g_current_aspect<G>.store(ar, std::memory_order_relaxed);
+                    g_current_aspect.store(ar, std::memory_order_relaxed);
                     return;
                 }
                 float w = *reinterpret_cast<float *>(regs.rax + 0x10);
                 float h = *reinterpret_cast<float *>(regs.rax + 0x14);
                 if (w > 0.0F) {
                     regs.xmm0.f32[0] = h / w;
-                    g_current_aspect<G>.store(w / h, std::memory_order_relaxed);
+                    g_current_aspect.store(w / h, std::memory_order_relaxed);
                 }
             }
         };
@@ -40,7 +40,7 @@ namespace hooks {
         struct ViewportRatioMul {
             [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
                 if (!games::rogue::g_registry.enabled<Tag>() ||
-                    !g_is_in_game<G>.load(std::memory_order_relaxed)) {
+                    !g_is_in_game.load(std::memory_order_relaxed)) {
                     regs.xmm4.f32[0] *= Data::k_default_aspect;
                     return;
                 }
@@ -83,7 +83,7 @@ namespace hooks {
         float ar = cfg.aspect_ratio.get();
         log::get()->trace("ViewportFittingHook: on_reload aspect_ratio={}", ar);
         if (ar > 0.0F) {
-            g_current_aspect<G>.store(ar, std::memory_order_relaxed);
+            g_current_aspect.store(ar, std::memory_order_relaxed);
         }
     }
 

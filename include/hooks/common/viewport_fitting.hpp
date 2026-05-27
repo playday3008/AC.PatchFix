@@ -18,7 +18,6 @@ template<typename G>
 struct ViewportFittingHook {};
 
 namespace hooks {
-    template<typename G>
     extern std::atomic<float> g_current_aspect;
 
     template<typename G>
