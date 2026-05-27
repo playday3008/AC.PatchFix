@@ -5,18 +5,8 @@
 
 #include <mini/ini.h>
 
-#include "hooks/registry/all_hooks.hpp"
+#include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
-
-// IWYU pragma: begin_exports
-#include "hooks/display_detection.hpp"
-#include "hooks/fov_correction.hpp"
-#include "hooks/fps_unlock.hpp"
-#include "hooks/game_state.hpp"
-#include "hooks/language_unlock.hpp"
-#include "hooks/viewport_fitting.hpp"
-#include "hooks/viewport_scaling.hpp"
-// IWYU pragma: end_exports
 
 namespace hooks {
     namespace detail {
@@ -36,12 +26,17 @@ namespace hooks {
         };
     } // namespace detail
 
+    template<typename HookList>
     class Registry {
-        using Storage = typename detail::make_storage<AllHooks>::type;
+        using Storage = typename detail::make_storage<HookList>::type;
         Storage states_;
 
       public:
-        void install_all(const patterns::ResolvedAddresses &addrs, mINI::INIStructure &ini);
+        using hook_list_type = HookList;
+
+        template<typename Addrs>
+        void install_all(const Addrs &addrs, mINI::INIStructure &ini);
+
         void reload(mINI::INIStructure &ini);
 
         template<typename Tag>
@@ -70,16 +65,6 @@ namespace hooks {
             return std::get<detail::HookState<Tag>>(states_).installed;
         }
     };
-
-    extern Registry g_registry;
-
-    template<typename Tag>
-    auto enabled() -> bool {
-        return g_registry.enabled<Tag>();
-    }
-
-    template<typename Tag>
-    auto config() -> const auto & {
-        return g_registry.config<Tag>();
-    }
 } // namespace hooks
+
+#include "hooks/registry/registry_impl.hpp"
