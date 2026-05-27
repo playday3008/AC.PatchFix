@@ -22,7 +22,7 @@ template<typename G>
 namespace hooks {
     template<typename G>
     struct HookTraits<FOVCorrectionHook<G>> {
-        using Addrs       = typename games::game_data<G>::ResolvedAddresses;
+        using Addrs        = typename games::game_data<G>::ResolvedAddresses;
         using PatternField = std::optional<uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "FOVCorrection";

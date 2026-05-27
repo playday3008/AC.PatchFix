@@ -18,7 +18,7 @@ namespace games::rogue {
 namespace hooks {
     template<>
     struct HookTraits<games::rogue::LanguageUnlockHook> {
-        using Addrs       = games::game_data<games::Rogue>::ResolvedAddresses;
+        using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
         using PatternField = std::optional<uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "LanguageUnlock";

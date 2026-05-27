@@ -56,7 +56,8 @@ set_target_properties(patchfix_core PROPERTIES
 )
 
 function(add_game GAME_TAG)
-    set(GAME_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/games/${GAME_TAG}")
+    string(TOLOWER "${GAME_TAG}" GAME_TAG_LOWER)
+    set(GAME_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/games/${GAME_TAG_LOWER}")
     file(GLOB_RECURSE GAME_SOURCES "${GAME_SRC_DIR}/*.cpp")
 
     set(TARGET_NAME "AC.${GAME_TAG}.PatchFix")
