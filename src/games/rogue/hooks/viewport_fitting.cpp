@@ -78,7 +78,8 @@ namespace hooks {
         };
     } // namespace
 
-    void HookTraits<Tag>::on_reload(const Config &cfg) {
+    template<>
+    void HookTraits<ViewportFittingHook<games::Rogue>>::on_reload(const Config &cfg) {
         float ar = cfg.aspect_ratio.get();
         log::get()->trace("ViewportFittingHook: on_reload aspect_ratio={}", ar);
         if (ar > 0.0F) {
@@ -86,7 +87,8 @@ namespace hooks {
         }
     }
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    template<>
+    auto HookTraits<ViewportFittingHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("ViewportFittingHook: installing");
         auto ratio_load = addrs.viewport_ratio_load.value();
         auto ratio_mul  = addrs.viewport_ratio_mul.value();

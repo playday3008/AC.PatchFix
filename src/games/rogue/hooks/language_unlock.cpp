@@ -70,7 +70,7 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::LanguageUnlockHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("LanguageUnlockHook: installing");
 
         const auto &cfg        = games::rogue::g_registry.config<Tag>();

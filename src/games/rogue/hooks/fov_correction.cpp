@@ -28,8 +28,7 @@ auto compute_hor_plus_correction<games::Rogue>() -> float {
     using Data = games::game_data<G>;
 
     float aspect = hooks::g_current_aspect<G>.load(std::memory_order_relaxed);
-    if (aspect <= 0.0F ||
-        std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
+    if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
         return 1.0F;
     }
 
@@ -82,7 +81,8 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    template<>
+    auto HookTraits<FOVCorrectionHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("FOVCorrectionHook: installing at 0x{:X}", addrs.fov_store.value());
         auto addr = addrs.fov_store.value();
         injector::MakeInline<FOVCorrectionFunctor>(addr, addr + 5);

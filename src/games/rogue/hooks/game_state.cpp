@@ -39,7 +39,8 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    template<>
+    auto HookTraits<GameStateHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("GameStateHook: installing");
         auto unpause = addrs.game_unpause.value();
         auto pause   = addrs.game_pause.value();

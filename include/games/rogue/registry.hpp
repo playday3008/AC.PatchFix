@@ -11,14 +11,13 @@
 #include "hooks/registry/registry.hpp"
 
 namespace games::rogue {
-    using AllHooks = hooks::hook_list<
-        hooks::GameStateHook<Rogue>,
-        hooks::DisplayDetectionHook<Rogue>,
-        hooks::ViewportFittingHook<Rogue>,
-        hooks::ViewportScalingHook<Rogue>,
-        hooks::FOVCorrectionHook<Rogue>,
-        hooks::FPSUnlockHook<Rogue>,
-        LanguageUnlockHook>;
+    using AllHooks = hooks::hook_list< ::GameStateHook<Rogue>,
+                                       ::DisplayDetectionHook<Rogue>,
+                                       ::ViewportFittingHook<Rogue>,
+                                       ::ViewportScalingHook<Rogue>,
+                                       ::FOVCorrectionHook<Rogue>,
+                                       ::FPSUnlockHook<Rogue>,
+                                       LanguageUnlockHook>;
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 

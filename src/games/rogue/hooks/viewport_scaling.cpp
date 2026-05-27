@@ -77,7 +77,8 @@ namespace hooks {
         };
     } // namespace
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    template<>
+    auto HookTraits<ViewportScalingHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("ViewportScalingHook: installing");
         auto start = addrs.scaling_branch_start.value();
         auto end   = addrs.scaling_branch_end.value();

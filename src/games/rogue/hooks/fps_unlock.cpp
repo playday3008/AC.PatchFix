@@ -41,13 +41,15 @@ namespace hooks {
         }
     } // namespace
 
-    void HookTraits<Tag>::on_reload(const Config &cfg) {
+    template<>
+    void HookTraits<FPSUnlockHook<games::Rogue>>::on_reload(const Config &cfg) {
         float target = cfg.target.get();
         log::get()->trace("FPSUnlockHook: on_reload target={}", target);
         apply_fps_patch(target);
     }
 
-    auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+    template<>
+    auto HookTraits<FPSUnlockHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         g_sleep_branch_addr = addrs.fps_sleep_branch.value();
         log::get()->trace("FPSUnlockHook: sleep branch at 0x{:X}", g_sleep_branch_addr);
 

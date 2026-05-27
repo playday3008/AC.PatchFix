@@ -5,6 +5,5 @@
 #include "games/rogue/registry.hpp"
 
 namespace games {
-    using RegistryVariant = std::variant<
-        rogue::RogueRegistry *>;
+    using RegistryVariant = std::variant<rogue::RogueRegistry *>;
 } // namespace games
