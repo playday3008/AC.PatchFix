@@ -3,27 +3,36 @@
 #include <array>
 #include <string_view>
 
+#include <mini/ini.h>
+
+#include "games/rogue/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
-#include "hooks/tags.hpp"
+
+namespace games::rogue {
+    struct LanguageUnlockHook {};
+} // namespace games::rogue
 
 namespace hooks {
     template<>
-    struct HookTraits<LanguageUnlockHook> {
+    struct HookTraits<games::rogue::LanguageUnlockHook> {
+        using Addrs       = games::game_data<games::Rogue>::ResolvedAddresses;
+        using PatternField = std::optional<uintptr_t> Addrs::*;
+
         static constexpr std::string_view name = "LanguageUnlock";
 
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<>;
 
         static constexpr auto required_patterns = std::array<PatternField, 3> {
-            &patterns::ResolvedAddresses::get_game_id,
-            &patterns::ResolvedAddresses::lang_bf_write,
-            &patterns::ResolvedAddresses::lang_setup,
+            &Addrs::get_game_id,
+            &Addrs::lang_bf_write,
+            &Addrs::lang_setup,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 1> {
-            &patterns::ResolvedAddresses::get_language,
+            &Addrs::get_language,
         };
 
         struct Config : config_base<Config> {
@@ -33,6 +42,6 @@ namespace hooks {
                 std::tuple {&Config::unlock_all, &Config::ui_language};
         };
 
-        static auto install(const patterns::ResolvedAddresses &addrs) -> bool;
+        static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks

@@ -7,13 +7,12 @@
 #include <mini/ini.h>
 
 #include "games/game_data.hpp"
-#include "games/tags.hpp"
+#include "hooks/common/game_state.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
-#include "hooks/common/game_state.hpp"
 
 template<typename G>
 struct ViewportFittingHook {};

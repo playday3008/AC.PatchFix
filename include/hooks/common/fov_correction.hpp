@@ -5,14 +5,13 @@
 
 #include <mini/ini.h>
 
-#include "games/game_data.hpp"
-#include "games/tags.hpp"
 #include "config/enums.hpp"
+#include "games/game_data.hpp"
+#include "hooks/common/viewport_fitting.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
-#include "hooks/common/viewport_fitting.hpp"
 
 template<typename G>
 struct FOVCorrectionHook {};
