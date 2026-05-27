@@ -1,8 +1,8 @@
 #pragma once
 
 #include <concepts>
+#include <string_view>
 #include <type_traits>
-#include <utility>
 
 #include <mini/ini.h>
 
@@ -18,9 +18,6 @@ namespace hooks {
         { HookTraits<Tag>::required_patterns };
         typename HookTraits<Tag>::Config;
         { std::declval<typename HookTraits<Tag>::Config &>().load_all(ini) } -> std::same_as<void>;
-        {
-            HookTraits<Tag>::install(std::declval<const patterns::ResolvedAddresses &>())
-        } -> std::same_as<bool>;
     };
 
     template<typename Tag, typename List>
