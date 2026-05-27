@@ -17,6 +17,7 @@
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/parsers.hpp"
+#include "hooks/registry/registry.hpp"
 #include "hooks/registry/validate.hpp"
 
 namespace hooks {
@@ -24,14 +25,14 @@ namespace hooks {
         template<typename HookList>
         struct RegistryOps {
             template<typename... Tags>
-            static constexpr auto validate_all(hook_list<Tags...>) -> bool {
+            static constexpr auto validate_all(hook_list<Tags...> /*unused*/) -> bool {
                 return (sizeof(validate_hook_deps<Tags, HookList>) && ...);
             }
 
             static_assert(validate_all(HookList {}));
 
             template<typename Tag, typename... Tags>
-            static constexpr auto hook_idx_in(hook_list<Tags...>) -> std::size_t {
+            static constexpr auto hook_idx_in(hook_list<Tags...> /*unused*/) -> std::size_t {
                 constexpr std::array matches = {std::is_same_v<Tag, Tags>...};
                 for (std::size_t i = 0; i < sizeof...(Tags); ++i) {
                     if (matches.at(i)) {
@@ -61,20 +62,20 @@ namespace hooks {
             };
 
             template<typename... Tags>
-            static constexpr auto hook_list_size(hook_list<Tags...>) -> std::size_t {
+            static constexpr auto hook_list_size(hook_list<Tags...> /*unused*/) -> std::size_t {
                 return sizeof...(Tags);
             }
 
             static constexpr std::size_t N = hook_list_size(HookList {});
 
             template<typename... Tags>
-            static constexpr auto build_hard_deps(hook_list<Tags...>) {
+            static constexpr auto build_hard_deps(hook_list<Tags...> /*unused*/) {
                 return std::array<std::span<const std::size_t>, sizeof...(Tags)> {
                     DepIndices<Tags>::hard...};
             }
 
             template<typename... Tags>
-            static constexpr auto build_soft_deps(hook_list<Tags...>) {
+            static constexpr auto build_soft_deps(hook_list<Tags...> /*unused*/) {
                 return std::array<std::span<const std::size_t>, sizeof...(Tags)> {
                     DepIndices<Tags>::soft...};
             }
@@ -132,19 +133,19 @@ namespace hooks {
 
             struct HookOps {
                 std::string_view             name;
-                std::size_t                  index;
+                std::size_t                  index{};
                 std::span<const std::size_t> hard_deps;
                 std::span<const std::size_t> soft_deps;
 
-                void (*load_config)(Registry<HookList> &r, mINI::INIStructure &ini);
-                void (*load_enabled)(Registry<HookList> &r, mINI::INIStructure &ini);
-                bool (*check_required_fn)(const void *addrs);
-                bool (*do_install_fn)(const void *addrs);
-                void (*set_installed)(Registry<HookList> &r, bool val);
-                void (*set_enabled)(Registry<HookList> &r, bool val);
-                bool (*is_enabled)(const Registry<HookList> &r);
-                bool (*is_installed)(const Registry<HookList> &r);
-                void (*call_on_reload)(Registry<HookList> &r);
+                void (*load_config)(Registry<HookList> &r, mINI::INIStructure &ini){};
+                void (*load_enabled)(Registry<HookList> &r, mINI::INIStructure &ini){};
+                bool (*check_required_fn)(const void *addrs){};
+                bool (*do_install_fn)(const void *addrs){};
+                void (*set_installed)(Registry<HookList> &r, bool val){};
+                void (*set_enabled)(Registry<HookList> &r, bool val){};
+                bool (*is_enabled)(const Registry<HookList> &r){};
+                bool (*is_installed)(const Registry<HookList> &r){};
+                void (*call_on_reload)(Registry<HookList> &r){};
             };
 
             template<typename Tag, typename Addrs>
@@ -243,12 +244,12 @@ namespace hooks {
             }
 
             template<typename Addrs, typename... Tags>
-            static auto make_all_ops(hook_list<Tags...>) -> std::array<HookOps, sizeof...(Tags)> {
+            static auto make_all_ops(hook_list<Tags...> /*unused*/) -> std::array<HookOps, sizeof...(Tags)> {
                 return {make_ops<Tags, Addrs>()...};
             }
 
             template<typename... Tags>
-            static auto make_all_ops(hook_list<Tags...>) -> std::array<HookOps, sizeof...(Tags)> {
+            static auto make_all_ops(hook_list<Tags...> /*unused*/) -> std::array<HookOps, sizeof...(Tags)> {
                 return {make_ops<Tags>()...};
             }
 

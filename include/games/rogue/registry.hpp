@@ -1,6 +1,5 @@
 #pragma once
 
-#include "games/rogue/game_data.hpp"
 #include "games/rogue/hooks/language_unlock.hpp"
 #include "hooks/common/display_detection.hpp"
 #include "hooks/common/fov_correction.hpp"

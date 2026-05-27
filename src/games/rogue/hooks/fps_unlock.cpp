@@ -8,7 +8,6 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
 
 namespace hooks {

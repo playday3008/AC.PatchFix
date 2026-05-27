@@ -40,7 +40,7 @@ namespace hooks {
         void reload(mINI::INIStructure &ini);
 
         template<typename Tag>
-        auto enabled() const -> bool {
+        [[nodiscard]] auto enabled() const -> bool {
             return std::get<detail::HookState<Tag>>(states_).enabled.load(
                 std::memory_order_relaxed);
         }
@@ -61,10 +61,10 @@ namespace hooks {
         }
 
         template<typename Tag>
-        auto installed() const -> bool {
+        [[nodiscard]] auto installed() const -> bool {
             return std::get<detail::HookState<Tag>>(states_).installed;
         }
     };
 } // namespace hooks
 
-#include "hooks/registry/registry_impl.hpp"
+#include "hooks/registry/registry_impl.hpp" // IWYU pragma: keep

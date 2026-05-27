@@ -1,3 +1,4 @@
+#include <array>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -23,19 +24,10 @@ static std::unique_ptr<FileWatcher> g_watcher;
 static std::optional<std::jthread>  g_init_thread;
 #pragma clang diagnostic pop
 
-static auto get_module_directory(HMODULE hModule) -> std::filesystem::path {
-    std::string path(MAX_PATH, '\0');
-    path.resize(GetModuleFileNameA(hModule, path.data(), static_cast<DWORD>(path.size())));
-    auto dir = std::filesystem::path(path).parent_path();
-    return dir.empty() ? std::filesystem::path(".") : dir;
-}
-
-static auto get_exe_name() -> std::string {
-    WCHAR buf[MAX_PATH];
-    DWORD len  = GetModuleFileNameW(nullptr, buf, MAX_PATH);
-    auto  full = win32::wchar_to_utf8(buf, static_cast<int>(len));
-    auto  pos  = full.find_last_of("\\/");
-    return (pos != std::string::npos) ? full.substr(pos + 1) : full;
+static auto get_module_path(HMODULE hModule) -> std::filesystem::path {
+    std::array<WCHAR, MAX_PATH> buf {};
+    DWORD len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
+    return std::filesystem::path(win32::wchar_to_utf8(buf.data(), static_cast<int>(len)));
 }
 
 template<typename G>
@@ -82,7 +74,7 @@ static void init_game(Registry &registry, const std::filesystem::path &ini_path)
     registry.install_all(addrs, ini);
     log::get()->trace("Hook registry initialized");
 
-    g_watcher = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] {
+    g_watcher = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
         log::get()->info("INI change detected, reloading...");
         mINI::INIFile      f(ini_path.string());
         mINI::INIStructure data;
@@ -96,8 +88,8 @@ static void init_game(Registry &registry, const std::filesystem::path &ini_path)
 }
 
 static void init(HMODULE hModule) {
-    auto dir      = get_module_directory(hModule);
-    auto exe_name = get_exe_name();
+    auto dll_dir  = get_module_path(hModule).parent_path();
+    auto exe_name = get_module_path(nullptr).filename().string();
 
     auto variant = detect_game(exe_name);
     if (!variant) {
@@ -105,7 +97,7 @@ static void init(HMODULE hModule) {
     }
 
     std::visit(
-        [&](auto *registry) {
+        [&](auto *registry) -> auto {
             using Registry = std::remove_pointer_t<decltype(registry)>;
             using HookList = typename Registry::hook_list_type;
 
@@ -118,10 +110,10 @@ static void init(HMODULE hModule) {
             auto name     = games::game_data<G>::name;
             auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
 
-            log::init((dir / (log_name + ".log")).string());
+            log::init((dll_dir / (log_name + ".log")).string());
             log::get()->info("{} initializing for {}", log_name, exe_name);
 
-            auto ini_path = dir / (log_name + ".ini");
+            auto ini_path = dll_dir / (log_name + ".ini");
             init_game<G>(*registry, ini_path);
         },
         *variant);
@@ -131,7 +123,7 @@ static void init(HMODULE hModule) {
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
-        g_init_thread.emplace([hModule](std::stop_token /*unused*/) { init(hModule); });
+        g_init_thread.emplace([hModule] -> void { init(hModule); });
     } else if (reason == DLL_PROCESS_DETACH) {
         g_watcher.reset();
         g_init_thread.reset();

@@ -7,7 +7,7 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "games/rogue/game_data.hpp"
+#include "games/rogue/game_data.hpp" // IWYU pragma: keep
 
 namespace hooks {
     std::atomic<bool> g_is_in_game {false};
