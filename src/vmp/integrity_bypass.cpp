@@ -27,7 +27,9 @@ namespace vmp {
         safetyhook::InlineHook g_create_thread_hook;
         std::atomic<int>       g_blocked_count {0};
 
-        auto WINAPI empty_thread(LPVOID /*param*/) -> DWORD { return 0; }
+        auto WINAPI empty_thread(LPVOID /*param*/) -> DWORD {
+            return 0;
+        }
 
         auto WINAPI hk_create_thread(LPSECURITY_ATTRIBUTES  attrs,
                                      SIZE_T                 stack_size,
@@ -47,7 +49,9 @@ namespace vmp {
     } // namespace
 #pragma clang diagnostic pop
 
-    auto active() -> bool { return g_active.load(std::memory_order_acquire); }
+    auto active() -> bool {
+        return g_active.load(std::memory_order_acquire);
+    }
 
     auto install(HMODULE game_module) -> bool {
         g_sections = detail::find_vmp_sections(game_module);

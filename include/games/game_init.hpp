@@ -20,6 +20,8 @@
 
 extern std::unique_ptr<FileWatcher> g_watcher;
 
+extern void game_init(HMODULE hModule);
+
 inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
     std::array<WCHAR, MAX_PATH> buf {};
     DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);

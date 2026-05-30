@@ -24,9 +24,9 @@ namespace games {
         };
 
         struct ScanEntry {
-            std::string_view                         name;
-            std::string_view                         bytes;
-            ptrdiff_t                                offset;
+            std::string_view         name;
+            std::string_view         bytes;
+            ptrdiff_t                offset;
             std::optional<uintptr_t> ResolvedAddresses::*field;
         };
 
