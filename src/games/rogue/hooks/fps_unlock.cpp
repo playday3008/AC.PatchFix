@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
-#include <injector/injector.hpp>
-
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/write.hpp"
+#include "mem/x64.hpp"
 
 #include "games/rogue/registry.hpp"
 
@@ -27,12 +27,12 @@ namespace hooks {
             target = std::max(target, 0.0F);
 
             if (target < k_min_fps) {
-                injector::WriteMemory<uint8_t>(g_sleep_branch_addr, k_jmp_opcode, true);
-                injector::WriteMemory<float>(g_frame_time_addr, g_original_frame_time, true);
+                mem::write<uint8_t>(g_sleep_branch_addr, k_jmp_opcode);
+                mem::write<float>(g_frame_time_addr, g_original_frame_time);
                 log::get()->trace("FPSUnlockHook: uncapped");
             } else {
-                injector::WriteMemory<uint8_t>(g_sleep_branch_addr, k_jnb_opcode, true);
-                injector::WriteMemory<float>(g_frame_time_addr, 1000.0F / target, true);
+                mem::write<uint8_t>(g_sleep_branch_addr, k_jnb_opcode);
+                mem::write<float>(g_frame_time_addr, 1000.0F / target);
                 log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS ({:.4f} ms)",
                                   target,
                                   1000.0F / target);
@@ -53,10 +53,10 @@ namespace hooks {
         log::get()->trace("FPSUnlockHook: sleep branch at 0x{:X}", g_sleep_branch_addr);
 
         auto mulss_addr   = addrs.fps_frame_time.value();
-        g_frame_time_addr = injector::ReadRelativeOffset(mulss_addr + 4, 4).as_int();
+        g_frame_time_addr = mem::x64::read_rel(mulss_addr + 4, 4);
         log::get()->trace("FPSUnlockHook: frame time constant at 0x{:X}", g_frame_time_addr);
 
-        g_original_frame_time = injector::ReadMemory<float>(g_frame_time_addr, true);
+        g_original_frame_time = mem::read<float>(g_frame_time_addr);
         log::get()->trace("FPSUnlockHook: original frame time = {:.4f} ms ({:.1f} FPS)",
                           g_original_frame_time,
                           1000.0F / g_original_frame_time);
