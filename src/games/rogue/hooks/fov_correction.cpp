@@ -5,10 +5,8 @@
 #include <atomic>
 #include <utility>
 
-#include <injector/assembly.hpp>
-#include <injector/injector.hpp>
-
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -42,10 +40,16 @@ auto compute_hor_plus_correction<games::Rogue>() -> float {
 
 namespace hooks {
     namespace {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+        mem::MidHook g_fov_hook;
+#pragma clang diagnostic pop
+
         using Tag = FOVCorrectionHook<G>;
 
         struct FOVCorrectionFunctor {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::g_registry.enabled<Tag>()) {
                     *reinterpret_cast<float *>(regs.rbx + 0x40) = regs.xmm6.f32[0];
                     return;
@@ -84,7 +88,12 @@ namespace hooks {
     auto HookTraits<FOVCorrectionHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("FOVCorrectionHook: installing at 0x{:X}", addrs.fov_store.value());
         auto addr = addrs.fov_store.value();
-        injector::MakeInline<FOVCorrectionFunctor>(addr, addr + 5);
+        if (auto h = mem::make_hook<FOVCorrectionFunctor>(addr, addr + 5)) {
+            g_fov_hook = std::move(*h);
+        } else {
+            log::get()->error("FOVCorrectionHook: hook failed: {}", h.error());
+            return false;
+        }
         log::get()->trace("FOVCorrectionHook: installed");
         return true;
     }
