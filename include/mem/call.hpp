@@ -3,7 +3,6 @@
 #include <cstdint>
 
 namespace mem {
-
     namespace detail {
         template<typename Sig>
         struct invoke_impl;
@@ -20,5 +19,4 @@ namespace mem {
     auto invoke(uintptr_t addr, Args... args) {
         return detail::invoke_impl<Sig>::call(addr, args...);
     }
-
 } // namespace mem

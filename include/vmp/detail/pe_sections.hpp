@@ -9,8 +9,10 @@
 
 namespace vmp::detail {
     struct SectionRange {
+        // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
         uintptr_t start {};
         uintptr_t end {};
+        // NOLINTEND(misc-non-private-member-variables-in-classes)
 
         [[nodiscard]] auto contains(uintptr_t addr) const -> bool {
             return addr >= start && addr < end;
@@ -27,9 +29,9 @@ namespace vmp::detail {
 
     inline auto find_section(HMODULE hModule, std::string_view name)
         -> std::optional<SectionRange> {
-        auto  base = reinterpret_cast<uintptr_t>(hModule);
-        auto *dos  = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
-        auto *nt   = reinterpret_cast<const IMAGE_NT_HEADERS64 *>(
+        auto        base = reinterpret_cast<uintptr_t>(hModule);
+        const auto *dos  = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
+        const auto *nt   = reinterpret_cast<const IMAGE_NT_HEADERS64 *>(
             base + static_cast<uintptr_t>(dos->e_lfanew));
         auto *sec = IMAGE_FIRST_SECTION(nt);
 
@@ -39,7 +41,7 @@ namespace vmp::detail {
 
             if (std::string_view(sec_name) == name) {
                 auto va = base + sec[i].VirtualAddress;
-                return SectionRange {va, va + sec[i].Misc.VirtualSize};
+                return SectionRange {.start=va, .end=va + sec[i].Misc.VirtualSize};
             }
         }
         return std::nullopt;

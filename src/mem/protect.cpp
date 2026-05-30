@@ -1,21 +1,26 @@
 #include "mem/protect.hpp"
 
+#include <cstddef>
 #include <cstdint>
 
 #include <atomic>
+#include <optional>
 
 #include <Windows.h>
+#include <winternl.h>
 
 namespace mem {
-
     namespace {
-
-        using NtProtectFn = LONG(NTAPI *)(HANDLE, PVOID *, PSIZE_T, ULONG, PULONG);
+        using NtProtectVirtualMemory_t = NTSTATUS(NTAPI *)(HANDLE  ProcessHandle,
+                                                           PVOID  *BaseAddress,
+                                                           PSIZE_T RegionSize,
+                                                           ULONG   NewProtection,
+                                                           PULONG  OldProtection);
 
         std::atomic<ProtectMethod> g_method {ProtectMethod::virtual_protect};
 
-        NtProtectFn g_nt_protect   = nullptr;
-        HANDLE      g_self_process = nullptr;
+        NtProtectVirtualMemory_t g_nt_protect   = nullptr;
+        HANDLE                   g_self_process = nullptr;
 
         void ensure_nt_protect() {
             if (g_nt_protect != nullptr) {
@@ -23,7 +28,7 @@ namespace mem {
             }
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-strict"
-            g_nt_protect = reinterpret_cast<NtProtectFn>(
+            g_nt_protect = reinterpret_cast<NtProtectVirtualMemory_t>(
                 GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
 #pragma clang diagnostic pop
             g_self_process = OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId());
@@ -53,7 +58,6 @@ namespace mem {
             }
             return old;
         }
-
     } // namespace
 
     void set_protect_method(ProtectMethod method) {
@@ -66,11 +70,9 @@ namespace mem {
     auto protect_method() -> ProtectMethod {
         return g_method.load(std::memory_order_acquire);
     }
-
 } // namespace mem
 
 namespace mem::detail {
-
     auto protect(uintptr_t addr, size_t size, uint32_t new_protect) -> std::optional<uint32_t> {
         if (mem::protect_method() == ProtectMethod::nt_protect) {
             return protect_nt(addr, size, new_protect);
@@ -85,5 +87,4 @@ namespace mem::detail {
             protect_vp(addr, size, old_protect);
         }
     }
-
 } // namespace mem::detail

@@ -4,7 +4,6 @@
 
 #include <expected>
 #include <string>
-#include <utility>
 
 #include <safetyhook/context.hpp>
 #include <safetyhook/mid_hook.hpp>
@@ -12,7 +11,6 @@
 #include "mem/write.hpp"
 
 namespace mem {
-
     using Registers = safetyhook::Context;
 
     class MidHook {
@@ -20,6 +18,9 @@ namespace mem {
 
       public:
         MidHook()                                             = default;
+        ~MidHook()                                            = default;
+        MidHook(const MidHook &)                              = delete;
+        auto operator=(const MidHook &) -> MidHook &          = delete;
         MidHook(MidHook &&other) noexcept                     = default;
         auto operator=(MidHook &&other) noexcept -> MidHook & = default;
 
@@ -33,7 +34,7 @@ namespace mem {
 
     template<typename Functor>
     auto make_hook(uintptr_t addr) -> std::expected<MidHook, std::string> {
-        return MidHook::create(addr, [](Registers &regs) { Functor {}(regs); });
+        return MidHook::create(addr, [](Registers &regs) -> auto { Functor {}(regs); });
     }
 
     template<typename Functor>
@@ -41,7 +42,6 @@ namespace mem {
         if (end > addr) {
             nop(addr, end - addr);
         }
-        return MidHook::create(addr, [](Registers &regs) { Functor {}(regs); });
+        return MidHook::create(addr, [](Registers &regs) -> auto { Functor {}(regs); });
     }
-
 } // namespace mem

@@ -1,11 +1,20 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
 #include <optional>
 
 namespace mem::x64 {
+    inline constexpr uint8_t op_call_rel32  = 0xE8;
+    inline constexpr uint8_t op_jmp_rel32   = 0xE9;
+    inline constexpr uint8_t op_indirect    = 0xFF;
+    inline constexpr uint8_t modrm_call_rip = 0x15;
+    inline constexpr uint8_t modrm_jmp_rip  = 0x25;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
 
     inline auto read_rel(uintptr_t addr, size_t sizeof_operand = 4) -> uintptr_t {
         switch (sizeof_operand) {
@@ -32,12 +41,12 @@ namespace mem::x64 {
     inline auto branch_target(uintptr_t addr) -> std::optional<uintptr_t> {
         auto opcode = *reinterpret_cast<const uint8_t *>(addr);
         switch (opcode) {
-            case 0xE8:
-            case 0xE9:
+            case op_call_rel32:
+            case op_jmp_rel32:
                 return read_rel(addr + 1, 4);
-            case 0xFF: {
+            case op_indirect: {
                 auto modrm = *reinterpret_cast<const uint8_t *>(addr + 1);
-                if (modrm == 0x15 || modrm == 0x25) {
+                if (modrm == modrm_call_rip || modrm == modrm_jmp_rip) {
                     auto      ptr_addr = read_rel(addr + 2, 4);
                     uintptr_t target   = 0;
                     std::memcpy(&target, reinterpret_cast<const void *>(ptr_addr), sizeof(target));
@@ -50,4 +59,5 @@ namespace mem::x64 {
         }
     }
 
+#pragma clang diagnostic pop
 } // namespace mem::x64

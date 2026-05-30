@@ -8,7 +8,7 @@
 
 namespace vmp::detail {
     inline auto resolve_branch_target(uintptr_t addr) -> uintptr_t {
-        auto *bytes = reinterpret_cast<const uint8_t *>(addr);
+        const auto *bytes = reinterpret_cast<const uint8_t *>(addr);
 
         if (bytes[0] == 0xE9) {
             auto rel = *reinterpret_cast<const int32_t *>(addr + 1);

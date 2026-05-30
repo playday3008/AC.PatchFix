@@ -3,16 +3,14 @@
 #include <array>
 #include <filesystem>
 #include <memory>
-#include <string>
 
 #include <Windows.h>
 
 #include <mini/ini.h>
 
-#include "logger.hpp" // IWYU pragma: keep
-
 #include "config/file_watcher.hpp"
 #include "games/game_data.hpp"
+#include "logger.hpp" // IWYU pragma: keep
 #include "mem/protect.hpp"
 #include "patterns/signatures.hpp"
 #include "vmp/integrity_bypass.hpp"
@@ -25,7 +23,7 @@ extern void game_init(HMODULE hModule);
 inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
     std::array<WCHAR, MAX_PATH> buf {};
     DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
-    return std::filesystem::path(win32::wchar_to_utf8(buf.data(), static_cast<int>(len)));
+    return {win32::wchar_to_utf8(buf.data(), static_cast<int>(len))};
 }
 
 template<typename G, typename Registry>

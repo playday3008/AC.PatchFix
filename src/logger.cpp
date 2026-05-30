@@ -17,7 +17,6 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 
 namespace {
-
     auto null_logger() -> const std::shared_ptr<spdlog::logger> & {
         static const auto &inst =
             *new std::shared_ptr<spdlog::logger>([]() -> std::shared_ptr<spdlog::logger> {
@@ -46,7 +45,6 @@ namespace {
         spdlog::register_logger(logger);
         out = std::move(logger);
     }
-
 } // namespace
 
 struct log::Impl {

@@ -7,17 +7,15 @@
 #include <thread>
 
 #include <Windows.h>
-
 #include <winternl.h>
 
 #include <safetyhook/inline_hook.hpp>
 
-#include "logger.hpp"
+#include "logger.hpp" // IWYU pragma: keep
 #include "vmp/detail/pe_sections.hpp"
 #include "vmp/detail/thread_intercept.hpp"
 
 namespace vmp {
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
@@ -126,5 +124,4 @@ namespace vmp {
         g_active.store(false, std::memory_order_release);
         log::get()->info("[VMP] Hooks removed");
     }
-
 } // namespace vmp

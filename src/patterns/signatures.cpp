@@ -14,7 +14,6 @@
 #include <Hooking.Patterns.h>
 
 namespace {
-
     struct ScanRange {
         uintptr_t begin = 0;
         uintptr_t end   = 0;
@@ -73,7 +72,6 @@ namespace {
 
         return {scan_begin, scan_end};
     }
-
 } // namespace
 
 auto patterns::find_unique(std::string_view name, std::string_view pat_str, ptrdiff_t offset)
