@@ -1,0 +1,67 @@
+#pragma once
+
+#include <array>
+#include <filesystem>
+#include <memory>
+#include <string>
+
+#include <Windows.h>
+
+#include <mini/ini.h>
+
+#include "logger.hpp" // IWYU pragma: keep
+
+#include "config/file_watcher.hpp"
+#include "games/game_data.hpp"
+#include "patterns/signatures.hpp"
+#include "win32/string.hpp"
+
+extern std::unique_ptr<FileWatcher> g_watcher;
+
+inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
+    std::array<WCHAR, MAX_PATH> buf {};
+    DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
+    return std::filesystem::path(win32::wchar_to_utf8(buf.data(), static_cast<int>(len)));
+}
+
+template<typename G, typename Registry>
+void init_game(Registry &registry, const std::filesystem::path &ini_path) {
+    using Data  = games::game_data<G>;
+    using Addrs = typename Data::ResolvedAddresses;
+
+    mINI::INIFile      file(ini_path.string());
+    mINI::INIStructure ini;
+    if (!file.read(ini)) {
+        log::get()->warn("Failed to read INI, using defaults");
+    }
+    log::get()->trace("INI loaded from {}", ini_path.string());
+
+    Addrs addrs;
+    bool  all_found = true;
+    for (const auto &entry : Data::scan_entries) {
+        auto result = patterns::find_unique(entry.name, entry.bytes, entry.offset);
+        if (result) {
+            addrs.*(entry.field) = *result;
+            log::get()->trace("Pattern {}: 0x{:X}", entry.name, *result);
+        } else {
+            all_found = false;
+            log::get()->warn("{}", result.error());
+        }
+    }
+    log::get()->info("Pattern scan: {}", all_found ? "all found" : "some missing");
+
+    registry.install_all(addrs, ini);
+    log::get()->trace("Hook registry initialized");
+
+    g_watcher = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
+        log::get()->info("INI change detected, reloading...");
+        mINI::INIFile      f(ini_path.string());
+        mINI::INIStructure data;
+        if (f.read(data)) {
+            registry.reload(data);
+        } else {
+            log::get()->warn("Config reload failed: could not read INI");
+        }
+    });
+    log::get()->info("File watcher started for {}", ini_path.string());
+}

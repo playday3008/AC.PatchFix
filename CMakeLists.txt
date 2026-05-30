@@ -85,3 +85,4 @@ function(add_game GAME_TAG)
 endfunction()
 
 add_game(Rogue)
+add_game(Syndicate)
