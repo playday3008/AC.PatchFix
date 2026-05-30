@@ -44,10 +44,10 @@ namespace mem {
             if (g_nt_protect == nullptr || g_self_process == nullptr) {
                 return std::nullopt;
             }
-            auto    *base   = reinterpret_cast<void *>(addr);
-            auto     region = size;
-            ULONG    old    = 0;
-            LONG status = g_nt_protect(g_self_process, &base, &region, new_protect, &old);
+            auto *base   = reinterpret_cast<void *>(addr);
+            auto  region = size;
+            ULONG old    = 0;
+            LONG  status = g_nt_protect(g_self_process, &base, &region, new_protect, &old);
             if (status < 0) {
                 return std::nullopt;
             }
