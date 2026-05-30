@@ -4,12 +4,12 @@
 
 #include <utility>
 
-#include <injector/assembly.hpp>
-#include <injector/calling.hpp>
-#include <injector/injector.hpp>
-
 #include "config/language.hpp"
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/call.hpp"
+#include "mem/hook.hpp"
+#include "mem/write.hpp"
+#include "mem/x64.hpp"
 
 #include "games/rogue/registry.hpp"
 
@@ -34,11 +34,18 @@ namespace hooks {
         Language  s_ui_language        = Language::None;
         GameId    s_real_game_id       = GameId::uplay_ww;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+        mem::MidHook g_lang_bf_hook;
+        mem::MidHook g_game_id_hook;
+#pragma clang diagnostic pop
+
         struct LangBitfieldPatch {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto orig = *s_subtitle_bf_global;
 
-                bool is_steam = injector::fastcall<uint8_t()>::call(s_is_steam_addr) != 0;
+                bool is_steam = mem::invoke<uint8_t()>(s_is_steam_addr) != 0;
 
                 if (lang::has(orig, Language::Russian)) {
                     s_real_game_id = is_steam ? GameId::steam_ru : GameId::uplay_ru;
@@ -58,13 +65,12 @@ namespace hooks {
 
                 regs.rbx = lang::k_all_languages;
                 regs.rcx = regs.rbx;
-                injector::fastcall<void(uint32_t)>::call(s_set_audio_bf_addr,
-                                                         static_cast<uint32_t>(regs.rcx));
+                mem::invoke<void(uint32_t)>(s_set_audio_bf_addr, static_cast<uint32_t>(regs.rcx));
             }
         };
 
         struct GetGameIdGuard {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 regs.rax = std::to_underlying(s_real_game_id);
             }
         };
@@ -84,7 +90,7 @@ namespace hooks {
 
         if (s_ui_language != Language::None && addrs.get_language.has_value()) {
             s_lang_idx_global =
-                injector::ReadRelativeOffset(addrs.get_language.value() + 6).get<uint32_t>();
+                reinterpret_cast<uint32_t *>(mem::x64::read_rel(addrs.get_language.value() + 6));
             *s_lang_idx_global = std::to_underlying(s_ui_language);
             log::get()->trace("LanguageUnlockHook: lang_idx=0x{:X} override={}",
                               reinterpret_cast<uintptr_t>(s_lang_idx_global),
@@ -102,11 +108,11 @@ namespace hooks {
         auto lang_bf_write = addrs.lang_bf_write.value();
         auto lang_setup    = addrs.lang_setup.value();
 
-        s_is_steam_addr     = injector::GetBranchDestination(get_game_id + 0x12).as_int();
-        s_set_audio_bf_addr = injector::GetBranchDestination(lang_setup + 0x02).as_int();
+        s_is_steam_addr     = mem::x64::branch_target(get_game_id + 0x12).value();
+        s_set_audio_bf_addr = mem::x64::branch_target(lang_setup + 0x02).value();
 
-        s_subtitle_bf_global = injector::ReadRelativeOffset(lang_bf_write + 2).get<uint32_t>();
-        s_audio_bf_global    = injector::ReadRelativeOffset(lang_bf_write + 8).get<uint32_t>();
+        s_subtitle_bf_global = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
+        s_audio_bf_global    = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
 
         // Pre-patch bitfields before game main calls GetLanguage/SetGameLanguage.
         // The lang file loader may overwrite these later — the callback re-patches.
@@ -120,13 +126,13 @@ namespace hooks {
                           reinterpret_cast<uintptr_t>(s_subtitle_bf_global),
                           reinterpret_cast<uintptr_t>(s_audio_bf_global));
 
-        injector::MakeInline<LangBitfieldPatch>(lang_setup, lang_setup + 7);
+        g_lang_bf_hook = mem::make_hook<LangBitfieldPatch>(lang_setup, lang_setup + 7).value();
 
         constexpr uintptr_t get_game_id_nop_size = 9;
         constexpr uintptr_t get_game_id_jmp_size = 5;
-        injector::MakeNOP(get_game_id, get_game_id_nop_size);
-        injector::MakeInline<GetGameIdGuard>(get_game_id);
-        injector::MakeRET(get_game_id + get_game_id_jmp_size);
+        mem::nop(get_game_id, get_game_id_nop_size);
+        g_game_id_hook = mem::make_hook<GetGameIdGuard>(get_game_id).value();
+        mem::ret(get_game_id + get_game_id_jmp_size);
 
         log::get()->trace("LanguageUnlockHook: installed");
         return true;
