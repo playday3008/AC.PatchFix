@@ -45,6 +45,7 @@ add_library(patchfix_core OBJECT
     src/config/file_watcher.cpp
     src/dllmain.cpp
     src/mem/protect.cpp
+    src/mem/hook.cpp
 )
 
 target_include_directories(patchfix_core PRIVATE "${INC_DIR}")
