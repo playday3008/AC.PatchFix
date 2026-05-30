@@ -2,10 +2,8 @@
 
 #include <atomic>
 
-#include <injector/assembly.hpp>
-#include <injector/injector.hpp>
-
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -16,10 +14,16 @@ namespace hooks {
         using Data = games::game_data<G>;
         using Tag  = ViewportScalingHook<G>;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
         std::atomic<float> g_active_stretch {0.0F};
+        mem::MidHook g_scaling_branch_hook;
+        mem::MidHook g_scaling_offsets_hook;
+#pragma clang diagnostic pop
 
         struct ViewportScalingBranch {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 float w = regs.xmm8.f32[0];
                 float h = regs.xmm9.f32[0];
 
@@ -65,7 +69,7 @@ namespace hooks {
         };
 
         struct ScalingOffsetsHook {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 float fade = 1.0F - g_active_stretch.load(std::memory_order_relaxed);
 
                 float offset_x = regs.xmm1.f32[0] * fade;
@@ -86,10 +90,20 @@ namespace hooks {
             log::get()->trace("ViewportScalingHook: invalid range 0x{:X}-0x{:X}", start, end);
             return false;
         }
-        injector::MakeInline<ViewportScalingBranch>(start, end);
+        if (auto h = mem::make_hook<ViewportScalingBranch>(start, end)) {
+            g_scaling_branch_hook = std::move(*h);
+        } else {
+            log::get()->error("ViewportScalingHook: scaling_branch hook failed: {}", h.error());
+            return false;
+        }
         if (addrs.scaling_offsets) {
             auto offsets = addrs.scaling_offsets.value();
-            injector::MakeInline<ScalingOffsetsHook>(offsets, offsets + 20);
+            if (auto h = mem::make_hook<ScalingOffsetsHook>(offsets, offsets + 20)) {
+                g_scaling_offsets_hook = std::move(*h);
+            } else {
+                log::get()->error("ViewportScalingHook: scaling_offsets hook failed: {}", h.error());
+                return false;
+            }
             log::get()->trace("ViewportScalingHook: scaling_offsets at 0x{:X}", offsets);
         }
         log::get()->trace("ViewportScalingHook: installed");
