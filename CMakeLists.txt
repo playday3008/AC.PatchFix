@@ -44,6 +44,7 @@ add_library(patchfix_core OBJECT
     src/patterns/signatures.cpp
     src/config/file_watcher.cpp
     src/dllmain.cpp
+    src/mem/protect.cpp
 )
 
 target_include_directories(patchfix_core PRIVATE "${INC_DIR}")
