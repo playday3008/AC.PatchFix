@@ -1,9 +1,7 @@
 #include "hooks/common/viewport_fitting.hpp"
 
-#include <injector/assembly.hpp>
-#include <injector/injector.hpp>
-
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -15,8 +13,16 @@ namespace hooks {
         using Data = games::game_data<G>;
         using Tag  = ViewportFittingHook<G>;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+        mem::MidHook g_ratio_load_hook;
+        mem::MidHook g_ratio_mul_hook;
+        mem::MidHook g_coord_hook;
+#pragma clang diagnostic pop
+
         struct ViewportRatioLoad {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::g_registry.enabled<Tag>() ||
                     !g_is_in_game.load(std::memory_order_relaxed)) {
                     regs.xmm0.f32[0] = Data::k_inv_default_aspect;
@@ -38,7 +44,7 @@ namespace hooks {
         };
 
         struct ViewportRatioMul {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::g_registry.enabled<Tag>() ||
                     !g_is_in_game.load(std::memory_order_relaxed)) {
                     regs.xmm4.f32[0] *= Data::k_default_aspect;
@@ -58,7 +64,7 @@ namespace hooks {
         };
 
         struct CoordTransformHook {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);
                 auto *a5_y = reinterpret_cast<float *>(regs.r10 + 4);
 
@@ -92,11 +98,26 @@ namespace hooks {
         log::get()->trace("ViewportFittingHook: installing");
         auto ratio_load = addrs.viewport_ratio_load.value();
         auto ratio_mul  = addrs.viewport_ratio_mul.value();
-        injector::MakeInline<ViewportRatioLoad>(ratio_load, ratio_load + 8);
-        injector::MakeInline<ViewportRatioMul>(ratio_mul, ratio_mul + 8);
+        if (auto h = mem::make_hook<ViewportRatioLoad>(ratio_load, ratio_load + 8)) {
+            g_ratio_load_hook = std::move(*h);
+        } else {
+            log::get()->error("ViewportFittingHook: ratio_load hook failed: {}", h.error());
+            return false;
+        }
+        if (auto h = mem::make_hook<ViewportRatioMul>(ratio_mul, ratio_mul + 8)) {
+            g_ratio_mul_hook = std::move(*h);
+        } else {
+            log::get()->error("ViewportFittingHook: ratio_mul hook failed: {}", h.error());
+            return false;
+        }
         if (addrs.coord_transform) {
             auto ct = addrs.coord_transform.value();
-            injector::MakeInline<CoordTransformHook>(ct, ct + 38);
+            if (auto h = mem::make_hook<CoordTransformHook>(ct, ct + 38)) {
+                g_coord_hook = std::move(*h);
+            } else {
+                log::get()->error("ViewportFittingHook: coord_transform hook failed: {}", h.error());
+                return false;
+            }
             log::get()->trace("ViewportFittingHook: coord_transform at 0x{:X}", ct);
         }
         log::get()->trace("ViewportFittingHook: installed");
