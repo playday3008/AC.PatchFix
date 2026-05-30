@@ -4,7 +4,7 @@
 
 #include <utility>
 
-#include "config/language.hpp"
+#include "games/rogue/language.hpp"
 #include "logger.hpp" // IWYU pragma: keep
 #include "mem/call.hpp"
 #include "mem/hook.hpp"
@@ -14,6 +14,11 @@
 #include "games/rogue/registry.hpp"
 
 namespace hooks {
+    using games::rogue::Language;
+    using games::rogue::k_all_menu;
+    using games::rogue::k_all_subtitle;
+    using games::rogue::k_all_audio;
+
     namespace {
         using Tag = games::rogue::LanguageUnlockHook;
 
@@ -47,23 +52,23 @@ namespace hooks {
 
                 bool is_steam = mem::invoke<uint8_t()>(s_is_steam_addr) != 0;
 
-                if (lang::has(orig, Language::Russian)) {
+                if (bitfield::has(orig, Language::Russian)) {
                     s_real_game_id = is_steam ? GameId::steam_ru : GameId::uplay_ru;
-                } else if (lang::has(orig, Language::Korean) &&
-                           lang::has(orig, Language::ChineseTrad)) {
+                } else if (bitfield::has(orig, Language::Korean) &&
+                           bitfield::has(orig, Language::ChineseTrad)) {
                     s_real_game_id = is_steam ? GameId::steam_asia : GameId::uplay_asia;
                 } else {
                     s_real_game_id = is_steam ? GameId::steam_ww : GameId::uplay_ww;
                 }
 
-                *s_subtitle_bf_global = lang::k_all_languages;
-                *s_audio_bf_global    = lang::k_all_languages;
+                *s_subtitle_bf_global = k_all_subtitle;
+                *s_audio_bf_global    = k_all_audio;
 
                 if (s_lang_idx_global != nullptr && s_ui_language != Language::None) {
                     *s_lang_idx_global = std::to_underlying(s_ui_language);
                 }
 
-                regs.rbx = lang::k_all_languages;
+                regs.rbx = k_all_menu;
                 regs.rcx = regs.rbx;
                 mem::invoke<void(uint32_t)>(s_set_audio_bf_addr, static_cast<uint32_t>(regs.rcx));
             }
@@ -116,8 +121,8 @@ namespace hooks {
 
         // Pre-patch bitfields before game main calls GetLanguage/SetGameLanguage.
         // The lang file loader may overwrite these later — the callback re-patches.
-        *s_subtitle_bf_global = lang::k_all_languages;
-        *s_audio_bf_global    = lang::k_all_languages;
+        *s_subtitle_bf_global = k_all_subtitle;
+        *s_audio_bf_global    = k_all_audio;
 
         log::get()->trace("LanguageUnlockHook: IsSteam=0x{:X} SetAudioBf=0x{:X}",
                           s_is_steam_addr,

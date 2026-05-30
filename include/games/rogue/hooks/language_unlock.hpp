@@ -6,6 +6,7 @@
 #include <mini/ini.h>
 
 #include "games/rogue/game_data.hpp"
+#include "games/rogue/language.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
@@ -36,9 +37,11 @@ namespace hooks {
         };
 
         struct Config : config_base<Config> {
-            ini_field<bool>       unlock_all {"Language", "UnlockAll", false};
-            ini_field<Language>   ui_language {"Language", "UILanguage", Language::None};
-            static constexpr auto field_ptrs =
+            ini_field<bool>                   unlock_all {"Language", "UnlockAll", false};
+            ini_field<games::rogue::Language> ui_language {"Language",
+                                                           "UILanguage",
+                                                           games::rogue::Language::None};
+            static constexpr auto             field_ptrs =
                 std::tuple {&Config::unlock_all, &Config::ui_language};
         };
 

@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "config/enums.hpp"
-#include "config/language.hpp"
 
 namespace hooks {
     namespace detail {
@@ -134,13 +133,6 @@ namespace hooks {
             float val = 0.0F;
             detail::sv_from_chars(str, val);
             return val;
-        }
-    };
-
-    template<>
-    struct default_parser<Language> {
-        [[maybe_unused]] static auto operator()(const std::string &s) -> Language {
-            return detail::parse_enum(s, lang::k_names, Language::None);
         }
     };
 
