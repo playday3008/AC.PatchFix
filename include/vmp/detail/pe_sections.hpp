@@ -1,64 +1,37 @@
 #pragma once
 
-#include <cstring>
+#include <algorithm>
+#include <vector>
 
 #include <optional>
-#include <string_view>
 
 #include <Windows.h>
 
+#include "win32/pe.hpp"
+
 namespace vmp::detail {
-    struct SectionRange {
+    struct VmpSections {
         // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
-        uintptr_t start {};
-        uintptr_t end {};
+        std::vector<win32::SectionInfo>   vmp;
+        std::optional<win32::SectionInfo> text;
         // NOLINTEND(misc-non-private-member-variables-in-classes)
 
-        [[nodiscard]] auto contains(uintptr_t addr) const -> bool {
-            return addr >= start && addr < end;
+        [[nodiscard]] auto has_vmp() const -> bool { return !vmp.empty(); }
+
+        [[nodiscard]] auto contains_vmp(uintptr_t addr) const -> bool {
+            return std::ranges::any_of(vmp, [addr](const auto &s) { return s.contains(addr); });
         }
     };
-
-    struct VmpSections {
-        std::optional<SectionRange> ubx0;
-        std::optional<SectionRange> ubx1;
-        std::optional<SectionRange> ubx2;
-        SectionRange                text {};
-        bool                        has_vmp {};
-    };
-
-    inline auto find_section(HMODULE hModule, std::string_view name)
-        -> std::optional<SectionRange> {
-        auto        base = reinterpret_cast<uintptr_t>(hModule);
-        const auto *dos  = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
-        const auto *nt   = reinterpret_cast<const IMAGE_NT_HEADERS64 *>(
-            base + static_cast<uintptr_t>(dos->e_lfanew));
-        auto *sec = IMAGE_FIRST_SECTION(nt);
-
-        for (WORD i = 0; i < nt->FileHeader.NumberOfSections; ++i) {
-            char sec_name[IMAGE_SIZEOF_SHORT_NAME + 1] {};
-            std::memcpy(sec_name, sec[i].Name, IMAGE_SIZEOF_SHORT_NAME);
-
-            if (std::string_view(sec_name) == name) {
-                auto va = base + sec[i].VirtualAddress;
-                return SectionRange {.start=va, .end=va + sec[i].Misc.VirtualSize};
-            }
-        }
-        return std::nullopt;
-    }
 
     inline auto find_vmp_sections(HMODULE hModule) -> VmpSections {
         VmpSections result;
-
-        result.ubx0 = find_section(hModule, ".UBX0");
-        result.ubx1 = find_section(hModule, ".UBX1");
-        result.ubx2 = find_section(hModule, ".UBX2");
-
-        if (auto text = find_section(hModule, ".text")) {
-            result.text = *text;
+        for (auto &sec : win32::enumerate_sections(hModule)) {
+            if (sec.name.starts_with(".UBX")) {
+                result.vmp.push_back(std::move(sec));
+            } else if (sec.name == ".text") {
+                result.text = std::move(sec);
+            }
         }
-
-        result.has_vmp = result.ubx0.has_value();
         return result;
     }
 } // namespace vmp::detail

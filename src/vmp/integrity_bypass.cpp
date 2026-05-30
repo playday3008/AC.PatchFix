@@ -54,7 +54,7 @@ namespace vmp {
     auto install(HMODULE game_module) -> bool {
         g_sections = detail::find_vmp_sections(game_module);
 
-        if (!g_sections.has_vmp) {
+        if (!g_sections.has_vmp()) {
             return false;
         }
 
@@ -84,7 +84,7 @@ namespace vmp {
             return;
         }
 
-        const auto *text_byte = reinterpret_cast<volatile const uint8_t *>(g_sections.text.start);
+        const auto *text_byte = reinterpret_cast<volatile const uint8_t *>(g_sections.text->base);
         if (*text_byte != 0) {
             log::get()->trace("[VMP] .text already unpacked");
             return;
