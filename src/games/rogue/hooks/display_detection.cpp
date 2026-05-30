@@ -5,10 +5,8 @@
 #include <atomic>
 #include <utility>
 
-#include <injector/assembly.hpp>
-#include <injector/injector.hpp>
-
 #include "logger.hpp" // IWYU pragma: keep
+#include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -19,10 +17,15 @@ namespace hooks {
         using Data = games::game_data<G>;
         using Tag  = DisplayDetectionHook<G>;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
         std::atomic<uintptr_t> g_display_object {0};
+        mem::MidHook g_display_hook;
+#pragma clang diagnostic pop
 
         struct DisplayFlagHook {
-            [[maybe_unused]] static void operator()(injector::reg_pack &regs) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_display_object.store(regs.rbx, std::memory_order_relaxed);
 
                 if (!games::rogue::g_registry.enabled<Tag>()) {
@@ -95,7 +98,12 @@ namespace hooks {
     auto HookTraits<DisplayDetectionHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
         log::get()->trace("DisplayDetectionHook: installing at 0x{:X}", addrs.display_flag.value());
         auto addr = addrs.display_flag.value();
-        injector::MakeInline<DisplayFlagHook>(addr, addr + 7);
+        if (auto h = mem::make_hook<DisplayFlagHook>(addr, addr + 7)) {
+            g_display_hook = std::move(*h);
+        } else {
+            log::get()->error("DisplayDetectionHook: hook failed: {}", h.error());
+            return false;
+        }
         log::get()->trace("DisplayDetectionHook: installed");
         return true;
     }
