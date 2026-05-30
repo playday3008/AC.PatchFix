@@ -13,7 +13,9 @@
 
 #include "config/file_watcher.hpp"
 #include "games/game_data.hpp"
+#include "mem/protect.hpp"
 #include "patterns/signatures.hpp"
+#include "vmp/integrity_bypass.hpp"
 #include "win32/string.hpp"
 
 extern std::unique_ptr<FileWatcher> g_watcher;
@@ -28,6 +30,13 @@ template<typename G, typename Registry>
 void init_game(Registry &registry, const std::filesystem::path &ini_path) {
     using Data  = games::game_data<G>;
     using Addrs = typename Data::ResolvedAddresses;
+
+    if constexpr (games::game_is_vmprotect<G>) {
+        mem::set_protect_method(mem::ProtectMethod::nt_protect);
+        vmp::wait_for_unpack();
+        vmp::wait_for_integrity_blocked();
+        log::get()->info("VMP bypass active, .text writable via NtProtectVirtualMemory");
+    }
 
     mINI::INIFile      file(ini_path.string());
     mINI::INIStructure ini;
@@ -52,6 +61,10 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
 
     registry.install_all(addrs, ini);
     log::get()->trace("Hook registry initialized");
+
+    if constexpr (games::game_is_vmprotect<G>) {
+        vmp::uninstall();
+    }
 
     g_watcher = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
         log::get()->info("INI change detected, reloading...");

@@ -7,6 +7,7 @@
 #include "logger.hpp" // IWYU pragma: keep
 
 #include "config/file_watcher.hpp"
+#include "vmp/integrity_bypass.hpp"
 
 extern void game_init(HMODULE hModule);
 
@@ -21,10 +22,12 @@ static std::optional<std::jthread> g_init_thread;
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
+        vmp::install(GetModuleHandleW(nullptr));
         g_init_thread.emplace([hModule] -> void { game_init(hModule); });
     } else if (reason == DLL_PROCESS_DETACH) {
         g_watcher.reset();
         g_init_thread.reset();
+        vmp::uninstall();
         log::shutdown();
     }
     return TRUE;
