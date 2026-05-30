@@ -115,7 +115,8 @@ namespace hooks {
             if (auto h = mem::make_hook<CoordTransformHook>(ct, ct + 38)) {
                 g_coord_hook = std::move(*h);
             } else {
-                log::get()->error("ViewportFittingHook: coord_transform hook failed: {}", h.error());
+                log::get()->error("ViewportFittingHook: coord_transform hook failed: {}",
+                                  h.error());
                 return false;
             }
             log::get()->trace("ViewportFittingHook: coord_transform at 0x{:X}", ct);

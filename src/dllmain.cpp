@@ -26,7 +26,7 @@ static std::optional<std::jthread>  g_init_thread;
 
 static auto get_module_path(HMODULE hModule) -> std::filesystem::path {
     std::array<WCHAR, MAX_PATH> buf {};
-    DWORD len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
+    DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
     return std::filesystem::path(win32::wchar_to_utf8(buf.data(), static_cast<int>(len)));
 }
 

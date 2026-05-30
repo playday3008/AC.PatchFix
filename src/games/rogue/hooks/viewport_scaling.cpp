@@ -18,8 +18,8 @@ namespace hooks {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
         std::atomic<float> g_active_stretch {0.0F};
-        mem::MidHook g_scaling_branch_hook;
-        mem::MidHook g_scaling_offsets_hook;
+        mem::MidHook       g_scaling_branch_hook;
+        mem::MidHook       g_scaling_offsets_hook;
 #pragma clang diagnostic pop
 
         struct ViewportScalingBranch {
@@ -101,7 +101,8 @@ namespace hooks {
             if (auto h = mem::make_hook<ScalingOffsetsHook>(offsets, offsets + 20)) {
                 g_scaling_offsets_hook = std::move(*h);
             } else {
-                log::get()->error("ViewportScalingHook: scaling_offsets hook failed: {}", h.error());
+                log::get()->error("ViewportScalingHook: scaling_offsets hook failed: {}",
+                                  h.error());
                 return false;
             }
             log::get()->trace("ViewportScalingHook: scaling_offsets at 0x{:X}", offsets);

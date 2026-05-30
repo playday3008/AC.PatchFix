@@ -133,19 +133,19 @@ namespace hooks {
 
             struct HookOps {
                 std::string_view             name;
-                std::size_t                  index{};
+                std::size_t                  index {};
                 std::span<const std::size_t> hard_deps;
                 std::span<const std::size_t> soft_deps;
 
-                void (*load_config)(Registry<HookList> &r, mINI::INIStructure &ini){};
-                void (*load_enabled)(Registry<HookList> &r, mINI::INIStructure &ini){};
-                bool (*check_required_fn)(const void *addrs){};
-                bool (*do_install_fn)(const void *addrs){};
-                void (*set_installed)(Registry<HookList> &r, bool val){};
-                void (*set_enabled)(Registry<HookList> &r, bool val){};
-                bool (*is_enabled)(const Registry<HookList> &r){};
-                bool (*is_installed)(const Registry<HookList> &r){};
-                void (*call_on_reload)(Registry<HookList> &r){};
+                void (*load_config)(Registry<HookList> &r, mINI::INIStructure &ini) {};
+                void (*load_enabled)(Registry<HookList> &r, mINI::INIStructure &ini) {};
+                bool (*check_required_fn)(const void *addrs) {};
+                bool (*do_install_fn)(const void *addrs) {};
+                void (*set_installed)(Registry<HookList> &r, bool val) {};
+                void (*set_enabled)(Registry<HookList> &r, bool val) {};
+                bool (*is_enabled)(const Registry<HookList> &r) {};
+                bool (*is_installed)(const Registry<HookList> &r) {};
+                void (*call_on_reload)(Registry<HookList> &r) {};
             };
 
             template<typename Tag, typename Addrs>
@@ -244,12 +244,14 @@ namespace hooks {
             }
 
             template<typename Addrs, typename... Tags>
-            static auto make_all_ops(hook_list<Tags...> /*unused*/) -> std::array<HookOps, sizeof...(Tags)> {
+            static auto make_all_ops(hook_list<Tags...> /*unused*/)
+                -> std::array<HookOps, sizeof...(Tags)> {
                 return {make_ops<Tags, Addrs>()...};
             }
 
             template<typename... Tags>
-            static auto make_all_ops(hook_list<Tags...> /*unused*/) -> std::array<HookOps, sizeof...(Tags)> {
+            static auto make_all_ops(hook_list<Tags...> /*unused*/)
+                -> std::array<HookOps, sizeof...(Tags)> {
                 return {make_ops<Tags>()...};
             }
 

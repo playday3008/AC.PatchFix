@@ -21,7 +21,7 @@ namespace hooks {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
         std::atomic<uintptr_t> g_display_object {0};
-        mem::MidHook g_display_hook;
+        mem::MidHook           g_display_hook;
 #pragma clang diagnostic pop
 
         struct DisplayFlagHook {
