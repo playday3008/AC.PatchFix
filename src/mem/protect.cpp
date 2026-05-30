@@ -10,7 +10,7 @@ namespace mem {
 
     namespace {
 
-        using NtProtectFn = NTSTATUS(NTAPI *)(HANDLE, PVOID *, PSIZE_T, ULONG, PULONG);
+        using NtProtectFn = LONG(NTAPI *)(HANDLE, PVOID *, PSIZE_T, ULONG, PULONG);
 
         std::atomic<ProtectMethod> g_method {ProtectMethod::virtual_protect};
 
@@ -21,8 +21,11 @@ namespace mem {
             if (g_nt_protect != nullptr) {
                 return;
             }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
             g_nt_protect = reinterpret_cast<NtProtectFn>(
                 GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
+#pragma clang diagnostic pop
             g_self_process = OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId());
         }
 
@@ -44,7 +47,7 @@ namespace mem {
             auto    *base   = reinterpret_cast<void *>(addr);
             auto     region = size;
             ULONG    old    = 0;
-            NTSTATUS status = g_nt_protect(g_self_process, &base, &region, new_protect, &old);
+            LONG status = g_nt_protect(g_self_process, &base, &region, new_protect, &old);
             if (status < 0) {
                 return std::nullopt;
             }
