@@ -45,6 +45,7 @@ add_library(patchfix_core OBJECT
     src/dllmain.cpp
     src/mem/protect.cpp
     src/mem/hook.cpp
+    src/vmp/integrity_bypass.cpp
 )
 
 target_include_directories(patchfix_core PRIVATE "${INC_DIR}")
