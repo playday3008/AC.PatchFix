@@ -1,7 +1,5 @@
 #include "games/syndicate/hooks/refresh_rate_fix.hpp"
 
-#include <cstdint>
-
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -9,6 +7,7 @@
 #include "mem/hook.hpp"
 
 #include "games/syndicate/registry.hpp"
+#include "games/syndicate/structs.hpp"
 
 namespace hooks {
     namespace {
@@ -20,10 +19,6 @@ namespace hooks {
         mem::MidHook g_hook;
 #pragma clang diagnostic pop
 
-        // The swap chain object stores the current DXGI_MODE_DESC at obj+0xD0.
-        // RefreshRate (DXGI_RATIONAL) is at DXGI_MODE_DESC+16 = obj+0xE0.
-        constexpr std::uintptr_t k_mode_desc_refresh_offset = 0xE0;
-
         struct FixRefreshRate {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto mode = static_cast<int>(regs.r9);
@@ -31,13 +26,9 @@ namespace hooks {
                     return;
                 }
 
-                auto  obj = regs.rcx;
-                auto *numerator =
-                    reinterpret_cast<std::uint32_t *>(obj + k_mode_desc_refresh_offset);
-                auto *denominator =
-                    reinterpret_cast<std::uint32_t *>(obj + k_mode_desc_refresh_offset + 4);
-                *numerator   = 0;
-                *denominator = 0;
+                auto *obj = reinterpret_cast<games::syndicate::SwapChainObj *>(regs.rcx);
+                obj->refresh_rate.numerator   = 0;
+                obj->refresh_rate.denominator = 0;
             }
         };
     } // namespace

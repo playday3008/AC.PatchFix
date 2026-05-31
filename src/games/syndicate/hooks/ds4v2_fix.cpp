@@ -28,7 +28,7 @@ namespace hooks {
 
         struct CheckDS4PID {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto pid = static_cast<std::uint16_t>(regs.rax & 0xFFFF);
+                auto pid = static_cast<std::uint16_t>(regs.rax & 0xFFFFU);
 
                 if (pid == k_ds4_v1_pid || pid == k_ds4_v2_pid) {
                     log::get()->trace("DS4v2FixHook: DS4 controller detected (PID=0x{:04X})", pid);

@@ -10,6 +10,7 @@
 #include "mem/hook.hpp"
 
 #include "games/syndicate/registry.hpp"
+#include "games/syndicate/structs.hpp"
 
 namespace hooks {
     namespace {
@@ -36,12 +37,12 @@ namespace hooks {
 
         struct FilterModeInsert {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto *entry  = reinterpret_cast<const std::uint8_t *>(regs.rdx);
-                auto  width  = *reinterpret_cast<const std::uint32_t *>(entry + 8);
-                auto  height = *reinterpret_cast<const std::uint32_t *>(entry + 0xC);
+                const auto *entry = reinterpret_cast<const games::syndicate::ModeEntry *>(regs.rdx);
 
-                if (!is_standard_aspect(width, height)) {
-                    log::get()->trace("ResolutionFixHook: filtered {}x{}", width, height);
+                if (!is_standard_aspect(entry->width, entry->height)) {
+                    log::get()->trace("ResolutionFixHook: filtered {}x{}",
+                                      entry->width,
+                                      entry->height);
                     auto ret_addr       = *reinterpret_cast<std::uintptr_t *>(regs.rsp);
                     regs.rip            = ret_addr;
                     regs.trampoline_rsp = regs.rsp + 8;
