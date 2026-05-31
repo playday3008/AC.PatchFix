@@ -1,5 +1,4 @@
 InheritParentConfig: true
 Checks: >
-  -bugprone-unchecked-optional-access,
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -performance-no-int-to-ptr,

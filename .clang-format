@@ -1,4 +1,4 @@
-﻿---
+---
 BasedOnStyle: LLVM
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: 'true'
@@ -8,7 +8,6 @@ AlignEscapedNewlines: Left
 AlignOperands: 'true'
 AlignTrailingComments: 'true'
 AllowAllArgumentsOnNextLine: 'false'
-AllowAllConstructorInitializersOnNextLine: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'false'
 AllowShortBlocksOnASingleLine: 'false'
 AllowShortCaseLabelsOnASingleLine: 'false'
@@ -17,7 +16,7 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Inline
 AllowShortLoopsOnASingleLine: 'false'
 AlwaysBreakBeforeMultilineStrings: 'false'
-AlwaysBreakTemplateDeclarations: 'Yes'
+BreakTemplateDeclarations: 'Yes'
 BinPackArguments: 'false'
 BinPackParameters: 'false'
 BreakBeforeBinaryOperators: None
@@ -28,7 +27,6 @@ BreakInheritanceList: BeforeColon
 BreakStringLiterals: 'false'
 ColumnLimit: '100'
 CompactNamespaces: 'false'
-ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 ContinuationIndentWidth: '4'
 Cpp11BracedListStyle: 'true'
 DerivePointerAlignment: 'false'
@@ -43,6 +41,7 @@ KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
 MaxEmptyLinesToKeep: '1'
 NamespaceIndentation: All
+PackConstructorInitializers: CurrentLine
 PenaltyBreakAssignment: '10'
 PenaltyBreakBeforeFirstCallParameter: '30'
 PenaltyBreakComment: '10'
@@ -64,13 +63,11 @@ SpaceBeforeCtorInitializerColon: 'true'
 SpaceBeforeInheritanceColon: 'true'
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: 'true'
-SpaceInEmptyParentheses: 'false'
 SpacesInAngles: 'false'
-SpacesInCStyleCastParentheses: 'false'
 SpacesInContainerLiterals: 'false'
-SpacesInParentheses: 'false'
+SpacesInParens: Never
 SpacesInSquareBrackets: 'false'
-Standard: Auto
+Standard: Latest
 TabWidth: '4'
 UseTab: Never
 
