@@ -46,9 +46,8 @@ namespace diagnostics {
         return trace;
     }
 
-    void resolve_modules(StackTrace &trace) {
-        for (std::size_t i = 0; i < trace.count; ++i) {
-            auto   &frame   = trace.frames[i];
+    void resolve_modules(std::span<StackFrame> frames) {
+        for (auto &frame : frames) {
             HMODULE hModule = nullptr;
             if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -67,7 +66,7 @@ namespace diagnostics {
         }
     }
 
-    void resolve_symbols(StackTrace &trace) {
+    void resolve_symbols(std::span<StackFrame> frames) {
         using SymInitialize_t = BOOL(WINAPI *)(HANDLE, PCSTR, BOOL);
         using SymFromAddr_t   = BOOL(WINAPI *)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
 
@@ -95,8 +94,7 @@ namespace diagnostics {
         symbol->SizeOfStruct             = sizeof(SYMBOL_INFO);
         symbol->MaxNameLen               = k_max_sym_len - 1;
 
-        for (std::size_t i = 0; i < trace.count; ++i) {
-            auto   &frame        = trace.frames[i];
+        for (auto &frame : frames) {
             DWORD64 displacement = 0;
             if (p_sym_from_addr(GetCurrentProcess(), frame.address, &displacement, symbol) !=
                 FALSE) {

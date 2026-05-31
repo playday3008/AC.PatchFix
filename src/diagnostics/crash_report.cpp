@@ -162,10 +162,11 @@ namespace diagnostics {
 
         log_registers(ep->ContextRecord);
 
-        auto trace = capture_stack(ep->ContextRecord);
-        resolve_modules(trace);
-        resolve_symbols(trace);
-        log_stack_trace(std::span(trace.frames).first(trace.count));
+        auto trace  = capture_stack(ep->ContextRecord);
+        auto frames = std::span(trace.frames).first(trace.count);
+        resolve_modules(frames);
+        resolve_symbols(frames);
+        log_stack_trace(frames);
 
         logger->critical("=== END CRASH REPORT ===");
         logger->flush();

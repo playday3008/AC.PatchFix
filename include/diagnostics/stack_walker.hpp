@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <array>
+#include <span>
 
 #include <Windows.h>
 
@@ -28,6 +29,6 @@ namespace diagnostics {
     };
 
     auto capture_stack(const CONTEXT *ctx) -> StackTrace;
-    void resolve_modules(StackTrace &trace);
-    void resolve_symbols(StackTrace &trace);
+    void resolve_modules(std::span<StackFrame> frames);
+    void resolve_symbols(std::span<StackFrame> frames);
 } // namespace diagnostics
