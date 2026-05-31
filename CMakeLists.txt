@@ -48,6 +48,11 @@ add_library(patchfix_core OBJECT
     src/vmp/integrity_bypass.cpp
     src/vmp/pe_sections.cpp
     src/win32/pe.cpp
+    src/diagnostics/stack_walker.cpp
+    src/diagnostics/crash_report.cpp
+    src/diagnostics/minidump.cpp
+    src/diagnostics/address_registry.cpp
+    src/diagnostics/crash_handler.cpp
 )
 
 target_include_directories(patchfix_core PUBLIC "${INC_DIR}")
