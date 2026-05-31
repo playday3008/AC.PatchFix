@@ -3,7 +3,7 @@
 #include "games/syndicate/hooks/language_unlock.hpp"
 #include "hooks/registry/registry.hpp"
 
-// Definition in src/games/syndicate/hooks/language_unlock.cpp
+// Definition in src/games/syndicate/hooks/*.cpp
 
 namespace games::syndicate {
     using AllHooks = hooks::hook_list<LanguageUnlockHook>;

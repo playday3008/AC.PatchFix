@@ -22,7 +22,8 @@ extern void game_init(HMODULE hModule);
 
 inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
     std::array<WCHAR, MAX_PATH> buf {};
-    DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
+
+    DWORD len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
     return {win32::wchar_to_utf8(buf.data(), static_cast<int>(len))};
 }
 

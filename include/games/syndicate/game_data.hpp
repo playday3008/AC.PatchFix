@@ -32,8 +32,8 @@ namespace games {
 
         // clang-format off
         static constexpr auto scan_entries = std::to_array<ScanEntry>({
-            {.name="LANG_SETUP",    .bytes="40 55 53 48 8B EC 48 83 EC 48 45 33 C9 48 89 74 24 40 48 8D 15", .offset=0,    .field=&ResolvedAddresses::lang_setup},
-            {.name="LANG_BF_WRITE", .bytes="89 3D ? ? ? ? 89 1D ? ? ? ? 89 05",                              .offset=0,    .field=&ResolvedAddresses::lang_bf_write},
+            {.name="LANG_SETUP",    .bytes="40 55 53 48 8B EC 48 83 EC 48 45 33 C9 48 89 74 24 40 48 8D 15", .offset=0, .field=&ResolvedAddresses::lang_setup},
+            {.name="LANG_BF_WRITE", .bytes="89 3D ? ? ? ? 89 1D ? ? ? ? 89 05",                              .offset=0, .field=&ResolvedAddresses::lang_bf_write},
         });
         // clang-format on
     };

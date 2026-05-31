@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <string_view>
+#include <tuple>
 
 #include <mini/ini.h>
 
@@ -41,7 +43,8 @@ namespace hooks {
             ini_field<games::rogue::Language> ui_language {"Language",
                                                            "UILanguage",
                                                            games::rogue::Language::None};
-            static constexpr auto             field_ptrs =
+
+            static constexpr auto field_ptrs =
                 std::tuple {&Config::unlock_all, &Config::ui_language};
         };
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <string_view>
+#include <tuple>
 
 #include "games/syndicate/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
@@ -33,6 +35,7 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<bool>       unlock_all {"Language", "UnlockAll", false};
+
             static constexpr auto field_ptrs = std::tuple {&Config::unlock_all};
         };
 
