@@ -21,10 +21,20 @@ set(CMAKE_MT            llvm-mt)
 
 # Auto-detect MSVC and Windows SDK versions from the msvc-wine install
 file(GLOB _msvc_vers LIST_DIRECTORIES true "${MSVC_WINE_ROOT}/VC/Tools/MSVC/*")
+if(NOT _msvc_vers)
+    message(FATAL_ERROR
+        "No MSVC installation found under ${MSVC_WINE_ROOT}/VC/Tools/MSVC/. "
+        "Run msvc-wine install first: vsdownload.py --accept-license --dest ~/.msvc")
+endif()
 list(SORT _msvc_vers COMPARE NATURAL ORDER DESCENDING)
 list(GET _msvc_vers 0 MSVC_DIR)
 
 file(GLOB _sdk_vers LIST_DIRECTORIES true "${MSVC_WINE_ROOT}/kits/10/Include/*")
+if(NOT _sdk_vers)
+    message(FATAL_ERROR
+        "No Windows SDK found under ${MSVC_WINE_ROOT}/kits/10/Include/. "
+        "Run msvc-wine install first.")
+endif()
 list(SORT _sdk_vers COMPARE NATURAL ORDER DESCENDING)
 list(GET _sdk_vers 0 SDK_DIR)
 

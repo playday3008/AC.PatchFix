@@ -1,9 +1,9 @@
+include_guard(GLOBAL)
 include(FetchContent)
 
 FetchContent_Declare(hooking
     GIT_REPOSITORY https://github.com/ThirteenAG/Hooking.Patterns.git
     GIT_TAG        460a47bc813085b66c79768531caab1ed5ea96fc # master
-    GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(hooking)

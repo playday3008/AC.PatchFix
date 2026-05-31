@@ -1,3 +1,4 @@
+include_guard(GLOBAL)
 include(FetchContent)
 
 set(SPDLOG_SYSTEM_INCLUDES ON CACHE BOOL "" FORCE)

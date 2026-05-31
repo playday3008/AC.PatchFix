@@ -1,9 +1,9 @@
+include_guard(GLOBAL)
 include(FetchContent)
 
 FetchContent_Declare(safetyhook
     GIT_REPOSITORY https://github.com/cursey/safetyhook.git
     GIT_TAG        755a4a08aa7d0d7143331dc854235ebc2d1570f9 # main
-    GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(safetyhook)
