@@ -49,30 +49,30 @@ namespace games {
 
         struct ScanEntry {
             std::string_view              name;
-            std::string_view              bytes;
-            std::ptrdiff_t                offset;
             std::optional<std::uintptr_t> ResolvedAddresses::*field;
+            std::ptrdiff_t                                    offset;
+            std::string_view                                  bytes;
         };
 
         // clang-format off
         static constexpr auto scan_entries = std::to_array<ScanEntry>({
-            {.name="VIEWPORT_RATIO_LOAD", .bytes="0F 28 E8 EB ? F3 0F 10 05 ? ? ? ? F3 0F 5E C1 F3 0F 59 C4",                                  .offset=0x05, .field=&ResolvedAddresses::viewport_ratio_load},
-            {.name="VIEWPORT_RATIO_MUL",  .bytes="F3 0F 59 25 ? ? ? ? EB ? 0F 28 E5",                                                          .offset=0x00, .field=&ResolvedAddresses::viewport_ratio_mul},
-            {.name="SCALING_BRANCH",      .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D",                           .offset=0x00, .field=&ResolvedAddresses::scaling_branch_start},
-            {.name="SCALING_BRANCH",      .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D",                           .offset=0x52, .field=&ResolvedAddresses::scaling_branch_end},
-            {.name="DISPLAY_FLAG",        .bytes="0F 2F C8 73 ? 8B D6 F3 0F 59 15",                                                            .offset=0x00, .field=&ResolvedAddresses::display_flag},
-            {.name="FOV_STORE",           .bytes="89 43 40 EB 05 F3 0F 11 73 40 48 8D 54 24 40",                                               .offset=0x05, .field=&ResolvedAddresses::fov_store},
-            {.name="COORD_TRANSFORM",     .bytes="0F 28 D0 F3 0F 59 15 ? ? ? ? 0F 2F CA 77",                                                   .offset=0x00, .field=&ResolvedAddresses::coord_transform},
-            {.name="SCALING_OFFSETS",     .bytes="F3 0F 11 4C 24 30 F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 34",                                    .offset=0x00, .field=&ResolvedAddresses::scaling_offsets},
-            {.name="GAME_UNPAUSE",        .bytes="C6 81 C0 02 00 00 00 48 8B 91 90 02 00 00 48 8B D9",                                         .offset=0x00, .field=&ResolvedAddresses::game_unpause},
-            {.name="GAME_PAUSE",          .bytes="48 C1 E1 20 48 C1 F9 3F 48 23 08 48 39 4A 18 75 08 41 C6 80 C0 02 00 00 01",                 .offset=0x11, .field=&ResolvedAddresses::game_pause},
-            {.name="GAME_PAUSE2",         .bytes="48 39 46 18 75 ? C6 87 C0 02 00 00 01 48 8B 74 24",                                          .offset=0x06, .field=&ResolvedAddresses::game_pause2},
-            {.name="GET_GAME_ID",         .bytes="48 83 EC 28 B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 33 C9 84 C0 0F 95 C1 8D 81 ? ? ? ?", .offset=0x00, .field=&ResolvedAddresses::get_game_id},
-            {.name="LANG_BF_WRITE",       .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05",                                            .offset=0x05, .field=&ResolvedAddresses::lang_bf_write},
-            {.name="LANG_SETUP",          .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?",                                               .offset=0x00, .field=&ResolvedAddresses::lang_setup},
-            {.name="GET_LANGUAGE",        .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C",                                                      .offset=0x00, .field=&ResolvedAddresses::get_language},
-            {.name="FPS_SLEEP_BRANCH",    .bytes="48 89 43 78 48 2B BB 80 00 00 00 48 3B 43 70 73",                                            .offset=0x0F, .field=&ResolvedAddresses::fps_sleep_branch},
-            {.name="FPS_FRAME_TIME",      .bytes="79 04 F3 0F 58 C1 F3 0F 59 05",                                                              .offset=0x06, .field=&ResolvedAddresses::fps_frame_time},
+            {.name="VIEWPORT_RATIO_LOAD", .field=&ResolvedAddresses::viewport_ratio_load,  .offset=0x05, .bytes="0F 28 E8 EB ? F3 0F 10 05 ? ? ? ? F3 0F 5E C1 F3 0F 59 C4"},
+            {.name="VIEWPORT_RATIO_MUL",  .field=&ResolvedAddresses::viewport_ratio_mul,   .offset=0x00, .bytes="F3 0F 59 25 ? ? ? ? EB ? 0F 28 E5"},
+            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_start, .offset=0x00, .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
+            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_end,   .offset=0x52, .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
+            {.name="DISPLAY_FLAG",        .field=&ResolvedAddresses::display_flag,         .offset=0x00, .bytes="0F 2F C8 73 ? 8B D6 F3 0F 59 15"},
+            {.name="FOV_STORE",           .field=&ResolvedAddresses::fov_store,            .offset=0x05, .bytes="89 43 40 EB 05 F3 0F 11 73 40 48 8D 54 24 40"},
+            {.name="COORD_TRANSFORM",     .field=&ResolvedAddresses::coord_transform,      .offset=0x00, .bytes="0F 28 D0 F3 0F 59 15 ? ? ? ? 0F 2F CA 77"},
+            {.name="SCALING_OFFSETS",     .field=&ResolvedAddresses::scaling_offsets,      .offset=0x00, .bytes="F3 0F 11 4C 24 30 F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 34"},
+            {.name="GAME_UNPAUSE",        .field=&ResolvedAddresses::game_unpause,         .offset=0x00, .bytes="C6 81 C0 02 00 00 00 48 8B 91 90 02 00 00 48 8B D9"},
+            {.name="GAME_PAUSE",          .field=&ResolvedAddresses::game_pause,           .offset=0x11, .bytes="48 C1 E1 20 48 C1 F9 3F 48 23 08 48 39 4A 18 75 08 41 C6 80 C0 02 00 00 01"},
+            {.name="GAME_PAUSE2",         .field=&ResolvedAddresses::game_pause2,          .offset=0x06, .bytes="48 39 46 18 75 ? C6 87 C0 02 00 00 01 48 8B 74 24"},
+            {.name="GET_GAME_ID",         .field=&ResolvedAddresses::get_game_id,          .offset=0x00, .bytes="48 83 EC 28 B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 33 C9 84 C0 0F 95 C1 8D 81 ? ? ? ?"},
+            {.name="LANG_BF_WRITE",       .field=&ResolvedAddresses::lang_bf_write,        .offset=0x05, .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
+            {.name="LANG_SETUP",          .field=&ResolvedAddresses::lang_setup,           .offset=0x00, .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?"},
+            {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,         .offset=0x00, .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
+            {.name="FPS_SLEEP_BRANCH",    .field=&ResolvedAddresses::fps_sleep_branch,     .offset=0x0F, .bytes="48 89 43 78 48 2B BB 80 00 00 00 48 3B 43 70 73"},
+            {.name="FPS_FRAME_TIME",      .field=&ResolvedAddresses::fps_frame_time,       .offset=0x06, .bytes="79 04 F3 0F 58 C1 F3 0F 59 05"},
         });
         // clang-format on
     };
