@@ -8,6 +8,7 @@
 #include <safetyhook/context.hpp>
 #include <safetyhook/mid_hook.hpp>
 
+#include "diagnostics/seh_guard.hpp"
 #include "mem/write.hpp"
 
 namespace mem {
@@ -34,7 +35,7 @@ namespace mem {
 
     template<typename Functor>
     [[nodiscard]] auto make_hook(std::uintptr_t addr) -> std::expected<MidHook, std::string> {
-        return MidHook::create(addr, [](Registers &regs) -> void { Functor {}(regs); });
+        return MidHook::create(addr, diagnostics::guarded_callback<Functor>);
     }
 
     template<typename Functor>
@@ -43,6 +44,6 @@ namespace mem {
         if (end > addr) {
             (void)nop(addr, end - addr);
         }
-        return MidHook::create(addr, [](Registers &regs) -> void { Functor {}(regs); });
+        return MidHook::create(addr, diagnostics::guarded_callback<Functor>);
     }
 } // namespace mem

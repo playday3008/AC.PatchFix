@@ -14,6 +14,7 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "diagnostics/seh_guard.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/parsers.hpp"
@@ -289,7 +290,7 @@ namespace hooks {
                 continue;
             }
 
-            if (op.do_install_fn(&addrs)) {
+            if (diagnostics::guarded_install(op.do_install_fn, &addrs, op.name)) {
                 op.set_installed(*this, true);
                 log::get()->info("Hook '{}': installed", op.name);
                 ++installed_count;
