@@ -1,7 +1,10 @@
 #include "diagnostics/crash_report.hpp"
 
+#include <cstddef>
 #include <cstdint>
 
+#include <array>
+#include <span>
 #include <string_view>
 
 #include <Windows.h>
@@ -60,10 +63,10 @@ namespace diagnostics {
             log::get()->critical("  RIP={:016X}  RFLAGS={:016X}", ctx->Rip, ctx->EFlags);
         }
 
-        void log_stack_trace(const StackTrace &trace) {
-            log::get()->critical("  Stack trace ({} frames):", trace.count);
-            for (std::size_t i = 0; i < trace.count; ++i) {
-                const auto &frame = trace.frames[i];
+        void log_stack_trace(std::span<const StackFrame> frames) {
+            log::get()->critical("  Stack trace ({} frames):", frames.size());
+            for (std::size_t i = 0; i < frames.size(); ++i) {
+                const auto &frame = frames[i];
                 if (frame.module_base != 0) {
                     if (frame.has_symbol) {
                         log::get()->critical("    #{:02d}  {}+0x{:X} ({} +0x{:X})",
@@ -162,7 +165,7 @@ namespace diagnostics {
         auto trace = capture_stack(ep->ContextRecord);
         resolve_modules(trace);
         resolve_symbols(trace);
-        log_stack_trace(trace);
+        log_stack_trace(std::span(trace.frames).first(trace.count));
 
         logger->critical("=== END CRASH REPORT ===");
         logger->flush();
@@ -176,9 +179,9 @@ namespace diagnostics {
 
         auto fault_addr = reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress);
 
-        HMODULE        hModule       = nullptr;
-        std::uintptr_t module_offset = fault_addr;
-        char           module_path[MAX_PATH] {};
+        HMODULE                    hModule       = nullptr;
+        std::uintptr_t             module_offset = fault_addr;
+        std::array<char, MAX_PATH> module_path {};
         bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                                  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                              reinterpret_cast<LPCSTR>(fault_addr),
@@ -186,8 +189,8 @@ namespace diagnostics {
         if (has_module) {
             auto base     = reinterpret_cast<std::uintptr_t>(hModule);
             module_offset = fault_addr - base;
-            GetModuleFileNameA(hModule, module_path, MAX_PATH);
-            std::string_view path(module_path);
+            GetModuleFileNameA(hModule, module_path.data(), MAX_PATH);
+            std::string_view path(module_path.data());
             auto             sep = path.rfind('\\');
             auto module_name     = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
             logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
