@@ -2,12 +2,15 @@
 
 #include <array>
 #include <filesystem>
-#include <functional>
-#include <memory> // IWYU pragma: keep, start_lifetime_as
 #include <stop_token>
 #include <string>
-#include <thread>
 #include <utility>
+
+#include <version>
+#if defined(__cpp_lib_start_lifetime_as) && __cpp_lib_start_lifetime_as >= 202311L
+#    include <memory>
+#    define START_LIFETIME_AS_AVAILABLE
+#endif
 
 #include <Windows.h>
 
@@ -83,7 +86,7 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
             continue;
         }
 
-#if defined(__cpp_lib_start_lifetime_as) && __cpp_lib_start_lifetime_as >= 202311L
+#if defined(START_LIFETIME_AS_AVAILABLE)
         auto *info = std::start_lifetime_as<FILE_NOTIFY_INFORMATION>(buffer.data());
 #else
         auto *info = reinterpret_cast<FILE_NOTIFY_INFORMATION *>(buffer.data());

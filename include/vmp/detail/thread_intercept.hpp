@@ -9,7 +9,7 @@
 
 namespace vmp::detail {
     inline auto is_vmp_thread(LPTHREAD_START_ROUTINE start, const VmpSections &sections) -> bool {
-        auto addr = reinterpret_cast<uintptr_t>(start);
+        auto addr = reinterpret_cast<std::uintptr_t>(start);
 
         if (sections.contains_vmp(addr)) {
             return true;

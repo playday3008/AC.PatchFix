@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include <array>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 #include <mini/ini.h>
@@ -45,7 +47,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::DisplayDetectionHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "DisplayDetection";
 
@@ -61,7 +63,8 @@ namespace hooks {
             ini_field<games::rogue::MultiMonitor> multi_monitor {"Display",
                                                                  "MultiMonitor",
                                                                  games::rogue::MultiMonitor::Auto};
-            static constexpr auto                 field_ptrs = std::tuple {&Config::multi_monitor};
+
+            static constexpr auto field_ptrs = std::tuple {&Config::multi_monitor};
         };
 
         static void on_reload(const Config &cfg);

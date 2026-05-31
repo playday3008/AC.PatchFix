@@ -2,11 +2,14 @@
 
 #include <cstdint>
 
-#include "games/syndicate/language.hpp"
+#include <utility>
+
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/hook.hpp"
 #include "mem/x64.hpp"
 
+#include "games/syndicate/language.hpp"
 #include "games/syndicate/registry.hpp"
 
 namespace hooks {
@@ -17,11 +20,11 @@ namespace hooks {
     namespace {
         using Tag = games::syndicate::LanguageUnlockHook;
 
-        constexpr uintptr_t k_bf_write_fallback_offset = 0x121;
+        constexpr std::uintptr_t k_bf_write_fallback_offset = 0x121;
 
-        uint32_t *s_menu_bf_global     = nullptr;
-        uint32_t *s_subtitle_bf_global = nullptr;
-        uint32_t *s_audio_bf_global    = nullptr;
+        std::uint32_t *s_menu_bf_global     = nullptr;
+        std::uint32_t *s_subtitle_bf_global = nullptr;
+        std::uint32_t *s_audio_bf_global    = nullptr;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -56,22 +59,24 @@ namespace hooks {
                           lang_setup,
                           lang_bf_write);
 
-        s_menu_bf_global     = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
-        s_subtitle_bf_global = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
-        s_audio_bf_global    = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 14));
+        s_menu_bf_global = reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
+        s_subtitle_bf_global =
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
+        s_audio_bf_global =
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 14));
 
         log::get()->trace(
             "Syndicate LanguageUnlockHook: menu_bf=0x{:X} subtitle_bf=0x{:X} audio_bf=0x{:X}",
-            reinterpret_cast<uintptr_t>(s_menu_bf_global),
-            reinterpret_cast<uintptr_t>(s_subtitle_bf_global),
-            reinterpret_cast<uintptr_t>(s_audio_bf_global));
+            reinterpret_cast<std::uintptr_t>(s_menu_bf_global),
+            reinterpret_cast<std::uintptr_t>(s_subtitle_bf_global),
+            reinterpret_cast<std::uintptr_t>(s_audio_bf_global));
 
         *s_menu_bf_global     = k_all_menu;
         *s_subtitle_bf_global = k_all_subtitle;
         *s_audio_bf_global    = k_all_audio;
 
-        constexpr uintptr_t k_bf_write_size = 18;
-        auto                hook_result =
+        constexpr std::uintptr_t k_bf_write_size = 18;
+        auto                     hook_result =
             mem::make_hook<LangBitfieldPatch>(lang_bf_write, lang_bf_write + k_bf_write_size);
         if (!hook_result) {
             log::get()->error("Syndicate LanguageUnlockHook: hook failed: {}", hook_result.error());

@@ -8,9 +8,10 @@
 
 #include <mini/ini.h>
 
+#include "logger.hpp" // IWYU pragma: keep
+
 #include "config/file_watcher.hpp"
 #include "games/game_data.hpp"
-#include "logger.hpp" // IWYU pragma: keep
 #include "mem/protect.hpp"
 #include "patterns/signatures.hpp"
 #include "vmp/integrity_bypass.hpp"

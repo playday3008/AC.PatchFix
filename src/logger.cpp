@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <flat_map>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>

@@ -1,7 +1,11 @@
 #pragma once
 
+#include <cstdint>
+
 #include <array>
+#include <optional>
 #include <string_view>
+#include <tuple>
 
 #include <mini/ini.h>
 
@@ -20,7 +24,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::FPSUnlockHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "FPSUnlock";
 
@@ -34,7 +38,8 @@ namespace hooks {
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
         struct Config : config_base<Config> {
-            ini_field<float>      target {"FPS", "Target", 0.0F};
+            ini_field<float> target {"FPS", "Target", 0.0F};
+
             static constexpr auto field_ptrs = std::tuple {&Config::target};
         };
 

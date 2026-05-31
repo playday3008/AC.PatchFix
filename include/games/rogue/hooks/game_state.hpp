@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cstdint>
+
 #include <array>
 #include <atomic>
+#include <optional>
 #include <string_view>
 
 #include <mini/ini.h>
@@ -21,7 +24,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::GameStateHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "GameState";
 

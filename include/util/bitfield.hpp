@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <type_traits>
@@ -13,10 +14,10 @@ namespace bitfield {
         template<std::size_t Bits>
         using uint_for_bits = std::conditional_t<
             (Bits <= 8),
-            uint8_t,
+            std::uint8_t,
             std::conditional_t<(Bits <= 16),
-                               uint16_t,
-                               std::conditional_t<(Bits <= 32), uint32_t, uint64_t>>>;
+                               std::uint16_t,
+                               std::conditional_t<(Bits <= 32), std::uint32_t, std::uint64_t>>>;
     } // namespace detail
 
     template<counted_enum E>

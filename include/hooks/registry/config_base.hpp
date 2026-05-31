@@ -16,6 +16,7 @@ namespace hooks {
 
     struct empty_config {
         static constexpr auto field_ptrs = std::tuple {};
-        void                  load_all(mINI::INIStructure                  &/*unused*/) {}
+
+        void load_all(mINI::INIStructure & /*unused*/) {}
     };
 } // namespace hooks

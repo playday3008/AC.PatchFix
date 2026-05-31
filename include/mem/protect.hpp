@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <optional>
@@ -15,7 +16,8 @@ namespace mem {
 } // namespace mem
 
 namespace mem::detail {
-    auto protect(uintptr_t addr, size_t size, uint32_t new_protect) -> std::optional<uint32_t>;
+    auto protect(std::uintptr_t addr, std::size_t size, std::uint32_t new_protect)
+        -> std::optional<std::uint32_t>;
 
-    void unprotect(uintptr_t addr, size_t size, uint32_t old_protect);
+    void unprotect(std::uintptr_t addr, std::size_t size, std::uint32_t old_protect);
 } // namespace mem::detail

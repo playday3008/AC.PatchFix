@@ -1,9 +1,11 @@
 #pragma once
 
-#include <algorithm>
-#include <vector>
+#include <cstdint>
 
+#include <algorithm>
 #include <optional>
+#include <utility>
+#include <vector>
 
 #include <Windows.h>
 
@@ -18,7 +20,7 @@ namespace vmp::detail {
 
         [[nodiscard]] auto has_vmp() const -> bool { return !vmp.empty(); }
 
-        [[nodiscard]] auto contains_vmp(uintptr_t addr) const -> bool {
+        [[nodiscard]] auto contains_vmp(std::uintptr_t addr) const -> bool {
             return std::ranges::any_of(vmp, [addr](const auto &s) { return s.contains(addr); });
         }
     };

@@ -1,8 +1,12 @@
 #pragma once
 
+#include <cstdint>
+
 #include <array>
 #include <atomic>
+#include <optional>
 #include <string_view>
+#include <tuple>
 
 #include <mini/ini.h>
 
@@ -24,7 +28,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::ViewportFittingHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "ViewportFitting";
 
@@ -41,7 +45,8 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<float, ratio_parser> aspect_ratio {"Display", "AspectRatio", 0.0F};
-            static constexpr auto          field_ptrs = std::tuple {&Config::aspect_ratio};
+
+            static constexpr auto field_ptrs = std::tuple {&Config::aspect_ratio};
         };
 
         static void on_reload(const Config &cfg);

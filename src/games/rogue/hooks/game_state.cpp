@@ -1,8 +1,12 @@
 #include "games/rogue/hooks/game_state.hpp"
 
+#include <cstdint>
+
 #include <atomic>
+#include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/hook.hpp"
 
 namespace hooks {
@@ -22,21 +26,21 @@ namespace hooks {
         struct GameUnpause {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_is_in_game.store(true, std::memory_order_relaxed);
-                *reinterpret_cast<uint8_t *>(regs.rcx + 0x2C0) = 0;
+                *reinterpret_cast<std::uint8_t *>(regs.rcx + 0x2C0) = 0;
             }
         };
 
         struct GamePause {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_is_in_game.store(false, std::memory_order_relaxed);
-                *reinterpret_cast<uint8_t *>(regs.r8 + 0x2C0) = 1;
+                *reinterpret_cast<std::uint8_t *>(regs.r8 + 0x2C0) = 1;
             }
         };
 
         struct GamePause2 {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_is_in_game.store(false, std::memory_order_relaxed);
-                *reinterpret_cast<uint8_t *>(regs.rdi + 0x2C0) = 1;
+                *reinterpret_cast<std::uint8_t *>(regs.rdi + 0x2C0) = 1;
             }
         };
     } // namespace

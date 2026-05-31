@@ -16,8 +16,8 @@
 
 namespace {
     struct ScanRange {
-        uintptr_t begin = 0;
-        uintptr_t end   = 0;
+        std::uintptr_t begin = 0;
+        std::uintptr_t end   = 0;
     };
 
     auto find_text_range() -> ScanRange {
@@ -26,10 +26,10 @@ namespace {
             return {};
         }
 
-        uintptr_t                scan_begin = 0;
-        uintptr_t                scan_end   = 0;
-        uintptr_t                addr       = text->base;
-        uintptr_t                limit      = text->end();
+        std::uintptr_t           scan_begin = 0;
+        std::uintptr_t           scan_end   = 0;
+        std::uintptr_t           addr       = text->base;
+        std::uintptr_t           limit      = text->end();
         MEMORY_BASIC_INFORMATION mbi;
 
         while (addr < limit) {
@@ -41,7 +41,7 @@ namespace {
                                         PAGE_EXECUTE_WRITECOPY;
 
             if (mbi.State == MEM_COMMIT && (mbi.Protect & exec_mask) != 0) {
-                auto region_start = reinterpret_cast<uintptr_t>(mbi.BaseAddress);
+                auto region_start = reinterpret_cast<std::uintptr_t>(mbi.BaseAddress);
                 auto region_end   = region_start + mbi.RegionSize;
                 if (scan_begin == 0) {
                     scan_begin = region_start;
@@ -49,15 +49,15 @@ namespace {
                 scan_end = region_end;
             }
 
-            addr = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+            addr = reinterpret_cast<std::uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
         }
 
         return {.begin = scan_begin, .end = scan_end};
     }
 } // namespace
 
-auto patterns::find_unique(std::string_view name, std::string_view pat_str, ptrdiff_t offset)
-    -> std::expected<uintptr_t, std::string> {
+auto patterns::find_unique(std::string_view name, std::string_view pat_str, std::ptrdiff_t offset)
+    -> std::expected<std::uintptr_t, std::string> {
     static auto range = find_text_range();
 
     auto pattern = (range.begin != 0) ? hook::make_range_pattern(range.begin, range.end, pat_str)
@@ -69,5 +69,5 @@ auto patterns::find_unique(std::string_view name, std::string_view pat_str, ptrd
                                            pattern.size() == 0 ? "NOT FOUND" : "AMBIGUOUS",
                                            pattern.size()));
     }
-    return reinterpret_cast<uintptr_t>(pattern.get_first(offset));
+    return reinterpret_cast<std::uintptr_t>(pattern.get_first(offset));
 }

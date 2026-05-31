@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"

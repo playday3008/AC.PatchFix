@@ -1,7 +1,11 @@
 #pragma once
 
+#include <cstdint>
+
 #include <array>
+#include <optional>
 #include <string_view>
+#include <tuple>
 
 #include <mini/ini.h>
 
@@ -20,7 +24,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::ViewportScalingHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "ViewportScaling";
 
@@ -38,7 +42,8 @@ namespace hooks {
         struct Config : config_base<Config> {
             ini_field<float, clamped_unit_parser> ui_stretch_h {"UI", "StretchHorizontal", 0.0F};
             ini_field<float, clamped_unit_parser> ui_stretch_v {"UI", "StretchVertical", 0.0F};
-            static constexpr auto                 field_ptrs =
+
+            static constexpr auto field_ptrs =
                 std::tuple {&Config::ui_stretch_h, &Config::ui_stretch_v};
         };
 

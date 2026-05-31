@@ -14,13 +14,13 @@
 namespace win32 {
     struct SectionInfo {
         // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
-        std::string name;
-        uintptr_t   base {};
-        uintptr_t   size {};
-        uint32_t    characteristics {};
+        std::string    name;
+        std::uintptr_t base {};
+        std::uintptr_t size {};
+        std::uint32_t  characteristics {};
         // NOLINTEND(misc-non-private-member-variables-in-classes)
 
-        [[nodiscard]] auto end() const -> uintptr_t { return base + size; }
+        [[nodiscard]] auto end() const -> std::uintptr_t { return base + size; }
 
         [[nodiscard]] auto is_executable() const -> bool {
             return (characteristics & IMAGE_SCN_MEM_EXECUTE) != 0;
@@ -30,18 +30,18 @@ namespace win32 {
             return (characteristics & IMAGE_SCN_MEM_WRITE) != 0;
         }
 
-        [[nodiscard]] auto contains(uintptr_t addr) const -> bool {
+        [[nodiscard]] auto contains(std::uintptr_t addr) const -> bool {
             return addr >= base && addr < end();
         }
     };
 
     inline auto enumerate_sections(HMODULE hModule = nullptr) -> std::vector<SectionInfo> {
-        auto base =
-            reinterpret_cast<uintptr_t>(hModule != nullptr ? hModule : GetModuleHandleA(nullptr));
+        auto base = reinterpret_cast<std::uintptr_t>(
+            hModule != nullptr ? hModule : GetModuleHandleA(nullptr));
 
         const auto *dos = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
         const auto *nt  = reinterpret_cast<const IMAGE_NT_HEADERS *>(
-            base + static_cast<uintptr_t>(dos->e_lfanew));
+            base + static_cast<std::uintptr_t>(dos->e_lfanew));
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"

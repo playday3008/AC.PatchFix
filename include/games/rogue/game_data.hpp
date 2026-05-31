@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <array>
@@ -27,30 +28,30 @@ namespace games {
         static constexpr float k_float_epsilon           = 1e-6F;
 
         struct ResolvedAddresses {
-            std::optional<uintptr_t> viewport_ratio_load;
-            std::optional<uintptr_t> viewport_ratio_mul;
-            std::optional<uintptr_t> scaling_branch_start;
-            std::optional<uintptr_t> scaling_branch_end;
-            std::optional<uintptr_t> display_flag;
-            std::optional<uintptr_t> fov_store;
-            std::optional<uintptr_t> coord_transform;
-            std::optional<uintptr_t> scaling_offsets;
-            std::optional<uintptr_t> game_unpause;
-            std::optional<uintptr_t> game_pause;
-            std::optional<uintptr_t> game_pause2;
-            std::optional<uintptr_t> get_game_id;
-            std::optional<uintptr_t> lang_bf_write;
-            std::optional<uintptr_t> lang_setup;
-            std::optional<uintptr_t> get_language;
-            std::optional<uintptr_t> fps_sleep_branch;
-            std::optional<uintptr_t> fps_frame_time;
+            std::optional<std::uintptr_t> viewport_ratio_load;
+            std::optional<std::uintptr_t> viewport_ratio_mul;
+            std::optional<std::uintptr_t> scaling_branch_start;
+            std::optional<std::uintptr_t> scaling_branch_end;
+            std::optional<std::uintptr_t> display_flag;
+            std::optional<std::uintptr_t> fov_store;
+            std::optional<std::uintptr_t> coord_transform;
+            std::optional<std::uintptr_t> scaling_offsets;
+            std::optional<std::uintptr_t> game_unpause;
+            std::optional<std::uintptr_t> game_pause;
+            std::optional<std::uintptr_t> game_pause2;
+            std::optional<std::uintptr_t> get_game_id;
+            std::optional<std::uintptr_t> lang_bf_write;
+            std::optional<std::uintptr_t> lang_setup;
+            std::optional<std::uintptr_t> get_language;
+            std::optional<std::uintptr_t> fps_sleep_branch;
+            std::optional<std::uintptr_t> fps_frame_time;
         };
 
         struct ScanEntry {
-            std::string_view         name;
-            std::string_view         bytes;
-            ptrdiff_t                offset;
-            std::optional<uintptr_t> ResolvedAddresses::*field;
+            std::string_view              name;
+            std::string_view              bytes;
+            std::ptrdiff_t                offset;
+            std::optional<std::uintptr_t> ResolvedAddresses::*field;
         };
 
         // clang-format off

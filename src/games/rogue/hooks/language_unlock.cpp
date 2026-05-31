@@ -4,13 +4,14 @@
 
 #include <utility>
 
-#include "games/rogue/language.hpp"
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/call.hpp"
 #include "mem/hook.hpp"
 #include "mem/write.hpp"
 #include "mem/x64.hpp"
 
+#include "games/rogue/language.hpp"
 #include "games/rogue/registry.hpp"
 
 namespace hooks {
@@ -22,7 +23,7 @@ namespace hooks {
     namespace {
         using Tag = games::rogue::LanguageUnlockHook;
 
-        enum class GameId : uint16_t {
+        enum class GameId : std::uint16_t {
             uplay_ww   = 0x37FU,
             steam_ww   = 0x3A6U,
             uplay_ru   = 0x4A2U,
@@ -31,13 +32,13 @@ namespace hooks {
             steam_asia = 0x67EU,
         };
 
-        uintptr_t s_is_steam_addr      = 0;
-        uintptr_t s_set_audio_bf_addr  = 0;
-        uint32_t *s_subtitle_bf_global = nullptr;
-        uint32_t *s_audio_bf_global    = nullptr;
-        uint32_t *s_lang_idx_global    = nullptr;
-        Language  s_ui_language        = Language::None;
-        GameId    s_real_game_id       = GameId::uplay_ww;
+        std::uintptr_t s_is_steam_addr      = 0;
+        std::uintptr_t s_set_audio_bf_addr  = 0;
+        std::uint32_t *s_subtitle_bf_global = nullptr;
+        std::uint32_t *s_audio_bf_global    = nullptr;
+        std::uint32_t *s_lang_idx_global    = nullptr;
+        Language       s_ui_language        = Language::None;
+        GameId         s_real_game_id       = GameId::uplay_ww;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -50,7 +51,7 @@ namespace hooks {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto orig = *s_subtitle_bf_global;
 
-                bool is_steam = mem::invoke<uint8_t()>(s_is_steam_addr) != 0;
+                bool is_steam = mem::invoke<std::uint8_t()>(s_is_steam_addr) != 0;
 
                 if (bitfield::has(orig, Language::Russian)) {
                     s_real_game_id = is_steam ? GameId::steam_ru : GameId::uplay_ru;
@@ -70,7 +71,8 @@ namespace hooks {
 
                 regs.rbx = k_all_menu;
                 regs.rcx = regs.rbx;
-                mem::invoke<void(uint32_t)>(s_set_audio_bf_addr, static_cast<uint32_t>(regs.rcx));
+                mem::invoke<void(std::uint32_t)>(s_set_audio_bf_addr,
+                                                 static_cast<std::uint32_t>(regs.rcx));
             }
         };
 
@@ -94,11 +96,11 @@ namespace hooks {
         }
 
         if (s_ui_language != Language::None && addrs.get_language.has_value()) {
-            s_lang_idx_global =
-                reinterpret_cast<uint32_t *>(mem::x64::read_rel(addrs.get_language.value() + 6));
+            s_lang_idx_global = reinterpret_cast<std::uint32_t *>(
+                mem::x64::read_rel(addrs.get_language.value() + 6));
             *s_lang_idx_global = std::to_underlying(s_ui_language);
             log::get()->trace("LanguageUnlockHook: lang_idx=0x{:X} override={}",
-                              reinterpret_cast<uintptr_t>(s_lang_idx_global),
+                              reinterpret_cast<std::uintptr_t>(s_lang_idx_global),
                               std::to_underlying(s_ui_language));
         } else if (s_ui_language != Language::None) {
             log::get()->warn("LanguageUnlockHook: UILanguage set but GET_LANGUAGE pattern failed");
@@ -116,8 +118,10 @@ namespace hooks {
         s_is_steam_addr     = mem::x64::branch_target(get_game_id + 0x12).value();
         s_set_audio_bf_addr = mem::x64::branch_target(lang_setup + 0x02).value();
 
-        s_subtitle_bf_global = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
-        s_audio_bf_global    = reinterpret_cast<uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
+        s_subtitle_bf_global =
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
+        s_audio_bf_global =
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
 
         // Pre-patch bitfields before game main calls GetLanguage/SetGameLanguage.
         // The lang file loader may overwrite these later — the callback re-patches.
@@ -128,13 +132,13 @@ namespace hooks {
                           s_is_steam_addr,
                           s_set_audio_bf_addr);
         log::get()->trace("LanguageUnlockHook: subtitle_bf=0x{:X} audio_bf=0x{:X}",
-                          reinterpret_cast<uintptr_t>(s_subtitle_bf_global),
-                          reinterpret_cast<uintptr_t>(s_audio_bf_global));
+                          reinterpret_cast<std::uintptr_t>(s_subtitle_bf_global),
+                          reinterpret_cast<std::uintptr_t>(s_audio_bf_global));
 
         g_lang_bf_hook = mem::make_hook<LangBitfieldPatch>(lang_setup, lang_setup + 7).value();
 
-        constexpr uintptr_t get_game_id_nop_size = 9;
-        constexpr uintptr_t get_game_id_jmp_size = 5;
+        constexpr std::uintptr_t get_game_id_nop_size = 9;
+        constexpr std::uintptr_t get_game_id_jmp_size = 5;
         mem::nop(get_game_id, get_game_id_nop_size);
         g_game_id_hook = mem::make_hook<GetGameIdGuard>(get_game_id).value();
         mem::ret(get_game_id + get_game_id_jmp_size);

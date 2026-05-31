@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
+#include <utility>
 
 #include <Windows.h>
 #include <winternl.h>
@@ -12,6 +13,7 @@
 #include <safetyhook/inline_hook.hpp>
 
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "vmp/detail/pe_sections.hpp"
 #include "vmp/detail/thread_intercept.hpp"
 
@@ -36,7 +38,7 @@ namespace vmp {
                                      DWORD                  flags,
                                      LPDWORD                thread_id) -> HANDLE {
             if (detail::is_vmp_thread(start, g_sections)) {
-                auto addr = reinterpret_cast<uintptr_t>(start);
+                auto addr = reinterpret_cast<std::uintptr_t>(start);
                 log::get()->info("[VMP] Blocked integrity thread at 0x{:X}", addr);
                 start = &empty_thread;
                 g_blocked_count.fetch_add(1, std::memory_order_relaxed);
@@ -84,7 +86,8 @@ namespace vmp {
             return;
         }
 
-        const auto *text_byte = reinterpret_cast<volatile const uint8_t *>(g_sections.text->base);
+        const auto *text_byte =
+            reinterpret_cast<volatile const std::uint8_t *>(g_sections.text->base);
         if (*text_byte != 0) {
             log::get()->trace("[VMP] .text already unpacked");
             return;

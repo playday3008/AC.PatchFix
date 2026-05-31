@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include <array>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 #include <mini/ini.h>
@@ -46,7 +48,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::rogue::FOVCorrectionHook> {
         using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "FOVCorrection";
 
@@ -61,6 +63,7 @@ namespace hooks {
         struct Config : config_base<Config> {
             ini_field<games::rogue::FovMode> mode {"FOV", "Mode", games::rogue::FovMode::Auto};
             ini_field<float>                 multiplier {"FOV", "Multiplier", 1.0F};
+
             static constexpr auto field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
         };
 

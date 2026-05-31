@@ -24,7 +24,7 @@ namespace mem {
         MidHook(MidHook &&other) noexcept                     = default;
         auto operator=(MidHook &&other) noexcept -> MidHook & = default;
 
-        static auto create(uintptr_t addr, void (*callback)(Registers &))
+        static auto create(std::uintptr_t addr, void (*callback)(Registers &))
             -> std::expected<MidHook, std::string>;
 
         explicit operator bool() const { return static_cast<bool>(inner_); }
@@ -33,12 +33,12 @@ namespace mem {
     };
 
     template<typename Functor>
-    auto make_hook(uintptr_t addr) -> std::expected<MidHook, std::string> {
+    auto make_hook(std::uintptr_t addr) -> std::expected<MidHook, std::string> {
         return MidHook::create(addr, [](Registers &regs) -> auto { Functor {}(regs); });
     }
 
     template<typename Functor>
-    auto make_hook(uintptr_t addr, uintptr_t end) -> std::expected<MidHook, std::string> {
+    auto make_hook(std::uintptr_t addr, std::uintptr_t end) -> std::expected<MidHook, std::string> {
         if (end > addr) {
             nop(addr, end - addr);
         }

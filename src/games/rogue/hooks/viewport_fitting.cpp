@@ -1,6 +1,10 @@
 #include "games/rogue/hooks/viewport_fitting.hpp"
 
+#include <atomic>
+#include <utility>
+
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/write.hpp"
 #include "mem/x64.hpp"
 
@@ -14,23 +15,23 @@ namespace hooks {
     namespace {
         using Tag = games::rogue::FPSUnlockHook;
 
-        uintptr_t g_sleep_branch_addr   = 0;
-        uintptr_t g_frame_time_addr     = 0;
-        float     g_original_frame_time = 15.6666F;
+        std::uintptr_t g_sleep_branch_addr   = 0;
+        std::uintptr_t g_frame_time_addr     = 0;
+        float          g_original_frame_time = 15.6666F;
 
-        constexpr uint8_t k_jnb_opcode = 0x73;
-        constexpr uint8_t k_jmp_opcode = 0xEB;
-        constexpr float   k_min_fps    = 1.0F;
+        constexpr std::uint8_t k_jnb_opcode = 0x73;
+        constexpr std::uint8_t k_jmp_opcode = 0xEB;
+        constexpr float        k_min_fps    = 1.0F;
 
         void apply_fps_patch(float target) {
             target = std::max(target, 0.0F);
 
             if (target < k_min_fps) {
-                mem::write<uint8_t>(g_sleep_branch_addr, k_jmp_opcode);
+                mem::write<std::uint8_t>(g_sleep_branch_addr, k_jmp_opcode);
                 mem::write<float>(g_frame_time_addr, g_original_frame_time);
                 log::get()->trace("FPSUnlockHook: uncapped");
             } else {
-                mem::write<uint8_t>(g_sleep_branch_addr, k_jnb_opcode);
+                mem::write<std::uint8_t>(g_sleep_branch_addr, k_jnb_opcode);
                 mem::write<float>(g_frame_time_addr, 1000.0F / target);
                 log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS ({:.4f} ms)",
                                   target,

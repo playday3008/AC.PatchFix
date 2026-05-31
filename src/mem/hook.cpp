@@ -9,7 +9,7 @@
 #include <safetyhook/mid_hook.hpp>
 
 namespace mem {
-    auto MidHook::create(uintptr_t addr, void (*callback)(Registers &))
+    auto MidHook::create(std::uintptr_t addr, void (*callback)(Registers &))
         -> std::expected<MidHook, std::string> {
         auto result = safetyhook::MidHook::create(reinterpret_cast<void *>(addr), callback);
         if (!result) {

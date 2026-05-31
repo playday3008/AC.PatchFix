@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
+
 #include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
@@ -21,8 +22,8 @@ namespace hooks {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-        std::atomic<uintptr_t> g_display_object {0};
-        mem::MidHook           g_display_hook;
+        std::atomic<std::uintptr_t> g_display_object {0};
+        mem::MidHook                g_display_hook;
 #pragma clang diagnostic pop
 
         struct DisplayFlagHook {
@@ -58,13 +59,13 @@ namespace hooks {
     } // namespace
 
     void HookTraits<games::rogue::DisplayDetectionHook>::on_reload(const Config &cfg) {
-        uintptr_t obj = g_display_object.load(std::memory_order_relaxed);
+        std::uintptr_t obj = g_display_object.load(std::memory_order_relaxed);
         if (obj == 0) {
             return;
         }
 
-        auto    mode = cfg.multi_monitor.get();
-        uint8_t flag = 0;
+        auto         mode = cfg.multi_monitor.get();
+        std::uint8_t flag = 0;
         switch (mode) {
             case MultiMonitor::ForceSingle:
                 flag = 0;
@@ -82,16 +83,16 @@ namespace hooks {
                 std::unreachable();
         }
 
-        *reinterpret_cast<uint8_t *>(obj + 0x18) = flag;
+        *reinterpret_cast<std::uint8_t *>(obj + 0x18) = flag;
         if (flag != 0) {
             float w = *reinterpret_cast<float *>(obj + 0x10);
-            *reinterpret_cast<uint32_t *>(obj + 0x1C) =
-                static_cast<uint32_t>(w * Data::k_multi_monitor_split);
+            *reinterpret_cast<std::uint32_t *>(obj + 0x1C) =
+                static_cast<std::uint32_t>(w * Data::k_multi_monitor_split);
         }
 
         log::get()->info("DisplayDetection: poked flag={}, singleWidth={}",
                          flag,
-                         (flag != 0) ? *reinterpret_cast<uint32_t *>(obj + 0x1C) : 0);
+                         (flag != 0) ? *reinterpret_cast<std::uint32_t *>(obj + 0x1C) : 0);
     }
 
     auto HookTraits<games::rogue::DisplayDetectionHook>::install(const Addrs &addrs) -> bool {

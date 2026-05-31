@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <array>
@@ -19,15 +20,15 @@ namespace games {
         static constexpr std::string_view integrity_section = ".UBX0";
 
         struct ResolvedAddresses {
-            std::optional<uintptr_t> lang_setup;
-            std::optional<uintptr_t> lang_bf_write;
+            std::optional<std::uintptr_t> lang_setup;
+            std::optional<std::uintptr_t> lang_bf_write;
         };
 
         struct ScanEntry {
-            std::string_view         name;
-            std::string_view         bytes;
-            ptrdiff_t                offset;
-            std::optional<uintptr_t> ResolvedAddresses::*field;
+            std::string_view              name;
+            std::string_view              bytes;
+            std::ptrdiff_t                offset;
+            std::optional<std::uintptr_t> ResolvedAddresses::*field;
         };
 
         // clang-format off

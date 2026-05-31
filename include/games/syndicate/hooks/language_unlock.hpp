@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <array>
 #include <optional>
 #include <string_view>
@@ -19,7 +21,7 @@ namespace hooks {
     template<>
     struct HookTraits<games::syndicate::LanguageUnlockHook> {
         using Addrs        = games::game_data<games::Syndicate>::ResolvedAddresses;
-        using PatternField = std::optional<uintptr_t> Addrs::*;
+        using PatternField = std::optional<std::uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "LanguageUnlock";
 
