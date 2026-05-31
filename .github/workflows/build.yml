@@ -18,25 +18,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  format:
+    name: Format Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install LLVM ${{ env.LLVM_VERSION }}
-        run: |
-          sudo apt-get remove -y clang-format clang-tidy || true
-          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- $LLVM_VERSION all
-          sudo apt-get install -y ninja-build python3 msitools python3-simplejson python3-six
-          for tool in clang-cl lld-link llvm-lib llvm-rc llvm-mt clang-format clang-tidy; do
-            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-$LLVM_VERSION 1000
-          done
+      - uses: ./.github/actions/setup-llvm
+        with:
+          llvm-version: ${{ env.LLVM_VERSION }}
+          extra-tools: clang-format
 
       - name: clang-format check
         run: |
           find src include -type f \( -name '*.cpp' -o -name '*.hpp' \) \
             | xargs clang-format --dry-run --Werror
+
+  tidy:
+    name: Clang-Tidy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [format]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-llvm
+        with:
+          llvm-version: ${{ env.LLVM_VERSION }}
+          extra-tools: clang-tidy
 
       - name: Clone msvc-wine
         run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine
@@ -72,6 +82,7 @@ jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-2025-vs2026
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
@@ -93,23 +104,20 @@ jobs:
           name: AC.Rogue.PatchFix-windows-${{ github.sha }}
           path: |
             build/Release/AC.Rogue.PatchFix.asi
+            build/Debug/AC.Rogue.PatchFix.asi
             config/AC.Rogue.PatchFix.ini
           if-no-files-found: error
 
   build-linux:
     name: Build (Linux cross-compile)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install LLVM ${{ env.LLVM_VERSION }}
-        run: |
-          sudo apt-get remove -y clang-format clang-tidy || true
-          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- $LLVM_VERSION all
-          sudo apt-get install -y ninja-build python3 msitools python3-simplejson python3-six
-          for tool in clang-cl lld-link llvm-lib llvm-rc llvm-mt; do
-            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-$LLVM_VERSION 1000
-          done
+      - uses: ./.github/actions/setup-llvm
+        with:
+          llvm-version: ${{ env.LLVM_VERSION }}
 
       - name: Clone msvc-wine
         run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine
@@ -134,14 +142,15 @@ jobs:
           /tmp/msvc-wine/vsdownload.py --accept-license --dest ~/.msvc
           /tmp/msvc-wine/install.sh ~/.msvc
 
-      - name: Configure Release
-        run: cmake --preset linux-x64-release
-
       - name: Build Release
-        run: cmake --build --preset linux-x64-release
+        run: |
+          cmake --preset linux-x64-release
+          cmake --build --preset linux-x64-release
 
-      - name: Save Release artifact
-        run: cp build/AC.Rogue.PatchFix.asi /tmp/AC.Rogue.PatchFix.asi
+      - name: Stage Release artifact
+        run: |
+          mkdir -p artifacts/Release
+          cp build/AC.Rogue.PatchFix.asi artifacts/Release/AC.Rogue.PatchFix.asi
 
       - name: Configure Debug
         run: |
@@ -151,11 +160,17 @@ jobs:
       - name: Build Debug
         run: cmake --build --preset linux-x64-debug
 
+      - name: Stage Debug artifact
+        run: |
+          mkdir -p artifacts/Debug
+          cp build/AC.Rogue.PatchFix.asi artifacts/Debug/AC.Rogue.PatchFix.asi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: AC.Rogue.PatchFix-linux-${{ github.sha }}
           path: |
-            /tmp/AC.Rogue.PatchFix.asi
+            artifacts/Release/AC.Rogue.PatchFix.asi
+            artifacts/Debug/AC.Rogue.PatchFix.asi
             config/AC.Rogue.PatchFix.ini
           if-no-files-found: error

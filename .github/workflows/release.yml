@@ -27,17 +27,21 @@ jobs:
   validate:
     name: Validate inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check version format
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
-            echo "::error::Invalid version format '${{ inputs.version }}'. Expected: X.Y.Z or X.Y.Z-suffix"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "::error::Invalid version format '$VERSION'. Expected: X.Y.Z or X.Y.Z-suffix"
             exit 1
           fi
 
   build-windows:
     name: Build (Windows)
     runs-on: windows-2025-vs2026
+    timeout-minutes: 15
     needs: [validate]
     steps:
       - uses: actions/checkout@v6
@@ -58,18 +62,14 @@ jobs:
   build-linux:
     name: Build (Linux cross-compile)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [validate]
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install LLVM ${{ env.LLVM_VERSION }}
-        run: |
-          sudo apt-get remove -y clang-format clang-tidy || true
-          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- $LLVM_VERSION all
-          sudo apt-get install -y ninja-build python3 msitools python3-simplejson python3-six
-          for tool in clang-cl lld-link llvm-lib llvm-rc llvm-mt; do
-            sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-$LLVM_VERSION 1000
-          done
+      - uses: ./.github/actions/setup-llvm
+        with:
+          llvm-version: ${{ env.LLVM_VERSION }}
 
       - name: Clone msvc-wine
         run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine
@@ -110,6 +110,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [build-windows, build-linux]
     permissions:
       contents: write
