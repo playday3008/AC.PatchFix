@@ -18,7 +18,8 @@ namespace mem {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
 
-    inline auto write(std::uintptr_t addr, const void *data, std::size_t size) -> bool {
+    [[nodiscard]] inline auto write(std::uintptr_t addr, const void *data, std::size_t size)
+        -> bool {
         auto old = detail::protect(addr, size, PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
@@ -30,7 +31,7 @@ namespace mem {
 
     template<typename T>
         requires std::is_trivially_copyable_v<T>
-    inline auto write(std::uintptr_t addr, T value) -> bool {
+    [[nodiscard]] inline auto write(std::uintptr_t addr, T value) -> bool {
         auto old = detail::protect(addr, sizeof(T), PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
@@ -46,7 +47,7 @@ namespace mem {
         return *reinterpret_cast<const T *>(addr);
     }
 
-    inline auto nop(std::uintptr_t addr, std::size_t count) -> bool {
+    [[nodiscard]] inline auto nop(std::uintptr_t addr, std::size_t count) -> bool {
         auto old = detail::protect(addr, count, PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
@@ -56,7 +57,7 @@ namespace mem {
         return true;
     }
 
-    inline auto ret(std::uintptr_t addr, std::uint16_t pop = 0) -> bool {
+    [[nodiscard]] inline auto ret(std::uintptr_t addr, std::uint16_t pop = 0) -> bool {
         if (pop == 0) {
             return write<std::uint8_t>(addr, op_ret);
         }

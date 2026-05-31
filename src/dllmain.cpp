@@ -11,7 +11,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
-auto watcher() -> std::unique_ptr<FileWatcher>& {
+auto watcher() -> std::unique_ptr<FileWatcher> & {
     static std::unique_ptr<FileWatcher> instance;
     return instance;
 }

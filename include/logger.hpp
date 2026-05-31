@@ -39,7 +39,7 @@ class log {
 
     static auto get(std::string_view name =
                         detail::extract_logger_name(std::source_location::current().file_name()))
-        -> const std::shared_ptr<spdlog::logger> &;
+        -> std::shared_ptr<spdlog::logger>;
 
     log(const log &)                     = delete;
     log(log &&)                          = delete;

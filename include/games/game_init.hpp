@@ -17,7 +17,7 @@
 #include "vmp/integrity_bypass.hpp"
 #include "win32/string.hpp"
 
-auto watcher() -> std::unique_ptr<FileWatcher>&;
+auto watcher() -> std::unique_ptr<FileWatcher> &;
 
 void game_init(HMODULE hModule);
 

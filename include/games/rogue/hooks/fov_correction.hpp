@@ -18,13 +18,16 @@
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
+#include "util/bitfield.hpp"
 
 namespace games::rogue {
     enum class FovMode : std::uint8_t {
         Auto     = 0,
         VertPlus = 1,
         HorPlus  = 2,
+        _count   = 3,
     };
+    static_assert(counted_enum<FovMode>);
 
     [[nodiscard]] auto compute_hor_plus_correction() -> float;
 

@@ -18,7 +18,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 
 namespace {
-    auto null_logger() -> const std::shared_ptr<spdlog::logger> & {
+    auto null_logger() -> std::shared_ptr<spdlog::logger> {
         static const auto &inst =
             *new std::shared_ptr<spdlog::logger>([]() -> std::shared_ptr<spdlog::logger> {
                 auto l = std::make_shared<spdlog::logger>("null");
@@ -111,7 +111,7 @@ void log::shutdown() {
     g_instance.reset();
 }
 
-auto log::get(std::string_view name) -> const std::shared_ptr<spdlog::logger> & {
+auto log::get(std::string_view name) -> std::shared_ptr<spdlog::logger> {
     if (g_instance == nullptr) {
         return null_logger();
     }

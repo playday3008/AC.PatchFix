@@ -3,7 +3,7 @@
 namespace games::syndicate {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
-    auto registry() -> SyndicateRegistry& {
+    auto registry() -> SyndicateRegistry & {
         static SyndicateRegistry instance;
         return instance;
     }

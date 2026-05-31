@@ -15,8 +15,8 @@
 namespace hooks {
     using Data = games::game_data<games::Rogue>;
 
-    auto current_aspect() -> std::atomic<float>& {
-        static std::atomic<float> instance{Data::k_default_aspect};
+    auto current_aspect() -> std::atomic<float> & {
+        static std::atomic<float> instance {Data::k_default_aspect};
         return instance;
     }
 } // namespace hooks
@@ -72,6 +72,7 @@ namespace hooks {
                     case FovMode::HorPlus:
                         apply_hor_plus = true;
                         break;
+                    case FovMode::_count:
                     default:
                         std::unreachable();
                 }

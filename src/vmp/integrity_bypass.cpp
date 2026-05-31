@@ -22,7 +22,10 @@ namespace vmp {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
     namespace {
-        std::atomic<bool>      g_active {false};
+        std::atomic<bool> g_active {false};
+        // Written once in install() before the inline hook is armed.
+        // hk_create_thread can only run after the hook is live, and safetyhook's
+        // InlineHook::create provides a full memory barrier, so this is safe.
         detail::VmpSections    g_sections;
         safetyhook::InlineHook g_create_thread_hook;
         std::atomic<int>       g_blocked_count {0};

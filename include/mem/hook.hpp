@@ -33,15 +33,16 @@ namespace mem {
     };
 
     template<typename Functor>
-    auto make_hook(std::uintptr_t addr) -> std::expected<MidHook, std::string> {
-        return MidHook::create(addr, [](Registers &regs) -> auto { Functor {}(regs); });
+    [[nodiscard]] auto make_hook(std::uintptr_t addr) -> std::expected<MidHook, std::string> {
+        return MidHook::create(addr, [](Registers &regs) -> void { Functor {}(regs); });
     }
 
     template<typename Functor>
-    auto make_hook(std::uintptr_t addr, std::uintptr_t end) -> std::expected<MidHook, std::string> {
+    [[nodiscard]] auto make_hook(std::uintptr_t addr, std::uintptr_t end)
+        -> std::expected<MidHook, std::string> {
         if (end > addr) {
-            nop(addr, end - addr);
+            (void)nop(addr, end - addr);
         }
-        return MidHook::create(addr, [](Registers &regs) -> auto { Functor {}(regs); });
+        return MidHook::create(addr, [](Registers &regs) -> void { Functor {}(regs); });
     }
 } // namespace mem

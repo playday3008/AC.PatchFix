@@ -27,12 +27,16 @@ namespace hooks {
             target = std::max(target, 0.0F);
 
             if (target < k_min_fps) {
-                mem::write<std::uint8_t>(g_sleep_branch_addr, k_jmp_opcode);
-                mem::write<float>(g_frame_time_addr, g_original_frame_time);
+                if (!mem::write<std::uint8_t>(g_sleep_branch_addr, k_jmp_opcode) ||
+                    !mem::write<float>(g_frame_time_addr, g_original_frame_time)) {
+                    log::get()->error("FPSUnlockHook: failed to write uncap patch");
+                }
                 log::get()->trace("FPSUnlockHook: uncapped");
             } else {
-                mem::write<std::uint8_t>(g_sleep_branch_addr, k_jnb_opcode);
-                mem::write<float>(g_frame_time_addr, 1000.0F / target);
+                if (!mem::write<std::uint8_t>(g_sleep_branch_addr, k_jnb_opcode) ||
+                    !mem::write<float>(g_frame_time_addr, 1000.0F / target)) {
+                    log::get()->error("FPSUnlockHook: failed to write cap patch");
+                }
                 log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS ({:.4f} ms)",
                                   target,
                                   1000.0F / target);

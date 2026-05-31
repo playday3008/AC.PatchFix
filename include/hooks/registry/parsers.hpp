@@ -41,6 +41,11 @@ namespace hooks {
             int raw        = 0;
             auto [ptr, ec] = sv_from_chars(s, raw);
             if (ec == std::errc {}) {
+                if constexpr (requires { E::_count; }) {
+                    if (raw < 0 || raw >= static_cast<int>(std::to_underlying(E::_count))) {
+                        return fallback;
+                    }
+                }
                 return static_cast<E>(raw);
             }
             return fallback;

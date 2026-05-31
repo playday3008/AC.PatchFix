@@ -20,5 +20,5 @@ namespace games::rogue {
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 
-    auto registry() -> RogueRegistry&;
+    auto registry() -> RogueRegistry &;
 } // namespace games::rogue

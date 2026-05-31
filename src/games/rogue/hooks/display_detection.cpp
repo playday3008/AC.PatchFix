@@ -8,6 +8,7 @@
 #include "logger.hpp" // IWYU pragma: keep
 
 #include "mem/hook.hpp"
+#include "mem/write.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -51,6 +52,7 @@ namespace hooks {
                         regs.rdx = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                         break;
                     }
+                    case MultiMonitor::_count:
                     default:
                         std::unreachable();
                 }
@@ -79,15 +81,17 @@ namespace hooks {
                 flag          = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                 break;
             }
+            case MultiMonitor::_count:
             default:
                 std::unreachable();
         }
 
-        *reinterpret_cast<std::uint8_t *>(obj + 0x18) = flag;
+        (void)mem::write<std::uint8_t>(obj + 0x18, flag);
         if (flag != 0) {
             const float w = *reinterpret_cast<float *>(obj + 0x10);
-            *reinterpret_cast<std::uint32_t *>(obj + 0x1C) =
-                static_cast<std::uint32_t>(w * Data::k_multi_monitor_split);
+            (void)mem::write<std::uint32_t>(
+                obj + 0x1C,
+                static_cast<std::uint32_t>(w * Data::k_multi_monitor_split));
         }
 
         log::get()->info("DisplayDetection: poked flag={}, singleWidth={}",

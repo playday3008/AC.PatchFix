@@ -8,5 +8,5 @@ namespace games::syndicate {
 
     using SyndicateRegistry = hooks::Registry<AllHooks>;
 
-    auto registry() -> SyndicateRegistry&;
+    auto registry() -> SyndicateRegistry &;
 } // namespace games::syndicate

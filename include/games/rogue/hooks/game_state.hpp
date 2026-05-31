@@ -19,7 +19,7 @@ namespace games::rogue {
 } // namespace games::rogue
 
 namespace hooks {
-    auto is_in_game() -> std::atomic<bool>&;
+    auto is_in_game() -> std::atomic<bool> &;
 
     template<>
     struct HookTraits<games::rogue::GameStateHook> {

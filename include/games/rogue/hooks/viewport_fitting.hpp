@@ -23,7 +23,7 @@ namespace games::rogue {
 } // namespace games::rogue
 
 namespace hooks {
-    auto current_aspect() -> std::atomic<float>&;
+    auto current_aspect() -> std::atomic<float> &;
 
     template<>
     struct HookTraits<games::rogue::ViewportFittingHook> {

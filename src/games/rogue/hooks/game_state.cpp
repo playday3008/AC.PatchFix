@@ -10,8 +10,8 @@
 #include "mem/hook.hpp"
 
 namespace hooks {
-    auto is_in_game() -> std::atomic<bool>& {
-        static std::atomic<bool> instance{false};
+    auto is_in_game() -> std::atomic<bool> & {
+        static std::atomic<bool> instance {false};
         return instance;
     }
 

@@ -17,13 +17,16 @@
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
+#include "util/bitfield.hpp"
 
 namespace games::rogue {
     enum class MultiMonitor : std::uint8_t {
         Auto        = 0,
         ForceSingle = 1,
         ForceMulti  = 2,
+        _count      = 3,
     };
+    static_assert(counted_enum<MultiMonitor>);
 
     struct DisplayDetectionHook {};
 } // namespace games::rogue

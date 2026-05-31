@@ -115,8 +115,19 @@ namespace hooks {
         auto lang_bf_write = addrs.lang_bf_write.value();
         auto lang_setup    = addrs.lang_setup.value();
 
-        s_is_steam_addr     = mem::x64::branch_target(get_game_id + 0x12).value();
-        s_set_audio_bf_addr = mem::x64::branch_target(lang_setup + 0x02).value();
+        auto is_steam_opt = mem::x64::branch_target(get_game_id + 0x12);
+        if (!is_steam_opt) {
+            log::get()->error("LanguageUnlockHook: failed to resolve IsSteam branch target");
+            return false;
+        }
+        s_is_steam_addr = *is_steam_opt;
+
+        auto set_audio_opt = mem::x64::branch_target(lang_setup + 0x02);
+        if (!set_audio_opt) {
+            log::get()->error("LanguageUnlockHook: failed to resolve SetAudioBf branch target");
+            return false;
+        }
+        s_set_audio_bf_addr = *set_audio_opt;
 
         s_subtitle_bf_global =
             reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
@@ -135,13 +146,29 @@ namespace hooks {
                           reinterpret_cast<std::uintptr_t>(s_subtitle_bf_global),
                           reinterpret_cast<std::uintptr_t>(s_audio_bf_global));
 
-        g_lang_bf_hook = mem::make_hook<LangBitfieldPatch>(lang_setup, lang_setup + 7).value();
+        if (auto h = mem::make_hook<LangBitfieldPatch>(lang_setup, lang_setup + 7)) {
+            g_lang_bf_hook = std::move(*h);
+        } else {
+            log::get()->error("LanguageUnlockHook: lang_bf hook failed: {}", h.error());
+            return false;
+        }
 
         constexpr std::uintptr_t get_game_id_nop_size = 9;
         constexpr std::uintptr_t get_game_id_jmp_size = 5;
-        mem::nop(get_game_id, get_game_id_nop_size);
-        g_game_id_hook = mem::make_hook<GetGameIdGuard>(get_game_id).value();
-        mem::ret(get_game_id + get_game_id_jmp_size);
+        if (!mem::nop(get_game_id, get_game_id_nop_size)) {
+            log::get()->error("LanguageUnlockHook: failed to nop get_game_id");
+            return false;
+        }
+        if (auto h = mem::make_hook<GetGameIdGuard>(get_game_id)) {
+            g_game_id_hook = std::move(*h);
+        } else {
+            log::get()->error("LanguageUnlockHook: game_id hook failed: {}", h.error());
+            return false;
+        }
+        if (!mem::ret(get_game_id + get_game_id_jmp_size)) {
+            log::get()->error("LanguageUnlockHook: failed to write ret after get_game_id hook");
+            return false;
+        }
 
         log::get()->trace("LanguageUnlockHook: installed");
         return true;
