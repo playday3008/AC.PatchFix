@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <winternl.h>
 
+#include "win32/unique_handle.hpp"
+
 namespace mem {
     namespace {
         using NtProtectVirtualMemory_t = NTSTATUS NTAPI(HANDLE  ProcessHandle,
@@ -19,8 +21,12 @@ namespace mem {
 
         std::atomic<ProtectMethod> g_method {ProtectMethod::virtual_protect};
 
-        NtProtectVirtualMemory_t *pNtProtectVirtualMemory = nullptr;
-        HANDLE                    g_self_process          = nullptr;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+        NtProtectVirtualMemory_t               *pNtProtectVirtualMemory = nullptr;
+        win32::UniqueHandle<win32::NullInvalid> g_self_process;
+#pragma clang diagnostic pop
 
         void ensure_nt_protect() {
             if (pNtProtectVirtualMemory != nullptr) {
@@ -31,7 +37,8 @@ namespace mem {
             pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(
                 GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
 #pragma clang diagnostic pop
-            g_self_process = OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId());
+            g_self_process = win32::UniqueHandle<win32::NullInvalid>(
+                OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId()));
         }
 
         auto protect_vp(std::uintptr_t addr, std::size_t size, std::uint32_t new_protect)
@@ -46,14 +53,14 @@ namespace mem {
         auto protect_nt(std::uintptr_t addr, std::size_t size, std::uint32_t new_protect)
             -> std::optional<std::uint32_t> {
             ensure_nt_protect();
-            if (pNtProtectVirtualMemory == nullptr || g_self_process == nullptr) {
+            if (pNtProtectVirtualMemory == nullptr || !g_self_process) {
                 return std::nullopt;
             }
             auto      *base   = reinterpret_cast<void *>(addr);
             auto       region = size;
             ULONG      old    = 0;
             const LONG status =
-                pNtProtectVirtualMemory(g_self_process, &base, &region, new_protect, &old);
+                pNtProtectVirtualMemory(g_self_process.get(), &base, &region, new_protect, &old);
             if (status < 0) {
                 return std::nullopt;
             }

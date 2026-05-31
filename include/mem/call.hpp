@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <utility>
+
 namespace mem {
     namespace detail {
         template<typename Sig>
@@ -16,7 +18,7 @@ namespace mem {
     } // namespace detail
 
     template<typename Sig, typename... Args>
-    auto invoke(std::uintptr_t addr, Args... args) {
-        return detail::invoke_impl<Sig>::call(addr, args...);
+    auto invoke(std::uintptr_t addr, Args &&...args) -> decltype(auto) {
+        return detail::invoke_impl<Sig>::call(addr, std::forward<Args>(args)...);
     }
 } // namespace mem

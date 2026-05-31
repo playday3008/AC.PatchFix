@@ -6,10 +6,10 @@
 #include <type_traits>
 #include <utility>
 
-template<typename E>
-concept counted_enum = std::is_enum_v<E> && requires { E::_count; };
-
 namespace bitfield {
+    template<typename E>
+    concept counted_enum = std::is_enum_v<E> && requires { E::_count; };
+
     namespace detail {
         template<std::size_t Bits>
         using uint_for_bits = std::conditional_t<

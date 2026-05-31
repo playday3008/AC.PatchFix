@@ -37,7 +37,7 @@ namespace games::rogue {
         LocTest     = 22,
         _count      = 23,
     };
-    static_assert(counted_enum<Language>);
+    static_assert(bitfield::counted_enum<Language>);
 
     using bf = bitfield::mask_t<Language>;
 

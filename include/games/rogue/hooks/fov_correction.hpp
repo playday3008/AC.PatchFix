@@ -27,7 +27,7 @@ namespace games::rogue {
         HorPlus  = 2,
         _count   = 3,
     };
-    static_assert(counted_enum<FovMode>);
+    static_assert(bitfield::counted_enum<FovMode>);
 
     [[nodiscard]] auto compute_hor_plus_correction() -> float;
 

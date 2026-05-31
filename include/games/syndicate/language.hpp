@@ -32,7 +32,7 @@ namespace games::syndicate {
         LocTest     = 23,
         _count      = 24,
     };
-    static_assert(counted_enum<Language>);
+    static_assert(bitfield::counted_enum<Language>);
 
     using bf = bitfield::mask_t<Language>;
 

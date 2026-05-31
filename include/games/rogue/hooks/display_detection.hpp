@@ -26,7 +26,7 @@ namespace games::rogue {
         ForceMulti  = 2,
         _count      = 3,
     };
-    static_assert(counted_enum<MultiMonitor>);
+    static_assert(bitfield::counted_enum<MultiMonitor>);
 
     struct DisplayDetectionHook {};
 } // namespace games::rogue
