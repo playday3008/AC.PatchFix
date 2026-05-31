@@ -31,7 +31,7 @@ namespace hooks {
                     return;
                 }
 
-                auto obj = regs.rcx;
+                auto  obj = regs.rcx;
                 auto *numerator =
                     reinterpret_cast<std::uint32_t *>(obj + k_mode_desc_refresh_offset);
                 auto *denominator =
@@ -52,8 +52,9 @@ namespace hooks {
         }
 
         auto addr = addrs.swapchain_resize.value();
-        log::get()->trace("Syndicate RefreshRateFixHook: SwapChain_ResizeAndSetFullscreen at 0x{:X}",
-                          addr);
+        log::get()->trace(
+            "Syndicate RefreshRateFixHook: SwapChain_ResizeAndSetFullscreen at 0x{:X}",
+            addr);
 
         auto hook_result = mem::make_hook<FixRefreshRate>(addr);
         if (!hook_result) {

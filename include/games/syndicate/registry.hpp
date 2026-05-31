@@ -8,12 +8,11 @@
 #include "hooks/registry/registry.hpp"
 
 namespace games::syndicate {
-    using AllHooks = hooks::hook_list<
-        RefreshRateFixHook,
-        ResolutionFixHook,
-        DS4v2FixHook,
-        DriftFixHook,
-        LanguageUnlockHook>;
+    using AllHooks = hooks::hook_list<RefreshRateFixHook,
+                                      ResolutionFixHook,
+                                      DS4v2FixHook,
+                                      DriftFixHook,
+                                      LanguageUnlockHook>;
 
     using SyndicateRegistry = hooks::Registry<AllHooks>;
 

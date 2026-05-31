@@ -28,28 +28,22 @@ namespace hooks {
             auto g  = std::gcd(w, h);
             auto rw = w / g;
             auto rh = h / g;
-            return (rw == 16 && rh == 9)
-                || (rw == 16 && rh == 10)
-                || (rw == 8  && rh == 5)
-                || (rw == 21 && rh == 9)
-                || (rw == 64 && rh == 27)
-                || (rw == 43 && rh == 18)
-                || (rw == 32 && rh == 9)
-                || (rw == 5  && rh == 4)
-                || (rw == 4  && rh == 3)
-                || (rw == 3  && rh == 2);
+            return (rw == 16 && rh == 9) || (rw == 16 && rh == 10) || (rw == 8 && rh == 5) ||
+                   (rw == 21 && rh == 9) || (rw == 64 && rh == 27) || (rw == 43 && rh == 18) ||
+                   (rw == 32 && rh == 9) || (rw == 5 && rh == 4) || (rw == 4 && rh == 3) ||
+                   (rw == 3 && rh == 2);
         }
 
         struct FilterModeInsert {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto *entry = reinterpret_cast<const std::uint8_t *>(regs.rdx);
+                auto *entry  = reinterpret_cast<const std::uint8_t *>(regs.rdx);
                 auto  width  = *reinterpret_cast<const std::uint32_t *>(entry + 8);
                 auto  height = *reinterpret_cast<const std::uint32_t *>(entry + 0xC);
 
                 if (!is_standard_aspect(width, height)) {
                     log::get()->trace("ResolutionFixHook: filtered {}x{}", width, height);
-                    auto ret_addr = *reinterpret_cast<std::uintptr_t *>(regs.rsp);
-                    regs.rip = ret_addr;
+                    auto ret_addr       = *reinterpret_cast<std::uintptr_t *>(regs.rsp);
+                    regs.rip            = ret_addr;
                     regs.trampoline_rsp = regs.rsp + 8;
                 }
             }
