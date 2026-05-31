@@ -6,20 +6,21 @@
 
 #include <mini/ini.h>
 
-#include "games/game_data.hpp"
+#include "games/rogue/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 
-template<typename G>
-struct GameStateHook {};
+namespace games::rogue {
+    struct GameStateHook {};
+} // namespace games::rogue
 
 namespace hooks {
     extern std::atomic<bool> g_is_in_game;
 
-    template<typename G>
-    struct HookTraits<GameStateHook<G>> {
-        using Addrs        = typename games::game_data<G>::ResolvedAddresses;
+    template<>
+    struct HookTraits<games::rogue::GameStateHook> {
+        using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
         using PatternField = std::optional<uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "GameState";

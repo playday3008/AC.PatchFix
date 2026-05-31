@@ -5,26 +5,27 @@
 
 #include <mini/ini.h>
 
-#include "games/game_data.hpp"
-#include "hooks/common/game_state.hpp"
+#include "games/rogue/game_data.hpp"
+#include "games/rogue/hooks/game_state.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 
-template<typename G>
-struct FPSUnlockHook {};
+namespace games::rogue {
+    struct FPSUnlockHook {};
+} // namespace games::rogue
 
 namespace hooks {
-    template<typename G>
-    struct HookTraits<FPSUnlockHook<G>> {
-        using Addrs        = typename games::game_data<G>::ResolvedAddresses;
+    template<>
+    struct HookTraits<games::rogue::FPSUnlockHook> {
+        using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
         using PatternField = std::optional<uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "FPSUnlock";
 
         using hard_deps = dep_list<>;
-        using soft_deps = dep_list<GameStateHook<G>>;
+        using soft_deps = dep_list<games::rogue::GameStateHook>;
 
         static constexpr auto required_patterns = std::array<PatternField, 2> {
             &Addrs::fps_sleep_branch,

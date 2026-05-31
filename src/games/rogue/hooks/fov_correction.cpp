@@ -1,4 +1,4 @@
-#include "hooks/common/fov_correction.hpp"
+#include "games/rogue/hooks/fov_correction.hpp"
 
 #include <cmath>
 
@@ -10,19 +10,15 @@
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
-#include "hooks/common/viewport_fitting.hpp"
 
 namespace hooks {
-    using G    = games::Rogue;
-    using Data = games::game_data<G>;
+    using Data = games::game_data<games::Rogue>;
 
     std::atomic<float> g_current_aspect {Data::k_default_aspect};
 } // namespace hooks
 
-template<>
-auto compute_hor_plus_correction<games::Rogue>() -> float {
-    using G    = games::Rogue;
-    using Data = games::game_data<G>;
+auto games::rogue::compute_hor_plus_correction() -> float {
+    using Data = games::game_data<games::Rogue>;
 
     float aspect = hooks::g_current_aspect.load(std::memory_order_relaxed);
     if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
@@ -39,6 +35,8 @@ auto compute_hor_plus_correction<games::Rogue>() -> float {
 }
 
 namespace hooks {
+    using games::rogue::FovMode;
+
     namespace {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -46,7 +44,7 @@ namespace hooks {
         mem::MidHook g_fov_hook;
 #pragma clang diagnostic pop
 
-        using Tag = FOVCorrectionHook<G>;
+        using Tag = games::rogue::FOVCorrectionHook;
 
         struct FOVCorrectionFunctor {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
@@ -74,7 +72,7 @@ namespace hooks {
                         std::unreachable();
                 }
                 if (apply_hor_plus) {
-                    fov *= compute_hor_plus_correction<G>();
+                    fov *= games::rogue::compute_hor_plus_correction();
                 }
 
                 fov *= cfg.multiplier.get();
@@ -84,8 +82,7 @@ namespace hooks {
         };
     } // namespace
 
-    template<>
-    auto HookTraits<FOVCorrectionHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::FOVCorrectionHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("FOVCorrectionHook: installing at 0x{:X}", addrs.fov_store.value());
         auto addr = addrs.fov_store.value();
         if (auto h = mem::make_hook<FOVCorrectionFunctor>(addr, addr + 5)) {

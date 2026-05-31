@@ -1,4 +1,4 @@
-#include "hooks/common/viewport_scaling.hpp"
+#include "games/rogue/hooks/viewport_scaling.hpp"
 
 #include <atomic>
 
@@ -10,9 +10,8 @@
 
 namespace hooks {
     namespace {
-        using G    = games::Rogue;
-        using Data = games::game_data<G>;
-        using Tag  = ViewportScalingHook<G>;
+        using Data = games::game_data<games::Rogue>;
+        using Tag  = games::rogue::ViewportScalingHook;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -81,8 +80,7 @@ namespace hooks {
         };
     } // namespace
 
-    template<>
-    auto HookTraits<ViewportScalingHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::ViewportScalingHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("ViewportScalingHook: installing");
         auto start = addrs.scaling_branch_start.value();
         auto end   = addrs.scaling_branch_end.value();

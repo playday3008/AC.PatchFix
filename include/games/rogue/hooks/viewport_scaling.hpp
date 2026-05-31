@@ -5,20 +5,21 @@
 
 #include <mini/ini.h>
 
-#include "games/game_data.hpp"
+#include "games/rogue/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
 #include "hooks/registry/ini_field.hpp"
 #include "hooks/registry/parsers.hpp"
 
-template<typename G>
-struct ViewportScalingHook {};
+namespace games::rogue {
+    struct ViewportScalingHook {};
+} // namespace games::rogue
 
 namespace hooks {
-    template<typename G>
-    struct HookTraits<ViewportScalingHook<G>> {
-        using Addrs        = typename games::game_data<G>::ResolvedAddresses;
+    template<>
+    struct HookTraits<games::rogue::ViewportScalingHook> {
+        using Addrs        = games::game_data<games::Rogue>::ResolvedAddresses;
         using PatternField = std::optional<uintptr_t> Addrs::*;
 
         static constexpr std::string_view name = "ViewportScaling";

@@ -1,17 +1,15 @@
-#include "hooks/common/viewport_fitting.hpp"
+#include "games/rogue/hooks/viewport_fitting.hpp"
 
 #include "logger.hpp" // IWYU pragma: keep
 #include "mem/hook.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
-#include "hooks/common/game_state.hpp"
 
 namespace hooks {
     namespace {
-        using G    = games::Rogue;
-        using Data = games::game_data<G>;
-        using Tag  = ViewportFittingHook<G>;
+        using Data = games::game_data<games::Rogue>;
+        using Tag  = games::rogue::ViewportFittingHook;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -84,8 +82,7 @@ namespace hooks {
         };
     } // namespace
 
-    template<>
-    void HookTraits<ViewportFittingHook<games::Rogue>>::on_reload(const Config &cfg) {
+    void HookTraits<games::rogue::ViewportFittingHook>::on_reload(const Config &cfg) {
         float ar = cfg.aspect_ratio.get();
         log::get()->trace("ViewportFittingHook: on_reload aspect_ratio={}", ar);
         if (ar > 0.0F) {
@@ -93,8 +90,7 @@ namespace hooks {
         }
     }
 
-    template<>
-    auto HookTraits<ViewportFittingHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::ViewportFittingHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("ViewportFittingHook: installing");
         auto ratio_load = addrs.viewport_ratio_load.value();
         auto ratio_mul  = addrs.viewport_ratio_mul.value();

@@ -1,4 +1,4 @@
-#include "hooks/common/display_detection.hpp"
+#include "games/rogue/hooks/display_detection.hpp"
 
 #include <cstdint>
 
@@ -12,10 +12,11 @@
 #include "games/rogue/registry.hpp"
 
 namespace hooks {
+    using games::rogue::MultiMonitor;
+
     namespace {
-        using G    = games::Rogue;
-        using Data = games::game_data<G>;
-        using Tag  = DisplayDetectionHook<G>;
+        using Data = games::game_data<games::Rogue>;
+        using Tag  = games::rogue::DisplayDetectionHook;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -56,8 +57,7 @@ namespace hooks {
         };
     } // namespace
 
-    template<>
-    void HookTraits<DisplayDetectionHook<games::Rogue>>::on_reload(const Config &cfg) {
+    void HookTraits<games::rogue::DisplayDetectionHook>::on_reload(const Config &cfg) {
         uintptr_t obj = g_display_object.load(std::memory_order_relaxed);
         if (obj == 0) {
             return;
@@ -94,8 +94,7 @@ namespace hooks {
                          (flag != 0) ? *reinterpret_cast<uint32_t *>(obj + 0x1C) : 0);
     }
 
-    template<>
-    auto HookTraits<DisplayDetectionHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::DisplayDetectionHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("DisplayDetectionHook: installing at 0x{:X}", addrs.display_flag.value());
         auto addr = addrs.display_flag.value();
         if (auto h = mem::make_hook<DisplayFlagHook>(addr, addr + 7)) {

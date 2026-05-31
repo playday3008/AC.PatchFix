@@ -1,11 +1,9 @@
-#include "hooks/common/game_state.hpp"
+#include "games/rogue/hooks/game_state.hpp"
 
 #include <atomic>
 
 #include "logger.hpp" // IWYU pragma: keep
 #include "mem/hook.hpp"
-
-#include "games/rogue/game_data.hpp" // IWYU pragma: keep
 
 namespace hooks {
     std::atomic<bool> g_is_in_game {false};
@@ -19,8 +17,7 @@ namespace hooks {
         mem::MidHook g_pause2_hook;
 #pragma clang diagnostic pop
 
-        using G   = games::Rogue;
-        using Tag = GameStateHook<G>;
+        using Tag = games::rogue::GameStateHook;
 
         struct GameUnpause {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
@@ -44,8 +41,7 @@ namespace hooks {
         };
     } // namespace
 
-    template<>
-    auto HookTraits<GameStateHook<games::Rogue>>::install(const Addrs &addrs) -> bool {
+    auto HookTraits<games::rogue::GameStateHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("GameStateHook: installing");
         auto unpause = addrs.game_unpause.value();
         auto pause   = addrs.game_pause.value();

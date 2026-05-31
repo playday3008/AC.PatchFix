@@ -34,7 +34,7 @@ namespace hooks {
         };
 
         struct Config : config_base<Config> {
-            ini_field<bool>       unlock_all {"Language", "UnlockAll", false};
+            ini_field<bool> unlock_all {"Language", "UnlockAll", false};
 
             static constexpr auto field_ptrs = std::tuple {&Config::unlock_all};
         };

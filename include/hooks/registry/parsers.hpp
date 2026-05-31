@@ -11,8 +11,6 @@
 #include <system_error>
 #include <utility>
 
-#include "config/enums.hpp"
-
 namespace hooks {
     namespace detail {
 #pragma clang diagnostic push
@@ -88,31 +86,6 @@ namespace hooks {
             int val = 0;
             detail::sv_from_chars(s, val);
             return val != 0;
-        }
-    };
-
-    template<>
-    struct default_parser<FovMode> {
-        [[maybe_unused]] static auto operator()(const std::string &s) -> FovMode {
-            constexpr auto table = std::to_array<std::pair<std::string_view, FovMode>>({
-                {"Auto", FovMode::Auto},
-                {"VertPlus", FovMode::VertPlus},
-                {"HorPlus", FovMode::HorPlus},
-            });
-            return detail::parse_enum(s, table, FovMode::Auto);
-        }
-    };
-
-    template<>
-    struct default_parser<MultiMonitor> {
-        [[maybe_unused]] static auto operator()(const std::string &s) -> MultiMonitor {
-            constexpr auto table = std::to_array<std::pair<std::string_view, MultiMonitor>>({
-                {"Auto", MultiMonitor::Auto},
-                {"Single", MultiMonitor::ForceSingle},
-                {"Multi", MultiMonitor::ForceMulti},
-                {"Triple", MultiMonitor::ForceMulti},
-            });
-            return detail::parse_enum(s, table, MultiMonitor::Auto);
         }
     };
 
