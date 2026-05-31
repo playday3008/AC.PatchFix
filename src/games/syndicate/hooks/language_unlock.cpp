@@ -44,7 +44,7 @@ namespace hooks {
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("Syndicate LanguageUnlockHook: installing");
 
-        const auto &cfg        = games::syndicate::g_registry.config<Tag>();
+        const auto &cfg        = games::syndicate::registry().config<Tag>();
         const bool  unlock_all = cfg.unlock_all.get();
 
         if (!unlock_all) {

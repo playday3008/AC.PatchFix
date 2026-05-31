@@ -24,5 +24,5 @@ void game_init(HMODULE hModule) {
     log::get()->info("{} initializing for {}", log_name, exe_name);
 
     auto ini_path = dll_dir / (log_name + ".ini");
-    init_game<G>(games::syndicate::g_registry, ini_path);
+    init_game<G>(games::syndicate::registry(), ini_path);
 }

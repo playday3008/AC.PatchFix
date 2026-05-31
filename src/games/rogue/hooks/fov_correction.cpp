@@ -15,13 +15,16 @@
 namespace hooks {
     using Data = games::game_data<games::Rogue>;
 
-    std::atomic<float> g_current_aspect {Data::k_default_aspect};
+    auto current_aspect() -> std::atomic<float>& {
+        static std::atomic<float> instance{Data::k_default_aspect};
+        return instance;
+    }
 } // namespace hooks
 
 auto games::rogue::compute_hor_plus_correction() -> float {
     using Data = games::game_data<games::Rogue>;
 
-    const float aspect = hooks::g_current_aspect.load(std::memory_order_relaxed);
+    const float aspect = hooks::current_aspect().load(std::memory_order_relaxed);
     if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
         return 1.0F;
     }
@@ -49,19 +52,19 @@ namespace hooks {
 
         struct FOVCorrectionFunctor {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                if (!games::rogue::g_registry.enabled<Tag>()) {
+                if (!games::rogue::registry().enabled<Tag>()) {
                     *reinterpret_cast<float *>(regs.rbx + 0x40) = regs.xmm6.f32[0];
                     return;
                 }
 
                 float fov = regs.xmm6.f32[0];
 
-                const auto &cfg            = games::rogue::g_registry.config<Tag>();
+                const auto &cfg            = games::rogue::registry().config<Tag>();
                 auto        mode           = cfg.mode.get();
                 bool        apply_hor_plus = false;
                 switch (mode) {
                     case FovMode::Auto:
-                        apply_hor_plus = (g_current_aspect.load(std::memory_order_relaxed) <
+                        apply_hor_plus = (current_aspect().load(std::memory_order_relaxed) <
                                           Data::k_default_aspect);
                         break;
                     case FovMode::VertPlus:

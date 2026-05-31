@@ -3,7 +3,9 @@
 namespace games::syndicate {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
-#pragma clang diagnostic ignored "-Wglobal-constructors"
-    SyndicateRegistry g_registry;
+    auto registry() -> SyndicateRegistry& {
+        static SyndicateRegistry instance;
+        return instance;
+    }
 #pragma clang diagnostic pop
 } // namespace games::syndicate

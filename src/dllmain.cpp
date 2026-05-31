@@ -11,8 +11,15 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
+auto watcher() -> std::unique_ptr<FileWatcher>& {
+    static std::unique_ptr<FileWatcher> instance;
+    return instance;
+}
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-std::unique_ptr<FileWatcher>       g_watcher;
 static std::optional<std::jthread> g_init_thread;
 #pragma clang diagnostic pop
 
@@ -23,7 +30,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
         vmp::install(GetModuleHandleW(nullptr));
         g_init_thread.emplace([hModule] -> void { game_init(hModule); });
     } else if (reason == DLL_PROCESS_DETACH) {
-        g_watcher.reset();
+        watcher().reset();
         g_init_thread.reset();
         vmp::uninstall();
         log::shutdown();

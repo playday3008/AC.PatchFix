@@ -59,7 +59,7 @@ namespace hooks {
                           g_original_frame_time,
                           1000.0F / g_original_frame_time);
 
-        apply_fps_patch(games::rogue::g_registry.config<Tag>().target.get());
+        apply_fps_patch(games::rogue::registry().config<Tag>().target.get());
 
         log::get()->trace("FPSUnlockHook: installed");
         return true;

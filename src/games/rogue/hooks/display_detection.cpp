@@ -30,14 +30,14 @@ namespace hooks {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_display_object.store(regs.rbx, std::memory_order_relaxed);
 
-                if (!games::rogue::g_registry.enabled<Tag>()) {
+                if (!games::rogue::registry().enabled<Tag>()) {
                     if (regs.xmm1.f32[0] < regs.xmm0.f32[0]) {
                         regs.rdx = regs.rsi;
                     }
                     return;
                 }
 
-                auto mode = games::rogue::g_registry.config<Tag>().multi_monitor.get();
+                auto mode = games::rogue::registry().config<Tag>().multi_monitor.get();
                 switch (mode) {
                     case MultiMonitor::ForceSingle:
                         regs.rdx = 0;

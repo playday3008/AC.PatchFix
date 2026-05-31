@@ -17,9 +17,9 @@
 #include "vmp/integrity_bypass.hpp"
 #include "win32/string.hpp"
 
-extern std::unique_ptr<FileWatcher> g_watcher;
+auto watcher() -> std::unique_ptr<FileWatcher>&;
 
-extern void game_init(HMODULE hModule);
+void game_init(HMODULE hModule);
 
 inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
     std::array<WCHAR, MAX_PATH> buf {};
@@ -68,7 +68,7 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
         vmp::uninstall();
     }
 
-    g_watcher = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
+    watcher() = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
         log::get()->info("INI change detected, reloading...");
         mINI::INIFile      f(ini_path.string());
         mINI::INIStructure data;

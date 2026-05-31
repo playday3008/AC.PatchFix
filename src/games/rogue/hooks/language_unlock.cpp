@@ -86,7 +86,7 @@ namespace hooks {
     auto HookTraits<games::rogue::LanguageUnlockHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("LanguageUnlockHook: installing");
 
-        const auto &cfg        = games::rogue::g_registry.config<Tag>();
+        const auto &cfg        = games::rogue::registry().config<Tag>();
         const bool  unlock_all = cfg.unlock_all.get();
         s_ui_language          = cfg.ui_language.get();
 

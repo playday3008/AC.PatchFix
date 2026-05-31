@@ -25,34 +25,34 @@ namespace hooks {
 
         struct ViewportRatioLoad {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                if (!games::rogue::g_registry.enabled<Tag>() ||
-                    !g_is_in_game.load(std::memory_order_relaxed)) {
+                if (!games::rogue::registry().enabled<Tag>() ||
+                    !is_in_game().load(std::memory_order_relaxed)) {
                     regs.xmm0.f32[0] = Data::k_inv_default_aspect;
                     return;
                 }
-                const float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
+                const float ar = games::rogue::registry().config<Tag>().aspect_ratio.get();
                 if (ar > 0.0F) {
                     regs.xmm0.f32[0] = 1.0F / ar;
-                    g_current_aspect.store(ar, std::memory_order_relaxed);
+                    current_aspect().store(ar, std::memory_order_relaxed);
                     return;
                 }
                 const float w = *reinterpret_cast<float *>(regs.rax + 0x10);
                 const float h = *reinterpret_cast<float *>(regs.rax + 0x14);
                 if (w > 0.0F) {
                     regs.xmm0.f32[0] = h / w;
-                    g_current_aspect.store(w / h, std::memory_order_relaxed);
+                    current_aspect().store(w / h, std::memory_order_relaxed);
                 }
             }
         };
 
         struct ViewportRatioMul {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                if (!games::rogue::g_registry.enabled<Tag>() ||
-                    !g_is_in_game.load(std::memory_order_relaxed)) {
+                if (!games::rogue::registry().enabled<Tag>() ||
+                    !is_in_game().load(std::memory_order_relaxed)) {
                     regs.xmm4.f32[0] *= Data::k_default_aspect;
                     return;
                 }
-                const float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
+                const float ar = games::rogue::registry().config<Tag>().aspect_ratio.get();
                 if (ar > 0.0F) {
                     regs.xmm4.f32[0] *= ar;
                     return;
@@ -70,7 +70,7 @@ namespace hooks {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);
                 auto *a5_y = reinterpret_cast<float *>(regs.r10 + 4);
 
-                if (games::rogue::g_registry.enabled<Tag>()) {
+                if (games::rogue::registry().enabled<Tag>()) {
                     return;
                 }
 
@@ -90,7 +90,7 @@ namespace hooks {
         float ar = cfg.aspect_ratio.get();
         log::get()->trace("ViewportFittingHook: on_reload aspect_ratio={}", ar);
         if (ar > 0.0F) {
-            g_current_aspect.store(ar, std::memory_order_relaxed);
+            current_aspect().store(ar, std::memory_order_relaxed);
         }
     }
 

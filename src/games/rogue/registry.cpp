@@ -3,7 +3,9 @@
 namespace games::rogue {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
-#pragma clang diagnostic ignored "-Wglobal-constructors"
-    RogueRegistry g_registry;
+    auto registry() -> RogueRegistry& {
+        static RogueRegistry instance;
+        return instance;
+    }
 #pragma clang diagnostic pop
 } // namespace games::rogue

@@ -28,7 +28,7 @@ namespace hooks {
                 const float w = regs.xmm8.f32[0];
                 const float h = regs.xmm9.f32[0];
 
-                if (!games::rogue::g_registry.enabled<Tag>()) {
+                if (!games::rogue::registry().enabled<Tag>()) {
                     g_active_stretch.store(0.0F, std::memory_order_relaxed);
                     if (w > h) {
                         const float fitted_h = w * Data::k_inv_default_aspect;
@@ -47,7 +47,7 @@ namespace hooks {
                 const float scale_w = w * Data::k_inv_base_width;
                 const float scale_h = h * Data::k_inv_base_height;
 
-                const auto &cfg = games::rogue::g_registry.config<Tag>();
+                const auto &cfg = games::rogue::registry().config<Tag>();
 
                 if (scale_w <= scale_h) {
                     const float stretch = cfg.ui_stretch_v.get();
