@@ -46,6 +46,8 @@ add_library(patchfix_core OBJECT
     src/mem/protect.cpp
     src/mem/hook.cpp
     src/vmp/integrity_bypass.cpp
+    src/vmp/pe_sections.cpp
+    src/win32/pe.cpp
 )
 
 target_include_directories(patchfix_core PUBLIC "${INC_DIR}")

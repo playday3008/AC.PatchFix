@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <filesystem>
 #include <memory>
 
@@ -15,18 +14,10 @@
 #include "mem/protect.hpp"
 #include "patterns/signatures.hpp"
 #include "vmp/integrity_bypass.hpp"
-#include "win32/string.hpp"
 
 auto watcher() -> std::unique_ptr<FileWatcher> &;
 
 void game_init(HMODULE hModule);
-
-inline auto get_module_path(HMODULE hModule) -> std::filesystem::path {
-    std::array<WCHAR, MAX_PATH> buf {};
-
-    DWORD len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
-    return {win32::wchar_to_utf8(buf.data(), static_cast<int>(len))};
-}
 
 template<typename G, typename Registry>
 void init_game(Registry &registry, const std::filesystem::path &ini_path) {

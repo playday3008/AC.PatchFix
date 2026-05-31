@@ -28,6 +28,9 @@ jobs:
     name: Validate inputs
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Check version format
         env:
@@ -55,15 +58,18 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: windows-asi
-          path: build/Release/AC.Rogue.PatchFix.asi
+          name: AC.PatchFix-windows
+          path: build/Release/*.asi
           if-no-files-found: error
 
-  build-linux:
-    name: Build (Linux cross-compile)
+  build-wine:
+    name: Build (Wine cross-compile)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [validate]
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
@@ -94,46 +100,53 @@ jobs:
           /tmp/msvc-wine/vsdownload.py --accept-license --dest ~/.msvc
           /tmp/msvc-wine/install.sh ~/.msvc
 
-      - name: Configure Release
-        run: cmake --preset linux-x64-release
-
       - name: Build Release
-        run: cmake --build --preset linux-x64-release
+        run: |
+          cmake --preset wine-x64-release
+          cmake --build --preset wine-x64-release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-asi
-          path: build/AC.Rogue.PatchFix.asi
+          name: AC.PatchFix-wine
+          path: build/*.asi
           if-no-files-found: error
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-wine]
     permissions:
       contents: write
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: windows-asi
+          name: AC.PatchFix-windows
           path: artifacts/windows
 
-      - name: Download Linux artifact
+      - name: Download Wine artifact
         uses: actions/download-artifact@v8
         with:
-          name: linux-asi
-          path: artifacts/linux
+          name: AC.PatchFix-wine
+          path: artifacts/wine
 
       - name: Prepare release assets
         run: |
-          cp artifacts/windows/AC.Rogue.PatchFix.asi AC.Rogue.PatchFix.asi
-          cp artifacts/linux/AC.Rogue.PatchFix.asi AC.Rogue.PatchFix-linux.asi
-          cp config/AC.Rogue.PatchFix.ini AC.Rogue.PatchFix.ini
+          for asi in artifacts/windows/*.asi; do
+            cp "$asi" "$(basename "$asi")"
+          done
+          for asi in artifacts/wine/*.asi; do
+            name="$(basename "$asi" .asi)"
+            cp "$asi" "${name}-wine.asi"
+          done
+          cp config/*.ini .
 
       - name: Create draft release
         uses: softprops/action-gh-release@v3
@@ -144,6 +157,5 @@ jobs:
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: true
           files: |
-            AC.Rogue.PatchFix.asi
-            AC.Rogue.PatchFix-linux.asi
-            AC.Rogue.PatchFix.ini
+            *.asi
+            *.ini

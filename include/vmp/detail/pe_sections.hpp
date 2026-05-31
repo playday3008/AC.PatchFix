@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <optional>
-#include <utility>
 #include <vector>
 
 #include <Windows.h>
@@ -21,19 +20,10 @@ namespace vmp::detail {
         [[nodiscard]] auto has_vmp() const -> bool { return !vmp.empty(); }
 
         [[nodiscard]] auto contains_vmp(std::uintptr_t addr) const -> bool {
-            return std::ranges::any_of(vmp, [addr](const auto &s) { return s.contains(addr); });
+            return std::ranges::any_of(vmp,
+                                       [addr](const auto &s) -> bool { return s.contains(addr); });
         }
     };
 
-    inline auto find_vmp_sections(HMODULE hModule) -> VmpSections {
-        VmpSections result;
-        for (auto &sec : win32::enumerate_sections(hModule)) {
-            if (sec.name.starts_with(".UBX")) {
-                result.vmp.push_back(std::move(sec));
-            } else if (sec.name == ".text") {
-                result.text = std::move(sec);
-            }
-        }
-        return result;
-    }
+    auto find_vmp_sections(HMODULE hModule) -> VmpSections;
 } // namespace vmp::detail

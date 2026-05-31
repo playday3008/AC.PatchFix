@@ -6,12 +6,13 @@
 
 #include "games/game_init.hpp"
 #include "games/syndicate/registry.hpp"
+#include "win32/pe.hpp"
 
 void game_init(HMODULE hModule) {
     using G = games::Syndicate;
 
-    auto dll_dir  = get_module_path(hModule).parent_path();
-    auto exe_name = get_module_path(nullptr).filename().string();
+    auto dll_dir  = win32::get_module_path(hModule).parent_path();
+    auto exe_name = win32::get_module_path(nullptr).filename().string();
 
     if (exe_name != games::game_data<G>::exe_name) {
         return;

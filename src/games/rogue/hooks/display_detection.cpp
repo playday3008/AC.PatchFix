@@ -48,7 +48,7 @@ namespace hooks {
                         regs.rdx = 1;
                         break;
                     case MultiMonitor::Auto: {
-                        auto *display =
+                        const auto *display =
                             reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rbx);
                         const float w = display->width;
                         const float h = display->height;
@@ -69,7 +69,7 @@ namespace hooks {
             return;
         }
 
-        auto        *display = reinterpret_cast<const games::rogue::DisplaySettings *>(obj);
+        const auto  *display = reinterpret_cast<const games::rogue::DisplaySettings *>(obj);
         auto         mode    = cfg.multi_monitor.get();
         std::uint8_t flag    = 0;
         switch (mode) {

@@ -22,6 +22,9 @@ jobs:
     name: Format Check
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
@@ -40,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [format]
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
@@ -72,7 +78,7 @@ jobs:
           /tmp/msvc-wine/install.sh ~/.msvc
 
       - name: Configure CMake
-        run: cmake --preset linux-x64-release
+        run: cmake --preset wine-x64-release
 
       - name: clang-tidy check
         run: |
@@ -101,17 +107,20 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.Rogue.PatchFix-windows-${{ github.sha }}
+          name: AC.PatchFix-windows-${{ github.sha }}
           path: |
-            build/Release/AC.Rogue.PatchFix.asi
-            build/Debug/AC.Rogue.PatchFix.asi
-            config/AC.Rogue.PatchFix.ini
+            build/Release/*.asi
+            build/Debug/*.asi
+            config/*.ini
           if-no-files-found: error
 
-  build-linux:
-    name: Build (Linux cross-compile)
+  build-wine:
+    name: Build (Wine cross-compile)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
 
@@ -144,33 +153,31 @@ jobs:
 
       - name: Build Release
         run: |
-          cmake --preset linux-x64-release
-          cmake --build --preset linux-x64-release
+          cmake --preset wine-x64-release
+          cmake --build --preset wine-x64-release
 
-      - name: Stage Release artifact
+      - name: Stage Release artifacts
         run: |
           mkdir -p artifacts/Release
-          cp build/AC.Rogue.PatchFix.asi artifacts/Release/AC.Rogue.PatchFix.asi
-
-      - name: Configure Debug
-        run: |
-          rm -rf build
-          cmake --preset linux-x64-debug
+          cp build/*.asi artifacts/Release/
 
       - name: Build Debug
-        run: cmake --build --preset linux-x64-debug
+        run: |
+          rm -rf build
+          cmake --preset wine-x64-debug
+          cmake --build --preset wine-x64-debug
 
-      - name: Stage Debug artifact
+      - name: Stage Debug artifacts
         run: |
           mkdir -p artifacts/Debug
-          cp build/AC.Rogue.PatchFix.asi artifacts/Debug/AC.Rogue.PatchFix.asi
+          cp build/*.asi artifacts/Debug/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.Rogue.PatchFix-linux-${{ github.sha }}
+          name: AC.PatchFix-wine-${{ github.sha }}
           path: |
-            artifacts/Release/AC.Rogue.PatchFix.asi
-            artifacts/Debug/AC.Rogue.PatchFix.asi
-            config/AC.Rogue.PatchFix.ini
+            artifacts/Release/*.asi
+            artifacts/Debug/*.asi
+            config/*.ini
           if-no-files-found: error

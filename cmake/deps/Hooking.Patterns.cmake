@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(hooking)
 
 add_library(HookingPatterns STATIC "${hooking_SOURCE_DIR}/Hooking.Patterns.cpp")
 set_property(TARGET HookingPatterns PROPERTY CXX_STANDARD 20)
+set_property(TARGET HookingPatterns PROPERTY CXX_STANDARD_REQUIRED ON)
 target_include_directories(HookingPatterns SYSTEM PUBLIC
     "${hooking_SOURCE_DIR}"
 )

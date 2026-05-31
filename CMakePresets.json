@@ -2,8 +2,8 @@
     "version": 6,
     "configurePresets": [
         {
-            "name": "linux-x64-release",
-            "displayName": "Linux x64 Release",
+            "name": "wine-x64-release",
+            "displayName": "Wine x64 Release",
             "generator": "Ninja",
             "toolchainFile": "${sourceDir}/cmake/toolchains/msvc-wine-clang-cl-x64.cmake",
             "binaryDir": "${sourceDir}/build",
@@ -17,8 +17,8 @@
             }
         },
         {
-            "name": "linux-x64-debug",
-            "displayName": "Linux x64 Debug",
+            "name": "wine-x64-debug",
+            "displayName": "Wine x64 Debug",
             "generator": "Ninja",
             "toolchainFile": "${sourceDir}/cmake/toolchains/msvc-wine-clang-cl-x64.cmake",
             "binaryDir": "${sourceDir}/build",
@@ -66,12 +66,12 @@
     ],
     "buildPresets": [
         {
-            "name": "linux-x64-release",
-            "configurePreset": "linux-x64-release"
+            "name": "wine-x64-release",
+            "configurePreset": "wine-x64-release"
         },
         {
-            "name": "linux-x64-debug",
-            "configurePreset": "linux-x64-debug"
+            "name": "wine-x64-debug",
+            "configurePreset": "wine-x64-debug"
         },
         {
             "name": "windows-x64-release",
