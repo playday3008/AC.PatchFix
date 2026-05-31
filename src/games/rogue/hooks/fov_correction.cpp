@@ -11,15 +11,7 @@
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
-
-namespace hooks {
-    using Data = games::game_data<games::Rogue>;
-
-    auto current_aspect() -> std::atomic<float> & {
-        static std::atomic<float> instance {Data::k_default_aspect};
-        return instance;
-    }
-} // namespace hooks
+#include "games/rogue/structs.hpp"
 
 auto games::rogue::compute_hor_plus_correction() -> float {
     using Data = games::game_data<games::Rogue>;
@@ -48,12 +40,15 @@ namespace hooks {
         mem::MidHook g_fov_hook;
 #pragma clang diagnostic pop
 
-        using Tag = games::rogue::FOVCorrectionHook;
+        using Data = games::game_data<games::Rogue>;
+        using Tag  = games::rogue::FOVCorrectionHook;
 
         struct FOVCorrectionFunctor {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
+                auto *camera = reinterpret_cast<games::rogue::CameraSettings *>(regs.rbx);
+
                 if (!games::rogue::registry().enabled<Tag>()) {
-                    *reinterpret_cast<float *>(regs.rbx + 0x40) = regs.xmm6.f32[0];
+                    camera->fov = regs.xmm6.f32[0];
                     return;
                 }
 
@@ -82,7 +77,7 @@ namespace hooks {
 
                 fov *= cfg.multiplier.get();
 
-                *reinterpret_cast<float *>(regs.rbx + 0x40) = fov;
+                camera->fov = fov;
             }
         };
     } // namespace

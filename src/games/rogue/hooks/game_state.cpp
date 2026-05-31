@@ -1,13 +1,13 @@
 #include "games/rogue/hooks/game_state.hpp"
 
-#include <cstdint>
-
 #include <atomic>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
 
 #include "mem/hook.hpp"
+
+#include "games/rogue/structs.hpp"
 
 namespace hooks {
     auto is_in_game() -> std::atomic<bool> & {
@@ -29,21 +29,24 @@ namespace hooks {
         struct GameUnpause {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(true, std::memory_order_relaxed);
-                *reinterpret_cast<std::uint8_t *>(regs.rcx + 0x2C0) = 0;
+                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rcx);
+                state->pause_flag = 0;
             }
         };
 
         struct GamePause {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                *reinterpret_cast<std::uint8_t *>(regs.r8 + 0x2C0) = 1;
+                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.r8);
+                state->pause_flag = 1;
             }
         };
 
         struct GamePause2 {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                *reinterpret_cast<std::uint8_t *>(regs.rdi + 0x2C0) = 1;
+                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rdi);
+                state->pause_flag = 1;
             }
         };
     } // namespace

@@ -148,7 +148,7 @@ namespace hooks {
                 void (*call_on_reload)(Registry<HookList> &r) {};
             };
 
-            template<typename Tag, typename Addrs>
+            template<typename Tag, typename Addrs = void>
             static auto make_ops() -> HookOps {
                 return HookOps {
                     .name      = HookTraits<Tag>::name,
@@ -156,10 +156,10 @@ namespace hooks {
                     .hard_deps = DepIndices<Tag>::hard,
                     .soft_deps = DepIndices<Tag>::soft,
 
-                    .load_config = [](Registry<HookList> &r, mINI::INIStructure &ini) -> auto {
+                    .load_config = [](Registry<HookList> &r, mINI::INIStructure &ini) -> void {
                         r.template config<Tag>().load_all(ini);
                     },
-                    .load_enabled = [](Registry<HookList> &r, mINI::INIStructure &ini) -> auto {
+                    .load_enabled = [](Registry<HookList> &r, mINI::INIStructure &ini) -> void {
                         if (!ini.has("Hooks")) {
                             return;
                         }
@@ -169,21 +169,36 @@ namespace hooks {
                             r.template set_enabled<Tag>(default_parser<bool> {}(sec[key]));
                         }
                     },
-                    .check_required_fn = [](const void *raw) -> bool {
-                        const auto &addrs = *static_cast<const Addrs *>(raw);
-                        return std::ranges::all_of(HookTraits<Tag>::required_patterns,
-                                                   [&](auto f) -> auto {
-                                                       return (addrs.*f).has_value();
-                                                   });
-                    },
-                    .do_install_fn = [](const void *raw) -> bool {
-                        const auto &addrs = *static_cast<const Addrs *>(raw);
-                        return HookTraits<Tag>::install(addrs);
-                    },
-                    .set_installed = [](Registry<HookList> &r, bool val) -> auto {
+
+                    .check_required_fn = []() -> bool (*)(const void *) {
+                        if constexpr (!std::is_void_v<Addrs>) {
+                            return +[](const void *raw) -> bool {
+                                const auto &addrs = *static_cast<const Addrs *>(raw);
+                                return std::ranges::all_of(HookTraits<Tag>::required_patterns,
+                                                           [&](auto f) -> bool {
+                                                               return (addrs.*f).has_value();
+                                                           });
+                            };
+                        } else {
+                            return static_cast<bool (*)(const void *)>(nullptr);
+                        }
+                    }(),
+
+                    .do_install_fn = []() -> bool (*)(const void *) {
+                        if constexpr (!std::is_void_v<Addrs>) {
+                            return +[](const void *raw) -> bool {
+                                const auto &addrs = *static_cast<const Addrs *>(raw);
+                                return HookTraits<Tag>::install(addrs);
+                            };
+                        } else {
+                            return static_cast<bool (*)(const void *)>(nullptr);
+                        }
+                    }(),
+
+                    .set_installed = [](Registry<HookList> &r, bool val) -> void {
                         r.template set_installed<Tag>(val);
                     },
-                    .set_enabled = [](Registry<HookList> &r, bool val) -> auto {
+                    .set_enabled = [](Registry<HookList> &r, bool val) -> void {
                         r.template set_enabled<Tag>(val);
                     },
                     .is_enabled = [](const Registry<HookList> &r) -> bool {
@@ -192,7 +207,7 @@ namespace hooks {
                     .is_installed = [](const Registry<HookList> &r) -> bool {
                         return r.template installed<Tag>();
                     },
-                    .call_on_reload = [](Registry<HookList> &r) -> auto {
+                    .call_on_reload = [](Registry<HookList> &r) -> void {
                         if constexpr (HasOnReload<Tag>) {
                             HookTraits<Tag>::on_reload(r.template config<Tag>());
                         }
@@ -200,59 +215,10 @@ namespace hooks {
                 };
             }
 
-            template<typename Tag>
-            static auto make_ops() -> HookOps {
-                return HookOps {
-                    .name      = HookTraits<Tag>::name,
-                    .index     = hook_idx<Tag>,
-                    .hard_deps = DepIndices<Tag>::hard,
-                    .soft_deps = DepIndices<Tag>::soft,
-
-                    .load_config = [](Registry<HookList> &r, mINI::INIStructure &ini) -> auto {
-                        r.template config<Tag>().load_all(ini);
-                    },
-                    .load_enabled = [](Registry<HookList> &r, mINI::INIStructure &ini) -> auto {
-                        if (!ini.has("Hooks")) {
-                            return;
-                        }
-                        auto       &sec = ini["Hooks"];
-                        std::string key(HookTraits<Tag>::name);
-                        if (sec.has(key)) {
-                            r.template set_enabled<Tag>(default_parser<bool> {}(sec[key]));
-                        }
-                    },
-                    .check_required_fn = nullptr,
-                    .do_install_fn     = nullptr,
-                    .set_installed     = [](Registry<HookList> &r, bool val) -> auto {
-                        r.template set_installed<Tag>(val);
-                    },
-                    .set_enabled = [](Registry<HookList> &r, bool val) -> auto {
-                        r.template set_enabled<Tag>(val);
-                    },
-                    .is_enabled = [](const Registry<HookList> &r) -> bool {
-                        return r.template enabled<Tag>();
-                    },
-                    .is_installed = [](const Registry<HookList> &r) -> bool {
-                        return r.template installed<Tag>();
-                    },
-                    .call_on_reload = [](Registry<HookList> &r) -> auto {
-                        if constexpr (HasOnReload<Tag>) {
-                            HookTraits<Tag>::on_reload(r.template config<Tag>());
-                        }
-                    },
-                };
-            }
-
-            template<typename Addrs, typename... Tags>
+            template<typename Addrs = void, typename... Tags>
             static auto make_all_ops(hook_list<Tags...> /*unused*/)
                 -> std::array<HookOps, sizeof...(Tags)> {
                 return {make_ops<Tags, Addrs>()...};
-            }
-
-            template<typename... Tags>
-            static auto make_all_ops(hook_list<Tags...> /*unused*/)
-                -> std::array<HookOps, sizeof...(Tags)> {
-                return {make_ops<Tags>()...};
             }
 
             static void

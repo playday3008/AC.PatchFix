@@ -9,8 +9,14 @@
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
+#include "games/rogue/structs.hpp"
 
 namespace hooks {
+    auto current_aspect() -> std::atomic<float> & {
+        static std::atomic<float> instance {games::game_data<games::Rogue>::k_default_aspect};
+        return instance;
+    }
+
     namespace {
         using Data = games::game_data<games::Rogue>;
         using Tag  = games::rogue::ViewportFittingHook;
@@ -36,8 +42,10 @@ namespace hooks {
                     current_aspect().store(ar, std::memory_order_relaxed);
                     return;
                 }
-                const float w = *reinterpret_cast<float *>(regs.rax + 0x10);
-                const float h = *reinterpret_cast<float *>(regs.rax + 0x14);
+                const auto *display =
+                    reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rax);
+                const float w = display->width;
+                const float h = display->height;
                 if (w > 0.0F) {
                     regs.xmm0.f32[0] = h / w;
                     current_aspect().store(w / h, std::memory_order_relaxed);
@@ -57,8 +65,10 @@ namespace hooks {
                     regs.xmm4.f32[0] *= ar;
                     return;
                 }
-                const float w = *reinterpret_cast<float *>(regs.rax + 0x10);
-                const float h = *reinterpret_cast<float *>(regs.rax + 0x14);
+                const auto *display =
+                    reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rax);
+                const float w = display->width;
+                const float h = display->height;
                 if (h > 0.0F) {
                     regs.xmm4.f32[0] *= (w / h);
                 }
