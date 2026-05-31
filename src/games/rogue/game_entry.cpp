@@ -4,26 +4,41 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "diagnostics/crash_report.hpp"
 #include "games/game_init.hpp"
 #include "games/rogue/registry.hpp"
 #include "win32/pe.hpp"
 
-void game_init(HMODULE hModule) {
-    using G = games::Rogue;
+namespace {
+    void init_impl(HMODULE hModule) {
+        using G = games::Rogue;
 
-    auto dll_dir  = win32::get_module_path(hModule).parent_path();
-    auto exe_name = win32::get_module_path(nullptr).filename().string();
+        auto dll_dir  = win32::get_module_path(hModule).parent_path();
+        auto exe_name = win32::get_module_path(nullptr).filename().string();
 
-    if (exe_name != games::game_data<G>::exe_name) {
-        return;
+        if (exe_name != games::game_data<G>::exe_name) {
+            return;
+        }
+
+        auto name     = games::game_data<G>::name;
+        auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
+
+        log::init((dll_dir / (log_name + ".log")).string());
+        log::get()->info("{} initializing for {}", log_name, exe_name);
+
+        auto ini_path = dll_dir / (log_name + ".ini");
+        init_game<G>(games::rogue::registry(), ini_path);
     }
+} // namespace
 
-    auto name     = games::game_data<G>::name;
-    auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wlanguage-extension-token"
 
-    log::init((dll_dir / (log_name + ".log")).string());
-    log::get()->info("{} initializing for {}", log_name, exe_name);
-
-    auto ini_path = dll_dir / (log_name + ".ini");
-    init_game<G>(games::rogue::registry(), ini_path);
+void game_init(HMODULE hModule) {
+    __try {
+        init_impl(hModule);
+    } __except (diagnostics::install_fault_filter(GetExceptionInformation(), "game_init")) {
+    }
 }
+
+#pragma clang diagnostic pop

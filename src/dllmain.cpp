@@ -6,6 +6,8 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "diagnostics/address_registry.hpp"
+#include "diagnostics/crash_handler.hpp"
 #include "games/game_init.hpp"
 #include "vmp/integrity_bypass.hpp"
 
@@ -27,12 +29,15 @@ static std::optional<std::jthread> g_init_thread;
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
+        diagnostics::register_plugin_module(hModule);
+        diagnostics::install_veh();
         vmp::install(GetModuleHandleW(nullptr));
         g_init_thread.emplace([hModule] -> void { game_init(hModule); });
     } else if (reason == DLL_PROCESS_DETACH) {
         watcher().reset();
         g_init_thread.reset();
         vmp::uninstall();
+        diagnostics::uninstall_veh();
         log::shutdown();
     }
     return TRUE;
