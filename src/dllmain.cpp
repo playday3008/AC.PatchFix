@@ -6,10 +6,8 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
-#include "config/file_watcher.hpp"
+#include "games/game_init.hpp"
 #include "vmp/integrity_bypass.hpp"
-
-extern void game_init(HMODULE hModule);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"

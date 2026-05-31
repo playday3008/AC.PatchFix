@@ -46,8 +46,8 @@ namespace hooks {
                         regs.rdx = 1;
                         break;
                     case MultiMonitor::Auto: {
-                        float w  = *reinterpret_cast<float *>(regs.rbx + 0x10);
-                        float h  = *reinterpret_cast<float *>(regs.rbx + 0x14);
+                        const float w = *reinterpret_cast<float *>(regs.rbx + 0x10);
+                        const float h = *reinterpret_cast<float *>(regs.rbx + 0x14);
                         regs.rdx = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                         break;
                     }
@@ -74,9 +74,9 @@ namespace hooks {
                 flag = 1;
                 break;
             case MultiMonitor::Auto: {
-                float w = *reinterpret_cast<float *>(obj + 0x10);
-                float h = *reinterpret_cast<float *>(obj + 0x14);
-                flag    = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
+                const float w = *reinterpret_cast<float *>(obj + 0x10);
+                const float h = *reinterpret_cast<float *>(obj + 0x14);
+                flag          = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
                 break;
             }
             default:
@@ -85,7 +85,7 @@ namespace hooks {
 
         *reinterpret_cast<std::uint8_t *>(obj + 0x18) = flag;
         if (flag != 0) {
-            float w = *reinterpret_cast<float *>(obj + 0x10);
+            const float w = *reinterpret_cast<float *>(obj + 0x10);
             *reinterpret_cast<std::uint32_t *>(obj + 0x1C) =
                 static_cast<std::uint32_t>(w * Data::k_multi_monitor_split);
         }

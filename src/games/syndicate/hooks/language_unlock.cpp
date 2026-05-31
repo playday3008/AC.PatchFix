@@ -45,7 +45,7 @@ namespace hooks {
         log::get()->trace("Syndicate LanguageUnlockHook: installing");
 
         const auto &cfg        = games::syndicate::g_registry.config<Tag>();
-        bool        unlock_all = cfg.unlock_all.get();
+        const bool  unlock_all = cfg.unlock_all.get();
 
         if (!unlock_all) {
             log::get()->info("Syndicate LanguageUnlockHook: UnlockAll=false, skipping");

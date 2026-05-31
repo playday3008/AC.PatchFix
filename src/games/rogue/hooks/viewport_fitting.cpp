@@ -30,14 +30,14 @@ namespace hooks {
                     regs.xmm0.f32[0] = Data::k_inv_default_aspect;
                     return;
                 }
-                float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
+                const float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
                 if (ar > 0.0F) {
                     regs.xmm0.f32[0] = 1.0F / ar;
                     g_current_aspect.store(ar, std::memory_order_relaxed);
                     return;
                 }
-                float w = *reinterpret_cast<float *>(regs.rax + 0x10);
-                float h = *reinterpret_cast<float *>(regs.rax + 0x14);
+                const float w = *reinterpret_cast<float *>(regs.rax + 0x10);
+                const float h = *reinterpret_cast<float *>(regs.rax + 0x14);
                 if (w > 0.0F) {
                     regs.xmm0.f32[0] = h / w;
                     g_current_aspect.store(w / h, std::memory_order_relaxed);
@@ -52,13 +52,13 @@ namespace hooks {
                     regs.xmm4.f32[0] *= Data::k_default_aspect;
                     return;
                 }
-                float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
+                const float ar = games::rogue::g_registry.config<Tag>().aspect_ratio.get();
                 if (ar > 0.0F) {
                     regs.xmm4.f32[0] *= ar;
                     return;
                 }
-                float w = *reinterpret_cast<float *>(regs.rax + 0x10);
-                float h = *reinterpret_cast<float *>(regs.rax + 0x14);
+                const float w = *reinterpret_cast<float *>(regs.rax + 0x10);
+                const float h = *reinterpret_cast<float *>(regs.rax + 0x14);
                 if (h > 0.0F) {
                     regs.xmm4.f32[0] *= (w / h);
                 }
@@ -74,9 +74,9 @@ namespace hooks {
                     return;
                 }
 
-                float w        = regs.xmm0.f32[0];
-                float h        = regs.xmm1.f32[0];
-                float fitted_h = w * Data::k_inv_default_aspect;
+                const float w        = regs.xmm0.f32[0];
+                const float h        = regs.xmm1.f32[0];
+                const float fitted_h = w * Data::k_inv_default_aspect;
                 if (h > fitted_h) {
                     *a5_y = regs.xmm3.f32[0] * h / fitted_h;
                 } else {

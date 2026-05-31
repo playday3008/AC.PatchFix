@@ -34,7 +34,7 @@ FileWatcher::FileWatcher(const std::filesystem::path &file_path, Callback on_cha
 
 void FileWatcher::watch_loop(const std::stop_token &token) {
     log::get()->trace("FileWatcher: opening directory {}", m_dir_path.string());
-    win32::UniqueHandle<> dir_handle(
+    const win32::UniqueHandle<> dir_handle(
         CreateFileA(m_dir_path.string().c_str(),
                     FILE_LIST_DIRECTORY,
                     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -48,32 +48,32 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
     }
 
     win32::UniqueHandle<win32::NullInvalid> stop_event(CreateEventA(nullptr, TRUE, FALSE, nullptr));
-    std::stop_callback on_stop(token, [&] -> void { SetEvent(stop_event.get()); });
+    const std::stop_callback on_stop(token, [&] -> void { SetEvent(stop_event.get()); });
 
     alignas(DWORD) std::array<char, 4096> buffer {};
     OVERLAPPED                            overlapped {};
 
-    win32::UniqueHandle<win32::NullInvalid> event_handle(
+    const win32::UniqueHandle<win32::NullInvalid> event_handle(
         CreateEventA(nullptr, TRUE, FALSE, nullptr));
     overlapped.hEvent = event_handle.get();
 
     while (!token.stop_requested()) {
         ResetEvent(overlapped.hEvent);
-        BOOL ok = ReadDirectoryChangesW(dir_handle.get(),
-                                        buffer.data(),
-                                        static_cast<DWORD>(buffer.size()),
-                                        FALSE,
-                                        FILE_NOTIFY_CHANGE_LAST_WRITE,
-                                        nullptr,
-                                        &overlapped,
-                                        nullptr);
+        const BOOL ok = ReadDirectoryChangesW(dir_handle.get(),
+                                              buffer.data(),
+                                              static_cast<DWORD>(buffer.size()),
+                                              FALSE,
+                                              FILE_NOTIFY_CHANGE_LAST_WRITE,
+                                              nullptr,
+                                              &overlapped,
+                                              nullptr);
         if (ok == FALSE) {
             log::get()->warn("FileWatcher: ReadDirectoryChangesW failed");
             break;
         }
 
-        std::array events = {overlapped.hEvent, stop_event.get()};
-        DWORD      wait   = WaitForMultipleObjects(2, events.data(), FALSE, INFINITE);
+        std::array  events = {overlapped.hEvent, stop_event.get()};
+        const DWORD wait   = WaitForMultipleObjects(2, events.data(), FALSE, INFINITE);
         if (wait != WAIT_OBJECT_0) {
             break;
         }
@@ -86,7 +86,7 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
             continue;
         }
 
-#if defined(START_LIFETIME_AS_AVAILABLE)
+#ifdef START_LIFETIME_AS_AVAILABLE
         auto *info = std::start_lifetime_as<FILE_NOTIFY_INFORMATION>(buffer.data());
 #else
         auto *info = reinterpret_cast<FILE_NOTIFY_INFORMATION *>(buffer.data());

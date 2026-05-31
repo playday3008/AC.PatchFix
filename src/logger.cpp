@@ -38,8 +38,8 @@ namespace {
     void make_logger(std::string_view                 raw_name,
                      std::vector<spdlog::sink_ptr>   &sinks,
                      std::shared_ptr<spdlog::logger> &out) {
-        std::string name   = to_display_name(raw_name);
-        auto        logger = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
+        const std::string name = to_display_name(raw_name);
+        auto logger            = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
         logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v");
         logger->set_level(spdlog::level::trace);
         logger->flush_on(spdlog::level::info);
@@ -62,7 +62,7 @@ static std::unique_ptr<class log> g_instance;
 
 log::log(std::string_view path, std::size_t maxSize, std::size_t maxFiles)
     : m(std::make_unique<Impl>()) {
-    std::string p(path);
+    const std::string p(path);
     try {
         m->sinks.push_back(
             std::make_shared<spdlog::sinks::rotating_file_sink_mt>(p, maxSize, maxFiles, true));
@@ -116,7 +116,7 @@ auto log::get(std::string_view name) -> const std::shared_ptr<spdlog::logger> & 
         return null_logger();
     }
 
-    std::scoped_lock<std::mutex> lock(g_instance->m->mutex);
+    const std::scoped_lock<std::mutex> lock(g_instance->m->mutex);
 
     if (auto it = g_instance->m->loggers.find(name); it != g_instance->m->loggers.end()) {
         return it->second;

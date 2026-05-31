@@ -51,7 +51,7 @@ namespace hooks {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto orig = *s_subtitle_bf_global;
 
-                bool is_steam = mem::invoke<std::uint8_t()>(s_is_steam_addr) != 0;
+                const bool is_steam = mem::invoke<std::uint8_t()>(s_is_steam_addr) != 0;
 
                 if (bitfield::has(orig, Language::Russian)) {
                     s_real_game_id = is_steam ? GameId::steam_ru : GameId::uplay_ru;
@@ -87,7 +87,7 @@ namespace hooks {
         log::get()->trace("LanguageUnlockHook: installing");
 
         const auto &cfg        = games::rogue::g_registry.config<Tag>();
-        bool        unlock_all = cfg.unlock_all.get();
+        const bool  unlock_all = cfg.unlock_all.get();
         s_ui_language          = cfg.ui_language.get();
 
         if (!unlock_all && s_ui_language == Language::None) {
