@@ -8,7 +8,7 @@
 
 namespace win32 {
     inline auto wchar_to_utf8(LPCWCH src, int src_len) -> std::string {
-        int len = WideCharToMultiByte(CP_UTF8, 0, src, src_len, nullptr, 0, nullptr, nullptr);
+        const int len = WideCharToMultiByte(CP_UTF8, 0, src, src_len, nullptr, 0, nullptr, nullptr);
         if (len <= 0) {
             return {};
         }

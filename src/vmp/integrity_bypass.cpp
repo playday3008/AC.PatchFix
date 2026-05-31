@@ -65,8 +65,11 @@ namespace vmp {
 
         NtCurrentTeb()->ProcessEnvironmentBlock->BeingDebugged = 0;
 
-        auto *ct = reinterpret_cast<void *>(
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
+        auto *ct = reinterpret_cast<decltype(CreateThread) *>(
             GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "CreateThread"));
+#pragma clang diagnostic pop
 
         if (ct == nullptr) {
             return false;

@@ -22,5 +22,5 @@ namespace games {
     };
 
     template<typename R>
-    using registry_game_t = typename registry_game<R>::type;
+    using registry_game_t = registry_game<R>::type;
 } // namespace games

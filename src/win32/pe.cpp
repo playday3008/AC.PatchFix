@@ -54,7 +54,7 @@ namespace win32 {
 
     auto get_module_path(HMODULE hModule) -> std::filesystem::path {
         std::array<WCHAR, MAX_PATH> buf {};
-        DWORD                       len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
+        const DWORD                 len = GetModuleFileNameW(hModule, buf.data(), MAX_PATH);
         return {wchar_to_utf8(buf.data(), static_cast<int>(len))};
     }
 } // namespace win32

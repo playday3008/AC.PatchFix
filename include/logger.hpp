@@ -39,7 +39,7 @@ class log {
 };
 
 consteval auto log::detail::extract_logger_name(const char *filepath) -> std::string_view {
-    std::string_view path(filepath);
+    const std::string_view path(filepath);
 
     auto        last_sep   = path.find_last_of("/\\");
     std::size_t stem_begin = (last_sep != std::string_view::npos) ? last_sep + 1 : 0;

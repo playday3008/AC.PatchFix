@@ -13,9 +13,9 @@ namespace hooks {
     namespace detail {
         template<typename Tag>
         struct HookState {
-            typename HookTraits<Tag>::Config config;
-            std::atomic<bool>                enabled {true};
-            bool                             installed {false};
+            HookTraits<Tag>::Config config;
+            std::atomic<bool>       enabled {true};
+            bool                    installed {false};
         };
 
         template<typename List>
@@ -29,7 +29,7 @@ namespace hooks {
 
     template<typename HookList>
     class Registry {
-        using Storage = typename detail::make_storage<HookList>::type;
+        using Storage = detail::make_storage<HookList>::type;
         Storage states_;
 
       public:

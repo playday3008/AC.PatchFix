@@ -96,7 +96,7 @@ namespace hooks {
 
     struct ratio_parser {
         [[maybe_unused]] static auto operator()(const std::string &s) -> float {
-            std::string_view str(s);
+            const std::string_view str(s);
             if (str.empty() || str == "0") {
                 return 0.0F;
             }

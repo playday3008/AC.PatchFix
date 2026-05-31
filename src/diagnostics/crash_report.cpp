@@ -96,12 +96,18 @@ namespace diagnostics {
                 return "ARRAY_BOUNDS_EXCEEDED";
             case EXCEPTION_DATATYPE_MISALIGNMENT:
                 return "DATATYPE_MISALIGNMENT";
+            case EXCEPTION_FLT_DENORMAL_OPERAND:
+                return "FLT_DENORMAL_OPERAND";
             case EXCEPTION_FLT_DIVIDE_BY_ZERO:
                 return "FLT_DIVIDE_BY_ZERO";
+            case EXCEPTION_FLT_INEXACT_RESULT:
+                return "FLT_INEXACT_RESULT";
             case EXCEPTION_FLT_INVALID_OPERATION:
                 return "FLT_INVALID_OPERATION";
             case EXCEPTION_FLT_OVERFLOW:
                 return "FLT_OVERFLOW";
+            case EXCEPTION_FLT_STACK_CHECK:
+                return "FLT_STACK_CHECK";
             case EXCEPTION_FLT_UNDERFLOW:
                 return "FLT_UNDERFLOW";
             case EXCEPTION_ILLEGAL_INSTRUCTION:
@@ -180,20 +186,19 @@ namespace diagnostics {
 
         auto fault_addr = reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress);
 
-        HMODULE                    hModule       = nullptr;
-        std::uintptr_t             module_offset = fault_addr;
+        HMODULE                    hModule = nullptr;
         std::array<char, MAX_PATH> module_path {};
-        bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                                 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                             reinterpret_cast<LPCSTR>(fault_addr),
-                                             &hModule) != 0;
+        const bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                                   reinterpret_cast<LPCSTR>(fault_addr),
+                                                   &hModule) != 0;
         if (has_module) {
-            auto base     = reinterpret_cast<std::uintptr_t>(hModule);
-            module_offset = fault_addr - base;
-            GetModuleFileNameA(hModule, module_path.data(), MAX_PATH);
-            std::string_view path(module_path.data());
-            auto             sep = path.rfind('\\');
-            auto module_name     = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
+            auto base          = reinterpret_cast<std::uintptr_t>(hModule);
+            auto module_offset = fault_addr - base;
+            GetModuleFileNameA(hModule, module_path.data(), module_path.size());
+            const std::string_view path(module_path.data());
+            const auto             sep = path.rfind('\\');
+            const auto module_name = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
             logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
                              exception_code_name(code),
                              code,

@@ -22,7 +22,7 @@ void game_init(HMODULE hModule);
 template<typename G, typename Registry>
 void init_game(Registry &registry, const std::filesystem::path &ini_path) {
     using Data  = games::game_data<G>;
-    using Addrs = typename Data::ResolvedAddresses;
+    using Addrs = Data::ResolvedAddresses;
 
     if constexpr (games::game_is_vmprotect<G>) {
         mem::set_protect_method(mem::ProtectMethod::nt_protect);
@@ -31,8 +31,8 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
         log::get()->info("VMP bypass active, .text writable via NtProtectVirtualMemory");
     }
 
-    mINI::INIFile      file(ini_path.string());
-    mINI::INIStructure ini;
+    const mINI::INIFile file(ini_path.string());
+    mINI::INIStructure  ini;
     if (!file.read(ini)) {
         log::get()->warn("Failed to read INI, using defaults");
     }
@@ -61,8 +61,8 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
 
     watcher() = std::make_unique<FileWatcher>(ini_path, [ini_path, &registry] -> auto {
         log::get()->info("INI change detected, reloading...");
-        mINI::INIFile      f(ini_path.string());
-        mINI::INIStructure data;
+        const mINI::INIFile f(ini_path.string());
+        mINI::INIStructure  data;
         if (f.read(data)) {
             registry.reload(data);
         } else {

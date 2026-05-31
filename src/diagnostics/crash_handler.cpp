@@ -12,7 +12,7 @@ namespace diagnostics {
         void *g_veh_handle = nullptr;
 
         auto NTAPI veh_handler(EXCEPTION_POINTERS *ep) -> LONG {
-            auto code = ep->ExceptionRecord->ExceptionCode;
+            auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
             if (!is_hardware_exception(code)) {
                 return EXCEPTION_CONTINUE_SEARCH;
             }

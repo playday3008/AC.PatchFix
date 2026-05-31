@@ -2,23 +2,21 @@
 
 #include <cstring>
 
+#include <algorithm>
 #include <string_view>
 
 #include <Windows.h>
 
 #include <DbgHelp.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
-#pragma clang diagnostic ignored "-Wcast-function-type-strict"
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-
 namespace diagnostics {
     auto capture_stack(const CONTEXT *ctx, std::span<StackFrame> buf) -> std::span<StackFrame> {
         CONTEXT     local_ctx {};
         std::size_t count = 0;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
         std::memcpy(&local_ctx, ctx, sizeof(CONTEXT));
+#pragma clang diagnostic pop
 
         while (count < buf.size()) {
             if (local_ctx.Rip == 0) {
@@ -61,54 +59,58 @@ namespace diagnostics {
             frame.module_offset = frame.address - frame.module_base;
             GetModuleFileNameA(hModule, frame.module_name.data(), k_max_name_len);
 
-            std::string_view path(frame.module_name.data());
-            auto             sep = path.rfind('\\');
+            const std::string_view path(frame.module_name.data());
+            const auto             sep = path.rfind('\\');
             if (sep != std::string_view::npos) {
                 auto filename = path.substr(sep + 1);
-                std::memcpy(frame.module_name.data(), filename.data(), filename.size() + 1);
+                std::copy_n(filename.data(), filename.size() + 1, frame.module_name.data());
             }
         }
     }
 
     void resolve_symbols(std::span<StackFrame> frames) {
-        using SymInitialize_t = BOOL(WINAPI *)(HANDLE, PCSTR, BOOL);
-        using SymFromAddr_t   = BOOL(WINAPI *)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
-
         static auto *h_dbghelp = LoadLibraryA("dbghelp.dll");
         if (h_dbghelp == nullptr) {
             return;
         }
 
-        static auto *p_sym_init =
-            reinterpret_cast<SymInitialize_t>(GetProcAddress(h_dbghelp, "SymInitialize"));
-        static auto *p_sym_from_addr =
-            reinterpret_cast<SymFromAddr_t>(GetProcAddress(h_dbghelp, "SymFromAddr"));
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
+        static auto *pSymInitialize =
+            reinterpret_cast<decltype(SymInitialize) *>(GetProcAddress(h_dbghelp, "SymInitialize"));
+        static auto *pSymFromAddr =
+            reinterpret_cast<decltype(SymFromAddr) *>(GetProcAddress(h_dbghelp, "SymFromAddr"));
+#pragma clang diagnostic pop
 
-        if (p_sym_init == nullptr || p_sym_from_addr == nullptr) {
+        if (pSymInitialize == nullptr || pSymFromAddr == nullptr) {
             return;
         }
 
-        static bool initialized = (p_sym_init(GetCurrentProcess(), nullptr, TRUE) != FALSE);
+        static const bool initialized =
+            (pSymInitialize(GetCurrentProcess(), nullptr, TRUE) != FALSE);
         if (!initialized) {
             return;
         }
 
-        alignas(SYMBOL_INFO) char buf[sizeof(SYMBOL_INFO) + k_max_sym_len] {};
-        auto                     *symbol = reinterpret_cast<SYMBOL_INFO *>(buf);
-        symbol->SizeOfStruct             = sizeof(SYMBOL_INFO);
-        symbol->MaxNameLen               = k_max_sym_len - 1;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+        alignas(SYMBOL_INFO) std::array<std::byte, sizeof(SYMBOL_INFO) + k_max_sym_len> buf {};
+        auto *symbol = reinterpret_cast<SYMBOL_INFO *>(buf.data());
+#pragma clang diagnostic pop
+        symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        symbol->MaxNameLen   = k_max_sym_len - 1;
 
         for (auto &frame : frames) {
             DWORD64 displacement = 0;
-            if (p_sym_from_addr(GetCurrentProcess(), frame.address, &displacement, symbol) !=
-                FALSE) {
-                std::strncpy(frame.symbol_name.data(), symbol->Name, k_max_sym_len - 1);
-                frame.symbol_name[k_max_sym_len - 1] = '\0';
-                frame.symbol_offset                  = displacement;
-                frame.has_symbol                     = true;
+            if (pSymFromAddr(GetCurrentProcess(), frame.address, &displacement, symbol) != FALSE) {
+                auto name_len = std::char_traits<char>::length(symbol->Name);
+                auto copy_len = std::min(name_len, k_max_sym_len - 1);
+                std::copy_n(symbol->Name, copy_len, frame.symbol_name.data());
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+                frame.symbol_name[copy_len] = '\0';
+                frame.symbol_offset         = displacement;
+                frame.has_symbol            = true;
             }
         }
     }
 } // namespace diagnostics
-
-#pragma clang diagnostic pop
