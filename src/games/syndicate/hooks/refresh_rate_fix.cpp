@@ -27,8 +27,8 @@ namespace hooks {
                 }
 
                 auto *obj = reinterpret_cast<games::syndicate::SwapChainObj *>(regs.rcx);
-                obj->refresh_rate.numerator   = 0;
-                obj->refresh_rate.denominator = 0;
+                obj->mode_desc.refresh_rate.numerator   = 0;
+                obj->mode_desc.refresh_rate.denominator = 0;
             }
         };
     } // namespace
