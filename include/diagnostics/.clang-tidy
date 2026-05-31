@@ -1,7 +1,0 @@
-InheritParentConfig: true
-Checks: >
-  -cppcoreguidelines-pro-type-reinterpret-cast,
-  -performance-no-int-to-ptr,
-  -hicpp-avoid-c-arrays,
-  -cppcoreguidelines-avoid-c-arrays,
-  -modernize-avoid-c-arrays,

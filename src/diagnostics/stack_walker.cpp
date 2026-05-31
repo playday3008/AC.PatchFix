@@ -58,11 +58,11 @@ namespace diagnostics {
             }
             frame.module_base   = reinterpret_cast<std::uintptr_t>(hModule);
             frame.module_offset = frame.address - frame.module_base;
-            GetModuleFileNameA(hModule, frame.module_name, k_max_name_len);
+            GetModuleFileNameA(hModule, frame.module_name.data(), k_max_name_len);
 
-            auto *last_sep = std::strrchr(frame.module_name, '\\');
+            auto *last_sep = std::strrchr(frame.module_name.data(), '\\');
             if (last_sep != nullptr) {
-                std::memmove(frame.module_name, last_sep + 1, std::strlen(last_sep + 1) + 1);
+                std::memmove(frame.module_name.data(), last_sep + 1, std::strlen(last_sep + 1) + 1);
             }
         }
     }
@@ -100,7 +100,7 @@ namespace diagnostics {
             DWORD64 displacement = 0;
             if (p_sym_from_addr(GetCurrentProcess(), frame.address, &displacement, symbol) !=
                 FALSE) {
-                std::strncpy(frame.symbol_name, symbol->Name, k_max_sym_len - 1);
+                std::strncpy(frame.symbol_name.data(), symbol->Name, k_max_sym_len - 1);
                 frame.symbol_name[k_max_sym_len - 1] = '\0';
                 frame.symbol_offset                  = displacement;
                 frame.has_symbol                     = true;

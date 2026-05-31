@@ -74,14 +74,14 @@ namespace diagnostics {
                     if (frame.has_symbol) {
                         log::get()->critical("    #{:02d}  {}+0x{:X} ({} +0x{:X})",
                                              i,
-                                             frame.module_name,
+                                             frame.module_name.data(),
                                              frame.module_offset,
-                                             frame.symbol_name,
+                                             frame.symbol_name.data(),
                                              frame.symbol_offset);
                     } else {
                         log::get()->critical("    #{:02d}  {}+0x{:X}",
                                              i,
-                                             frame.module_name,
+                                             frame.module_name.data(),
                                              frame.module_offset);
                     }
                 } else {
