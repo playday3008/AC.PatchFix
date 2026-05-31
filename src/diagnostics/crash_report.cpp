@@ -1,7 +1,6 @@
 #include "diagnostics/crash_report.hpp"
 
 #include <cstdint>
-#include <cstring>
 
 #include <string_view>
 
@@ -11,11 +10,6 @@
 
 #include "diagnostics/minidump.hpp"
 #include "diagnostics/stack_walker.hpp"
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
-#pragma clang diagnostic ignored "-Wcast-function-type-strict"
 
 namespace diagnostics {
     namespace {
@@ -184,7 +178,7 @@ namespace diagnostics {
 
         HMODULE        hModule       = nullptr;
         std::uintptr_t module_offset = fault_addr;
-        char           module_name[MAX_PATH] {};
+        char           module_path[MAX_PATH] {};
         bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                                  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                              reinterpret_cast<LPCSTR>(fault_addr),
@@ -192,11 +186,10 @@ namespace diagnostics {
         if (has_module) {
             auto base     = reinterpret_cast<std::uintptr_t>(hModule);
             module_offset = fault_addr - base;
-            GetModuleFileNameA(hModule, module_name, MAX_PATH);
-            auto *last_sep = std::strrchr(module_name, '\\');
-            if (last_sep != nullptr) {
-                std::memmove(module_name, last_sep + 1, std::strlen(last_sep + 1) + 1);
-            }
+            GetModuleFileNameA(hModule, module_path, MAX_PATH);
+            std::string_view path(module_path);
+            auto             sep = path.rfind('\\');
+            auto module_name     = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
             logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
                              exception_code_name(code),
                              code,
@@ -239,5 +232,3 @@ namespace diagnostics {
         return EXCEPTION_EXECUTE_HANDLER;
     }
 } // namespace diagnostics
-
-#pragma clang diagnostic pop
