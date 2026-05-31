@@ -1,7 +1,8 @@
 #include "diagnostics/minidump.hpp"
 
 #include <cstdio>
-#include <cstring>
+
+#include <string_view>
 
 #include <Windows.h>
 
@@ -44,33 +45,24 @@ namespace diagnostics {
                                &hSelf);
             GetModuleFileNameA(hSelf, module_path, MAX_PATH);
 
-            // Extract directory (truncate after last backslash)
-            auto *last_sep = std::strrchr(module_path, '\\');
-            char  dir[MAX_PATH] {};
-            if (last_sep != nullptr) {
-                std::memcpy(dir, module_path, static_cast<std::size_t>(last_sep - module_path + 1));
-            }
+            std::string_view path(module_path);
 
-            // Extract stem (filename without extension)
-            char stem[MAX_PATH] {};
-            if (last_sep != nullptr) {
-                std::strncpy(stem, last_sep + 1, MAX_PATH - 1);
-            } else {
-                std::strncpy(stem, module_path, MAX_PATH - 1);
-            }
-            auto *dot = std::strrchr(stem, '.');
-            if (dot != nullptr) {
-                *dot = '\0';
-            }
+            auto sep      = path.rfind('\\');
+            auto dir      = (sep != std::string_view::npos) ? path.substr(0, sep + 1) : path;
+            auto filename = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
+            auto dot      = filename.rfind('.');
+            auto stem     = (dot != std::string_view::npos) ? filename.substr(0, dot) : filename;
 
             SYSTEMTIME st {};
             GetLocalTime(&st);
 
             std::snprintf(out,
                           out_size,
-                          "%s%s.%04u%02u%02u_%02u%02u%02u.dmp",
-                          dir,
-                          stem,
+                          "%.*s%.*s.%04u%02u%02u_%02u%02u%02u.dmp",
+                          static_cast<int>(dir.size()),
+                          dir.data(),
+                          static_cast<int>(stem.size()),
+                          stem.data(),
                           st.wYear,
                           st.wMonth,
                           st.wDay,

@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include <string_view>
+
 #include <Windows.h>
 
 #include <DbgHelp.h>
@@ -59,9 +61,11 @@ namespace diagnostics {
             frame.module_offset = frame.address - frame.module_base;
             GetModuleFileNameA(hModule, frame.module_name.data(), k_max_name_len);
 
-            auto *last_sep = std::strrchr(frame.module_name.data(), '\\');
-            if (last_sep != nullptr) {
-                std::memmove(frame.module_name.data(), last_sep + 1, std::strlen(last_sep + 1) + 1);
+            std::string_view path(frame.module_name.data());
+            auto             sep = path.rfind('\\');
+            if (sep != std::string_view::npos) {
+                auto filename = path.substr(sep + 1);
+                std::memcpy(frame.module_name.data(), filename.data(), filename.size() + 1);
             }
         }
     }
