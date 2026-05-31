@@ -13,9 +13,9 @@ namespace diagnostics {
     } // namespace
 
     void register_plugin_module(HMODULE hModule) {
-        auto base = reinterpret_cast<std::uintptr_t>(hModule);
-        const auto *dos = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
-        const auto *nt  = reinterpret_cast<const IMAGE_NT_HEADERS *>(
+        auto        base = reinterpret_cast<std::uintptr_t>(hModule);
+        const auto *dos  = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
+        const auto *nt   = reinterpret_cast<const IMAGE_NT_HEADERS *>(
             base + static_cast<std::uintptr_t>(dos->e_lfanew));
         auto size = static_cast<std::uintptr_t>(nt->OptionalHeader.SizeOfImage);
 

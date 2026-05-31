@@ -17,13 +17,13 @@
 
 namespace diagnostics {
     namespace {
-        using MiniDumpWriteDump_t = BOOL(WINAPI *)(HANDLE hProcess,
-                                                    DWORD ProcessId,
-                                                    HANDLE hFile,
-                                                    MINIDUMP_TYPE DumpType,
-                                                    PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
-                                                    PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
-                                                    PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
+        using MiniDumpWriteDump_t = BOOL(WINAPI *)(HANDLE                          hProcess,
+                                                   DWORD                           ProcessId,
+                                                   HANDLE                          hFile,
+                                                   MINIDUMP_TYPE                   DumpType,
+                                                   PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
+                                                   PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
+                                                   PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
 
         auto get_dump_fn() -> MiniDumpWriteDump_t {
             static auto *h_dbghelp = LoadLibraryA("dbghelp.dll");
@@ -36,7 +36,7 @@ namespace diagnostics {
         }
 
         void build_dump_path(char *out, std::size_t out_size) {
-            char module_path[MAX_PATH] {};
+            char    module_path[MAX_PATH] {};
             HMODULE hSelf = nullptr;
             GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
@@ -46,7 +46,7 @@ namespace diagnostics {
 
             // Extract directory (truncate after last backslash)
             auto *last_sep = std::strrchr(module_path, '\\');
-            char dir[MAX_PATH] {};
+            char  dir[MAX_PATH] {};
             if (last_sep != nullptr) {
                 std::memcpy(dir, module_path, static_cast<std::size_t>(last_sep - module_path + 1));
             }
@@ -71,8 +71,12 @@ namespace diagnostics {
                           "%s%s.%04u%02u%02u_%02u%02u%02u.dmp",
                           dir,
                           stem,
-                          st.wYear, st.wMonth, st.wDay,
-                          st.wHour, st.wMinute, st.wSecond);
+                          st.wYear,
+                          st.wMonth,
+                          st.wDay,
+                          st.wHour,
+                          st.wMinute,
+                          st.wSecond);
         }
     } // namespace
 
@@ -103,16 +107,11 @@ namespace diagnostics {
         mei.ExceptionPointers = ep;
         mei.ClientPointers    = FALSE;
 
-        auto dump_type = static_cast<MINIDUMP_TYPE>(
-            MiniDumpWithThreadInfo | MiniDumpWithIndirectlyReferencedMemory);
+        auto dump_type = static_cast<MINIDUMP_TYPE>(MiniDumpWithThreadInfo |
+                                                    MiniDumpWithIndirectlyReferencedMemory);
 
-        BOOL ok = fn(GetCurrentProcess(),
-                     GetCurrentProcessId(),
-                     hFile,
-                     dump_type,
-                     &mei,
-                     nullptr,
-                     nullptr);
+        BOOL ok =
+            fn(GetCurrentProcess(), GetCurrentProcessId(), hFile, dump_type, &mei, nullptr, nullptr);
         CloseHandle(hFile);
 
         if (ok != FALSE) {

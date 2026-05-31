@@ -44,13 +44,25 @@ namespace diagnostics {
 
         void log_registers(const CONTEXT *ctx) {
             log::get()->critical("  RAX={:016X}  RBX={:016X}  RCX={:016X}  RDX={:016X}",
-                                 ctx->Rax, ctx->Rbx, ctx->Rcx, ctx->Rdx);
+                                 ctx->Rax,
+                                 ctx->Rbx,
+                                 ctx->Rcx,
+                                 ctx->Rdx);
             log::get()->critical("  RSI={:016X}  RDI={:016X}  RBP={:016X}  RSP={:016X}",
-                                 ctx->Rsi, ctx->Rdi, ctx->Rbp, ctx->Rsp);
+                                 ctx->Rsi,
+                                 ctx->Rdi,
+                                 ctx->Rbp,
+                                 ctx->Rsp);
             log::get()->critical("  R8 ={:016X}  R9 ={:016X}  R10={:016X}  R11={:016X}",
-                                 ctx->R8, ctx->R9, ctx->R10, ctx->R11);
+                                 ctx->R8,
+                                 ctx->R9,
+                                 ctx->R10,
+                                 ctx->R11);
             log::get()->critical("  R12={:016X}  R13={:016X}  R14={:016X}  R15={:016X}",
-                                 ctx->R12, ctx->R13, ctx->R14, ctx->R15);
+                                 ctx->R12,
+                                 ctx->R13,
+                                 ctx->R14,
+                                 ctx->R15);
             log::get()->critical("  RIP={:016X}  RFLAGS={:016X}", ctx->Rip, ctx->EFlags);
         }
 
@@ -81,20 +93,34 @@ namespace diagnostics {
 
     auto exception_code_name(std::uint32_t code) -> std::string_view {
         switch (code) {
-            case EXCEPTION_ACCESS_VIOLATION:      return "ACCESS_VIOLATION";
-            case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "ARRAY_BOUNDS_EXCEEDED";
-            case EXCEPTION_DATATYPE_MISALIGNMENT: return "DATATYPE_MISALIGNMENT";
-            case EXCEPTION_FLT_DIVIDE_BY_ZERO:    return "FLT_DIVIDE_BY_ZERO";
-            case EXCEPTION_FLT_INVALID_OPERATION: return "FLT_INVALID_OPERATION";
-            case EXCEPTION_FLT_OVERFLOW:          return "FLT_OVERFLOW";
-            case EXCEPTION_FLT_UNDERFLOW:         return "FLT_UNDERFLOW";
-            case EXCEPTION_ILLEGAL_INSTRUCTION:   return "ILLEGAL_INSTRUCTION";
-            case EXCEPTION_IN_PAGE_ERROR:         return "IN_PAGE_ERROR";
-            case EXCEPTION_INT_DIVIDE_BY_ZERO:    return "INT_DIVIDE_BY_ZERO";
-            case EXCEPTION_INT_OVERFLOW:          return "INT_OVERFLOW";
-            case EXCEPTION_PRIV_INSTRUCTION:      return "PRIV_INSTRUCTION";
-            case EXCEPTION_STACK_OVERFLOW:        return "STACK_OVERFLOW";
-            default:                              return "UNKNOWN";
+            case EXCEPTION_ACCESS_VIOLATION:
+                return "ACCESS_VIOLATION";
+            case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+                return "ARRAY_BOUNDS_EXCEEDED";
+            case EXCEPTION_DATATYPE_MISALIGNMENT:
+                return "DATATYPE_MISALIGNMENT";
+            case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+                return "FLT_DIVIDE_BY_ZERO";
+            case EXCEPTION_FLT_INVALID_OPERATION:
+                return "FLT_INVALID_OPERATION";
+            case EXCEPTION_FLT_OVERFLOW:
+                return "FLT_OVERFLOW";
+            case EXCEPTION_FLT_UNDERFLOW:
+                return "FLT_UNDERFLOW";
+            case EXCEPTION_ILLEGAL_INSTRUCTION:
+                return "ILLEGAL_INSTRUCTION";
+            case EXCEPTION_IN_PAGE_ERROR:
+                return "IN_PAGE_ERROR";
+            case EXCEPTION_INT_DIVIDE_BY_ZERO:
+                return "INT_DIVIDE_BY_ZERO";
+            case EXCEPTION_INT_OVERFLOW:
+                return "INT_OVERFLOW";
+            case EXCEPTION_PRIV_INSTRUCTION:
+                return "PRIV_INSTRUCTION";
+            case EXCEPTION_STACK_OVERFLOW:
+                return "STACK_OVERFLOW";
+            default:
+                return "UNKNOWN";
         }
     }
 
@@ -123,9 +149,9 @@ namespace diagnostics {
     }
 
     void log_crash_report(EXCEPTION_POINTERS *ep, std::string_view context_name) {
-        auto *rec = ep->ExceptionRecord;
-        auto  code = static_cast<std::uint32_t>(rec->ExceptionCode);
-        auto logger = log::get();
+        auto *rec    = ep->ExceptionRecord;
+        auto  code   = static_cast<std::uint32_t>(rec->ExceptionCode);
+        auto  logger = log::get();
 
         logger->critical("=== CRASH in {} ===", context_name);
         logger->critical("  Exception: {} (0x{:08X}) at 0x{:016X}",
@@ -149,22 +175,22 @@ namespace diagnostics {
     }
 
     void log_crash_report_lightweight(EXCEPTION_POINTERS *ep) {
-        auto *rec  = ep->ExceptionRecord;
-        auto  code = static_cast<std::uint32_t>(rec->ExceptionCode);
-        auto *ctx  = ep->ContextRecord;
-        auto logger = log::get();
+        auto *rec    = ep->ExceptionRecord;
+        auto  code   = static_cast<std::uint32_t>(rec->ExceptionCode);
+        auto *ctx    = ep->ContextRecord;
+        auto  logger = log::get();
 
         auto fault_addr = reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress);
 
-        HMODULE hModule = nullptr;
+        HMODULE        hModule       = nullptr;
         std::uintptr_t module_offset = fault_addr;
-        char module_name[MAX_PATH] {};
+        char           module_name[MAX_PATH] {};
         bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                                  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                              reinterpret_cast<LPCSTR>(fault_addr),
                                              &hModule) != 0;
         if (has_module) {
-            auto base    = reinterpret_cast<std::uintptr_t>(hModule);
+            auto base     = reinterpret_cast<std::uintptr_t>(hModule);
             module_offset = fault_addr - base;
             GetModuleFileNameA(hModule, module_name, MAX_PATH);
             auto *last_sep = std::strrchr(module_name, '\\');
@@ -172,19 +198,18 @@ namespace diagnostics {
                 std::memmove(module_name, last_sep + 1, std::strlen(last_sep + 1) + 1);
             }
             logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
-                              exception_code_name(code),
-                              code,
-                              module_name,
-                              module_offset);
+                             exception_code_name(code),
+                             code,
+                             module_name,
+                             module_offset);
         } else {
             logger->critical("VEH: {} (0x{:08X}) at 0x{:016X}",
-                              exception_code_name(code),
-                              code,
-                              fault_addr);
+                             exception_code_name(code),
+                             code,
+                             fault_addr);
         }
 
-        logger->critical("VEH: RIP={:016X} RSP={:016X} RBP={:016X}",
-                         ctx->Rip, ctx->Rsp, ctx->Rbp);
+        logger->critical("VEH: RIP={:016X} RSP={:016X} RBP={:016X}", ctx->Rip, ctx->Rsp, ctx->Rbp);
         logger->flush();
     }
 

@@ -32,7 +32,7 @@ namespace diagnostics {
                 break;
             }
 
-            void   *handler_data     = nullptr;
+            void   *handler_data      = nullptr;
             ULONG64 establisher_frame = 0;
             RtlVirtualUnwind(UNW_FLAG_NHANDLER,
                              image_base,
@@ -62,9 +62,7 @@ namespace diagnostics {
 
             auto *last_sep = std::strrchr(frame.module_name, '\\');
             if (last_sep != nullptr) {
-                std::memmove(frame.module_name,
-                             last_sep + 1,
-                             std::strlen(last_sep + 1) + 1);
+                std::memmove(frame.module_name, last_sep + 1, std::strlen(last_sep + 1) + 1);
             }
         }
     }
@@ -78,10 +76,10 @@ namespace diagnostics {
             return;
         }
 
-        static auto *p_sym_init = reinterpret_cast<SymInitialize_t>(
-            GetProcAddress(h_dbghelp, "SymInitialize"));
-        static auto *p_sym_from_addr = reinterpret_cast<SymFromAddr_t>(
-            GetProcAddress(h_dbghelp, "SymFromAddr"));
+        static auto *p_sym_init =
+            reinterpret_cast<SymInitialize_t>(GetProcAddress(h_dbghelp, "SymInitialize"));
+        static auto *p_sym_from_addr =
+            reinterpret_cast<SymFromAddr_t>(GetProcAddress(h_dbghelp, "SymFromAddr"));
 
         if (p_sym_init == nullptr || p_sym_from_addr == nullptr) {
             return;
@@ -93,21 +91,19 @@ namespace diagnostics {
         }
 
         alignas(SYMBOL_INFO) char buf[sizeof(SYMBOL_INFO) + k_max_sym_len] {};
-        auto *symbol         = reinterpret_cast<SYMBOL_INFO *>(buf);
-        symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-        symbol->MaxNameLen   = k_max_sym_len - 1;
+        auto                     *symbol = reinterpret_cast<SYMBOL_INFO *>(buf);
+        symbol->SizeOfStruct             = sizeof(SYMBOL_INFO);
+        symbol->MaxNameLen               = k_max_sym_len - 1;
 
         for (std::size_t i = 0; i < trace.count; ++i) {
             auto   &frame        = trace.frames[i];
             DWORD64 displacement = 0;
-            if (p_sym_from_addr(GetCurrentProcess(),
-                                frame.address,
-                                &displacement,
-                                symbol) != FALSE) {
+            if (p_sym_from_addr(GetCurrentProcess(), frame.address, &displacement, symbol) !=
+                FALSE) {
                 std::strncpy(frame.symbol_name, symbol->Name, k_max_sym_len - 1);
                 frame.symbol_name[k_max_sym_len - 1] = '\0';
-                frame.symbol_offset                   = displacement;
-                frame.has_symbol                      = true;
+                frame.symbol_offset                  = displacement;
+                frame.has_symbol                     = true;
             }
         }
     }

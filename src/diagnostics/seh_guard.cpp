@@ -14,9 +14,8 @@ namespace diagnostics {
         thread_local std::string_view tl_hook_name;
     } // namespace
 
-    auto guarded_install(bool (*fn)(const void *),
-                         const void *addrs,
-                         std::string_view hook_name) -> bool {
+    auto guarded_install(bool (*fn)(const void *), const void *addrs, std::string_view hook_name)
+        -> bool {
         tl_hook_name = hook_name;
         __try {
             return fn(addrs);

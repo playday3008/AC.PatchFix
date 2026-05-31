@@ -30,9 +30,8 @@ namespace diagnostics {
         }
     }
 
-    auto guarded_install(bool (*fn)(const void *),
-                         const void *addrs,
-                         std::string_view hook_name) -> bool;
+    auto guarded_install(bool (*fn)(const void *), const void *addrs, std::string_view hook_name)
+        -> bool;
 } // namespace diagnostics
 
 #pragma clang diagnostic pop

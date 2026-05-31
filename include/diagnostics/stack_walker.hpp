@@ -8,9 +8,9 @@
 #include <Windows.h>
 
 namespace diagnostics {
-    static constexpr std::size_t k_max_frames    = 64;
-    static constexpr std::size_t k_max_name_len  = 260;
-    static constexpr std::size_t k_max_sym_len   = 256;
+    static constexpr std::size_t k_max_frames   = 64;
+    static constexpr std::size_t k_max_name_len = 260;
+    static constexpr std::size_t k_max_sym_len  = 256;
 
     struct StackFrame {
         std::uintptr_t address {};
