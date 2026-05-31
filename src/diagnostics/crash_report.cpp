@@ -162,8 +162,8 @@ namespace diagnostics {
 
         log_registers(ep->ContextRecord);
 
-        auto trace  = capture_stack(ep->ContextRecord);
-        auto frames = std::span(trace.frames).first(trace.count);
+        std::array<StackFrame, k_max_frames> buf {};
+        auto                                 frames = capture_stack(ep->ContextRecord, buf);
         resolve_modules(frames);
         resolve_symbols(frames);
         log_stack_trace(frames);

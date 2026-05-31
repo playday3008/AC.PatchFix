@@ -23,12 +23,7 @@ namespace diagnostics {
         bool                             has_symbol {};
     };
 
-    struct StackTrace {
-        std::array<StackFrame, k_max_frames> frames {};
-        std::size_t                          count {};
-    };
-
-    auto capture_stack(const CONTEXT *ctx) -> StackTrace;
+    auto capture_stack(const CONTEXT *ctx, std::span<StackFrame> buf) -> std::span<StackFrame>;
     void resolve_modules(std::span<StackFrame> frames);
     void resolve_symbols(std::span<StackFrame> frames);
 } // namespace diagnostics

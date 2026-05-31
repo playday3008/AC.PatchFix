@@ -13,18 +13,18 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 namespace diagnostics {
-    auto capture_stack(const CONTEXT *ctx) -> StackTrace {
-        StackTrace trace {};
-        CONTEXT    local_ctx {};
+    auto capture_stack(const CONTEXT *ctx, std::span<StackFrame> buf) -> std::span<StackFrame> {
+        CONTEXT     local_ctx {};
+        std::size_t count = 0;
         std::memcpy(&local_ctx, ctx, sizeof(CONTEXT));
 
-        while (trace.count < k_max_frames) {
+        while (count < buf.size()) {
             if (local_ctx.Rip == 0) {
                 break;
             }
 
-            trace.frames[trace.count].address = local_ctx.Rip;
-            trace.count++;
+            buf[count].address = local_ctx.Rip;
+            count++;
 
             DWORD64 image_base = 0;
             auto   *fn_entry   = RtlLookupFunctionEntry(local_ctx.Rip, &image_base, nullptr);
@@ -43,7 +43,7 @@ namespace diagnostics {
                              &establisher_frame,
                              nullptr);
         }
-        return trace;
+        return buf.first(count);
     }
 
     void resolve_modules(std::span<StackFrame> frames) {
