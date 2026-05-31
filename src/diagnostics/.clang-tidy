@@ -9,3 +9,5 @@ Checks: >
   -cppcoreguidelines-avoid-c-arrays,
   -modernize-avoid-c-arrays,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -hicpp-vararg,
+  -hicpp-signed-bitwise,
