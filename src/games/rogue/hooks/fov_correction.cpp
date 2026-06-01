@@ -45,7 +45,7 @@ namespace hooks {
         using Tag  = games::rogue::FOVCorrectionHook;
 
         struct FOVCorrectionFunctor {
-            static constexpr std::string_view name = "FOVCorrection";
+            [[maybe_unused]] static constexpr std::string_view name = "FOVCorrection";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *camera = reinterpret_cast<games::rogue::CameraSettings *>(regs.rbx);

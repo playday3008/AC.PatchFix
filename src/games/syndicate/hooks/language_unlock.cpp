@@ -34,7 +34,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct LangBitfieldPatch {
-            static constexpr std::string_view name = "LanguageUnlock/Bitfield";
+            [[maybe_unused]] static constexpr std::string_view name = "LanguageUnlock/Bitfield";
 
             [[maybe_unused]] static void operator()(mem::Registers & /*regs*/) {
                 *s_menu_bf_global     = k_all_menu;

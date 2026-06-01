@@ -31,7 +31,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct ViewportRatioLoad {
-            static constexpr std::string_view name = "ViewportFitting/RatioLoad";
+            [[maybe_unused]] static constexpr std::string_view name = "ViewportFitting/RatioLoad";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
@@ -57,7 +57,7 @@ namespace hooks {
         };
 
         struct ViewportRatioMul {
-            static constexpr std::string_view name = "ViewportFitting/RatioMul";
+            [[maybe_unused]] static constexpr std::string_view name = "ViewportFitting/RatioMul";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
@@ -81,7 +81,7 @@ namespace hooks {
         };
 
         struct CoordTransformHook {
-            static constexpr std::string_view name = "ViewportFitting/CoordTransform";
+            [[maybe_unused]] static constexpr std::string_view name = "ViewportFitting/CoordTransform";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);

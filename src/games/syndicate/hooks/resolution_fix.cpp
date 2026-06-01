@@ -37,7 +37,7 @@ namespace hooks {
         }
 
         struct FilterModeInsert {
-            static constexpr std::string_view name = "ResolutionFix";
+            [[maybe_unused]] static constexpr std::string_view name = "ResolutionFix";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const auto *entry = reinterpret_cast<const games::syndicate::ModeEntry *>(regs.rdx);

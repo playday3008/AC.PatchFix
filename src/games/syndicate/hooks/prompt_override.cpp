@@ -26,7 +26,7 @@ namespace hooks {
         std::uint32_t  g_forced_type = 0;
 
         struct OverrideDeviceType {
-            static constexpr std::string_view name = "PromptOverride";
+            [[maybe_unused]] static constexpr std::string_view name = "PromptOverride";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const auto *ctx =
