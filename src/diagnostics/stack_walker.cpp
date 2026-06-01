@@ -57,7 +57,7 @@ namespace diagnostics {
             }
             frame.module_base   = reinterpret_cast<std::uintptr_t>(hModule);
             frame.module_offset = frame.address - frame.module_base;
-            GetModuleFileNameA(hModule, frame.module_name.data(), k_max_name_len);
+            GetModuleFileNameA(hModule, frame.module_name.data(), MAX_PATH);
 
             const std::string_view path(frame.module_name.data());
             const auto             sep = path.rfind('\\');

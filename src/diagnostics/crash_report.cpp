@@ -128,27 +128,7 @@ namespace diagnostics {
     }
 
     auto is_hardware_exception(std::uint32_t code) -> bool {
-        switch (code) {
-            case EXCEPTION_ACCESS_VIOLATION:
-            case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-            case EXCEPTION_DATATYPE_MISALIGNMENT:
-            case EXCEPTION_FLT_DENORMAL_OPERAND:
-            case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-            case EXCEPTION_FLT_INEXACT_RESULT:
-            case EXCEPTION_FLT_INVALID_OPERATION:
-            case EXCEPTION_FLT_OVERFLOW:
-            case EXCEPTION_FLT_STACK_CHECK:
-            case EXCEPTION_FLT_UNDERFLOW:
-            case EXCEPTION_ILLEGAL_INSTRUCTION:
-            case EXCEPTION_IN_PAGE_ERROR:
-            case EXCEPTION_INT_DIVIDE_BY_ZERO:
-            case EXCEPTION_INT_OVERFLOW:
-            case EXCEPTION_PRIV_INSTRUCTION:
-            case EXCEPTION_STACK_OVERFLOW:
-                return true;
-            default:
-                return false;
-        }
+        return exception_code_name(code) != "UNKNOWN";
     }
 
     void log_crash_report(EXCEPTION_POINTERS *ep, std::string_view context_name) {
