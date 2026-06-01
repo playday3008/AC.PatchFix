@@ -18,9 +18,8 @@
 
 namespace games::syndicate {
     enum class PromptType : std::uint8_t {
-        Xbox = 0,
-        PS3  = 10,
-        PS4  = 5,
+        Xbox        = 2,
+        PlayStation = 5,
     };
 
     struct PromptOverrideHook {};
@@ -34,10 +33,9 @@ namespace hooks {
             constexpr auto table =
                 std::to_array<std::pair<std::string_view, games::syndicate::PromptType>>({
                     {"Xbox", games::syndicate::PromptType::Xbox},
-                    {"PS3", games::syndicate::PromptType::PS3},
-                    {"PS4", games::syndicate::PromptType::PS4},
+                    {"PlayStation", games::syndicate::PromptType::PlayStation},
                 });
-            return detail::parse_enum(s, table, games::syndicate::PromptType::PS4);
+            return detail::parse_enum(s, table, games::syndicate::PromptType::PlayStation);
         }
     };
 
@@ -57,12 +55,12 @@ namespace hooks {
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
         struct Config : config_base<Config> {
-            ini_field<bool>                         enabled {"PromptOverride", "Enabled", false};
-            ini_field<games::syndicate::PromptType> type {"PromptOverride",
-                                                          "Type",
-                                                          games::syndicate::PromptType::PS4};
+            ini_field<games::syndicate::PromptType> type {
+                "Input",
+                "PromptType",
+                games::syndicate::PromptType::PlayStation};
 
-            static constexpr auto field_ptrs = std::tuple {&Config::enabled, &Config::type};
+            static constexpr auto field_ptrs = std::tuple {&Config::type};
         };
 
         static auto install(const Addrs &addrs) -> bool;

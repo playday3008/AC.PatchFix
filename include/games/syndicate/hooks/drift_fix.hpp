@@ -5,13 +5,11 @@
 #include <array>
 #include <optional>
 #include <string_view>
-#include <tuple>
 
 #include "games/syndicate/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
-#include "hooks/registry/ini_field.hpp"
 
 namespace games::syndicate {
     struct DriftFixHook {};
@@ -28,14 +26,13 @@ namespace hooks {
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<>;
 
-        static constexpr auto required_patterns = std::array<PatternField, 0> {};
+        static constexpr auto required_patterns = std::array<PatternField, 2> {
+            &Addrs::vehicle_physics_step,
+            &Addrs::drift_tick_counter,
+        };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
-        struct Config : config_base<Config> {
-            ini_field<bool> enabled {"DriftFix", "Enabled", false};
-
-            static constexpr auto field_ptrs = std::tuple {&Config::enabled};
-        };
+        using Config = empty_config;
 
         static auto install(const Addrs &addrs) -> bool;
     };

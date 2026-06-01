@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include <atomic>
 #include <string_view>
 #include <utility>
 
@@ -17,16 +16,13 @@ namespace hooks {
     namespace {
         using Tag = games::syndicate::PromptOverrideHook;
 
-        constexpr std::uintptr_t k_device_kind_offset = 0x790;
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
         mem::MidHook g_hook;
 #pragma clang diagnostic pop
 
-        std::atomic<std::uint32_t> g_original_kind {0};
-        std::atomic<bool>          g_kind_saved {false};
+        std::uintptr_t g_ret_addr = 0;
 
         struct OverrideDeviceType {
             [[maybe_unused]] static constexpr std::string_view name = "PromptOverride";
@@ -34,33 +30,19 @@ namespace hooks {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const auto *ctx =
                     reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
-                auto       *mgr  = ctx->state->device_manager;
-                const auto &slot = mgr->active_slot();
+                const auto &slot = ctx->state->device_manager->active_slot();
 
                 if (slot.device_type == 0) {
                     return;
                 }
 
-                // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-                auto *kind_ptr = reinterpret_cast<std::uint32_t *>(
-                    static_cast<char *>(slot.device_obj) + k_device_kind_offset);
-#pragma clang diagnostic pop
-                // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-                if (!g_kind_saved.load(std::memory_order_relaxed)) {
-                    g_original_kind.store(*kind_ptr, std::memory_order_relaxed);
-                    g_kind_saved.store(true, std::memory_order_relaxed);
-                }
-
-                const auto &cfg = games::syndicate::registry().config<Tag>();
-                if (!cfg.enabled.get()) {
-                    *kind_ptr = g_original_kind.load(std::memory_order_relaxed);
+                if (!games::syndicate::registry().enabled<Tag>()) {
                     return;
                 }
 
-                *kind_ptr = static_cast<std::uint32_t>(std::to_underlying(cfg.type.get()));
+                const auto &cfg = games::syndicate::registry().config<Tag>();
+                regs.rax        = std::to_underlying(cfg.type.get());
+                regs.rip        = g_ret_addr;
             }
         };
     } // namespace
@@ -69,20 +51,21 @@ namespace hooks {
         log::get()->trace("Syndicate PromptOverrideHook: installing");
 
         auto fn_addr = addrs.get_active_device_type.value();
+        g_ret_addr   = fn_addr + 0x1F;
 
-        log::get()->trace("Syndicate PromptOverrideHook: get_active_device_type at 0x{:X}",
-                          fn_addr);
+        log::get()->trace("PromptOverrideHook: get_active_device_type at 0x{:X}, ret at 0x{:X}",
+                          fn_addr,
+                          g_ret_addr);
 
         auto hook_result = mem::make_hook<OverrideDeviceType>(fn_addr);
         if (!hook_result) {
-            log::get()->error("Syndicate PromptOverrideHook: hook failed: {}", hook_result.error());
+            log::get()->error("PromptOverrideHook: hook failed: {}", hook_result.error());
             return false;
         }
         g_hook = std::move(*hook_result);
 
         const auto &cfg = games::syndicate::registry().config<Tag>();
-        log::get()->info("Syndicate PromptOverrideHook: installed (enabled={}, type={})",
-                         cfg.enabled.get(),
+        log::get()->info("PromptOverrideHook: installed (type={})",
                          std::to_underlying(cfg.type.get()));
         return true;
     }

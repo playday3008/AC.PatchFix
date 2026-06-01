@@ -26,6 +26,8 @@ namespace games {
             std::optional<std::uintptr_t> ds4_type_classify;
             std::optional<std::uintptr_t> specs_enumerate_modes;
             std::optional<std::uintptr_t> get_active_device_type;
+            std::optional<std::uintptr_t> vehicle_physics_step;
+            std::optional<std::uintptr_t> drift_tick_counter;
         };
 
         struct ScanEntry {
@@ -43,6 +45,8 @@ namespace games {
             {.name="DS4_TYPE_CLASSIFY",      .field=&ResolvedAddresses::ds4_type_classify,      .offset=0, .bytes="B9 C4 05 00 00 66 3B C1 75 ? C7 83 90 07 00 00 0B 00 00 00"},
             {.name="SPECS_ENUM_MODES",       .field=&ResolvedAddresses::specs_enumerate_modes,  .offset=0, .bytes="48 8B C4 55 48 8D 68 ? 48 81 EC ? ? ? ? 48 89 58 ? 48 89 70 ? 48 89 78 ? 4C 89 60 ? 45 33 E4"},
             {.name="GET_ACTIVE_DEVICE_TYPE", .field=&ResolvedAddresses::get_active_device_type, .offset=0, .bytes="48 8B 41 ? 48 8B 50 ? 8B 8A ? ? ? ? 48 8B 82"},
+            {.name="VEHICLE_PHYSICS_STEP",   .field=&ResolvedAddresses::vehicle_physics_step,   .offset=0, .bytes="40 55 41 55 48 83 EC ? 48 8B 41 ? 48 8B E9"},
+            {.name="DRIFT_TICK_COUNTER",     .field=&ResolvedAddresses::drift_tick_counter,     .offset=0, .bytes="40 53 48 83 EC ? 01 91"},
         });
         // clang-format on
     };
