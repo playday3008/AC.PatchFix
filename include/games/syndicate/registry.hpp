@@ -12,9 +12,9 @@ namespace games::syndicate {
     using AllHooks = hooks::hook_list<PlatformSpecsFixHook,
                                       ResolutionFixHook,
                                       DS4v2FixHook,
+                                      PromptOverrideHook,
                                       DriftFixHook,
-                                      LanguageUnlockHook,
-                                      PromptOverrideHook>;
+                                      LanguageUnlockHook>;
 
     using SyndicateRegistry = hooks::Registry<AllHooks>;
 

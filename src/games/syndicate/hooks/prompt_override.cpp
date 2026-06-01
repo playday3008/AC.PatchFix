@@ -37,7 +37,8 @@ namespace hooks {
                 auto dev_mgr   = *reinterpret_cast<std::uintptr_t *>(obj + 0x08);
                 auto index     = *reinterpret_cast<std::uint32_t *>(dev_mgr + 0x798);
                 auto dev_array = *reinterpret_cast<std::uintptr_t *>(dev_mgr + 0x79C);
-                auto type = *reinterpret_cast<std::uint32_t *>(dev_array + 0x238ULL * index + 0x08);
+                auto type =
+                    *reinterpret_cast<std::uint32_t *>(dev_array + (0x238ULL * index) + 0x08);
 
                 if (type == 0) {
                     return;
