@@ -8,6 +8,7 @@
 
 #include "diagnostics/address_registry.hpp"
 #include "diagnostics/crash_handler.hpp"
+#include "diagnostics/crash_journal.hpp"
 #include "games/game_init.hpp"
 #include "vmp/integrity_bypass.hpp"
 
@@ -37,6 +38,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
         watcher().reset();
         g_init_thread.reset();
         vmp::uninstall();
+        diagnostics::crash_journal::write_session_clean();
+        diagnostics::crash_journal::close();
         diagnostics::uninstall_veh();
         log::shutdown();
     }

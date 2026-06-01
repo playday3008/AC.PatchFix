@@ -14,6 +14,8 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "diagnostics/crash_journal.hpp"
+#include "diagnostics/hook_context.hpp"
 #include "diagnostics/seh_guard.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
@@ -290,13 +292,16 @@ namespace hooks {
                 continue;
             }
 
+            diagnostics::set_current_hook_name(op.name);
             if (diagnostics::guarded_install(op.do_install_fn, &addrs, op.name)) {
                 op.set_installed(*this, true);
                 log::get()->info("Hook '{}': installed", op.name);
+                diagnostics::crash_journal::write_hook_installed(op.name);
                 ++installed_count;
             } else {
                 log::get()->warn("Hook '{}': install failed", op.name);
             }
+            diagnostics::set_current_hook_name({});
         }
 
         log::get()->info("Initialization complete: {}/{} hooks installed", installed_count, Ops::N);

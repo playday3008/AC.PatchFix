@@ -14,9 +14,6 @@ namespace diagnostics::patch_registry {
 #pragma clang diagnostic pop
     } // namespace
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
-
     void register_patch(std::uintptr_t base, std::size_t size,
                         std::span<const std::uint8_t> original,
                         std::string_view hook_name, PatchType type) {
@@ -34,8 +31,6 @@ namespace diagnostics::patch_registry {
         auto it = std::ranges::lower_bound(g_patches, base, {}, &PatchEntry::base);
         g_patches.insert(it, entry);
     }
-
-#pragma clang diagnostic pop
 
     auto find_patch(std::uintptr_t addr) -> const PatchEntry * {
         std::shared_lock<std::shared_mutex> lock(g_mutex);
