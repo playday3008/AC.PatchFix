@@ -46,8 +46,10 @@ namespace hooks {
         struct DiagDIControllerCtor {
             static constexpr std::string_view name = "DS4v2Fix.diag.ctor";
             [[maybe_unused]] static void      operator()(mem::Registers &regs) {
-                log::get()->info("DS4v2Fix DIAG: DI controller ctor called (this=0x{:X}, device=0x{:X})",
-                                 regs.rcx, regs.rdx);
+                log::get()->info(
+                    "DS4v2Fix DIAG: DI controller ctor called (this=0x{:X}, device=0x{:X})",
+                    regs.rcx,
+                    regs.rdx);
             }
         };
 
@@ -71,7 +73,7 @@ namespace hooks {
         // --- Diagnostic hooks (always-on, temporary) ---
 
         if (addrs.di_enum_callback) {
-            auto addr = addrs.di_enum_callback.value();
+            auto addr   = addrs.di_enum_callback.value();
             auto result = mem::make_hook<DiagDIEnumCallback>(addr);
             if (result) {
                 g_diag_enum = std::move(*result);
@@ -84,7 +86,7 @@ namespace hooks {
         }
 
         if (addrs.di_controller_ctor) {
-            auto addr = addrs.di_controller_ctor.value();
+            auto addr   = addrs.di_controller_ctor.value();
             auto result = mem::make_hook<DiagDIControllerCtor>(addr);
             if (result) {
                 g_diag_ctor = std::move(*result);
