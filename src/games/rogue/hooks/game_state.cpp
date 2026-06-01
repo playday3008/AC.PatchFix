@@ -92,7 +92,7 @@ namespace hooks {
         struct GamePause2 {
             static constexpr std::string_view name = "GameState/Pause2";
 
-            [[maybe_unused]] static void operator()(mem::Registers &) {
+            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state = resolve_state();
                 if (state != nullptr) {

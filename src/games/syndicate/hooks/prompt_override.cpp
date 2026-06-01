@@ -29,9 +29,10 @@ namespace hooks {
             static constexpr std::string_view name = "PromptOverride";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto *ctx  = reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
-                auto *mgr  = ctx->state->device_manager;
-                auto &slot = mgr->active_slot();
+                const auto *ctx =
+                    reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
+                auto       *mgr  = ctx->state->device_manager;
+                const auto &slot = mgr->active_slot();
 
                 if (slot.device_type == 0) {
                     return;
