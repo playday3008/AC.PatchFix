@@ -58,7 +58,8 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<bool>                         enabled {"PromptOverride", "Enabled", false};
-            ini_field<games::syndicate::PromptType> type {"PromptOverride", "Type",
+            ini_field<games::syndicate::PromptType> type {"PromptOverride",
+                                                          "Type",
                                                           games::syndicate::PromptType::PS4};
 
             static constexpr auto field_ptrs = std::tuple {&Config::enabled, &Config::type};

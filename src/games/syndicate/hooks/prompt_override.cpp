@@ -59,12 +59,12 @@ namespace hooks {
             return true;
         }
 
-        auto fn_addr = addrs.get_active_device_type.value();
-        g_ret_addr   = fn_addr + 0x1F;
-        g_forced_type =
-            static_cast<std::uint32_t>(std::to_underlying(cfg.type.get()));
+        auto fn_addr  = addrs.get_active_device_type.value();
+        g_ret_addr    = fn_addr + 0x1F;
+        g_forced_type = static_cast<std::uint32_t>(std::to_underlying(cfg.type.get()));
 
-        log::get()->trace("Syndicate PromptOverrideHook: get_active_device_type at 0x{:X}", fn_addr);
+        log::get()->trace("Syndicate PromptOverrideHook: get_active_device_type at 0x{:X}",
+                          fn_addr);
         log::get()->trace("Syndicate PromptOverrideHook: forcing type={}", g_forced_type);
 
         auto hook_result = mem::make_hook<OverrideDeviceType>(fn_addr);
