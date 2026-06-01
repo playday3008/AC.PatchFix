@@ -6,6 +6,7 @@
 
 #include "diagnostics/address_registry.hpp"
 #include "diagnostics/crash_report.hpp"
+#include "diagnostics/patch_registry.hpp"
 
 namespace diagnostics {
     namespace {
@@ -21,11 +22,19 @@ namespace diagnostics {
             }
 
             auto rip = static_cast<std::uintptr_t>(ep->ContextRecord->Rip);
-            if (!is_plugin_address(rip)) {
+
+            if (is_plugin_address(rip)) {
+                log_crash_report_lightweight(ep);
                 return EXCEPTION_CONTINUE_SEARCH;
             }
 
-            log_crash_report_lightweight(ep);
+            if (patch_registry::find_patch(rip) != nullptr ||
+                patch_registry::find_nearby(rip, 64) != nullptr) {
+                log_crash_report_lightweight(ep);
+                log_patch_attribution(ep);
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
+
             return EXCEPTION_CONTINUE_SEARCH;
         }
     } // namespace

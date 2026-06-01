@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 #include <array>
 #include <span>
@@ -13,6 +14,7 @@
 
 #include "diagnostics/crash_logger.hpp"
 #include "diagnostics/minidump.hpp"
+#include "diagnostics/patch_registry.hpp"
 #include "diagnostics/stack_walker.hpp"
 
 namespace diagnostics {
@@ -84,6 +86,39 @@ namespace diagnostics {
                     log().critical("    #{:02d}  0x{:016X}", i, frame.address);
                 }
             }
+        }
+
+        void log_patch_bytes(const patch_registry::PatchEntry &patch) {
+            auto &logger = log();
+            auto format_hex = [](std::span<const std::uint8_t> data) -> std::string {
+                std::string result;
+                result.reserve(data.size() * 3);
+                for (std::size_t i = 0; i < data.size(); ++i) {
+                    if (i > 0) {
+                        result += ' ';
+                    }
+                    auto byte = static_cast<unsigned>(data[i]);
+                    auto hi   = byte >> 4U;
+                    auto lo   = byte & 0x0FU;
+                    result += static_cast<char>(hi < 10 ? '0' + hi : 'A' + hi - 10);
+                    result += static_cast<char>(lo < 10 ? '0' + lo : 'A' + lo - 10);
+                }
+                return result;
+            };
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
+            auto orig_span = std::span<const std::uint8_t>(patch.original_bytes.data(),
+                                                           patch.original_size);
+            logger.critical("VEH: >>> Original: {}", format_hex(orig_span));
+
+            std::array<std::uint8_t, 64> current {};
+            auto copy_size = std::min<std::size_t>(patch.original_size, current.size());
+            std::memcpy(current.data(), reinterpret_cast<const void *>(patch.base), copy_size);
+            logger.critical("VEH: >>> Current:  {}",
+                            format_hex(std::span<const std::uint8_t>(current.data(), copy_size)));
+#pragma clang diagnostic pop
         }
 
         auto fault_filter_impl(EXCEPTION_POINTERS *ep, std::string_view context) -> int {
@@ -209,6 +244,32 @@ namespace diagnostics {
 
         logger.critical("VEH: RIP={:016X} RSP={:016X} RBP={:016X}", ctx->Rip, ctx->Rsp, ctx->Rbp);
         logger.flush();
+    }
+
+    void log_patch_attribution(EXCEPTION_POINTERS *ep) {
+        auto rip = static_cast<std::uintptr_t>(ep->ContextRecord->Rip);
+
+        if (const auto *patch = patch_registry::find_patch(rip)) {
+            log().critical("VEH: >>> Address patched by hook '{}' ({}, {} bytes at 0x{:X})",
+                           patch->hook_name,
+                           patch->type == patch_registry::PatchType::mid_hook ? "mid_hook"
+                                                                              : "byte_write",
+                           patch->size,
+                           patch->base);
+            log_patch_bytes(*patch);
+            return;
+        }
+
+        if (const auto *patch = patch_registry::find_nearby(rip, 64)) {
+            auto past_end = patch->base + patch->size;
+            auto distance = (rip >= past_end) ? rip - past_end : patch->base - rip;
+            log().critical(
+                "VEH: >>> Suspect: address is {} bytes from hook '{}' patch site (0x{:X}, {} bytes)",
+                distance,
+                patch->hook_name,
+                patch->base,
+                patch->size);
+        }
     }
 
     auto callback_fault_filter(EXCEPTION_POINTERS *ep, std::string_view hook_name) -> int {

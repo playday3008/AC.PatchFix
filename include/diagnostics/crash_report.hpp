@@ -16,4 +16,5 @@ namespace diagnostics {
 
     void log_crash_report(EXCEPTION_POINTERS *ep, std::string_view context_name);
     void log_crash_report_lightweight(EXCEPTION_POINTERS *ep);
+    void log_patch_attribution(EXCEPTION_POINTERS *ep);
 } // namespace diagnostics
