@@ -44,7 +44,7 @@ namespace mem {
         auto protect_vp(std::uintptr_t addr, std::size_t size, std::uint32_t new_protect)
             -> std::optional<std::uint32_t> {
             DWORD old = 0;
-            if (VirtualProtect(reinterpret_cast<void *>(addr), size, new_protect, &old) == 0) {
+            if (VirtualProtect(reinterpret_cast<void *>(addr), size, new_protect, &old) == FALSE) {
                 return std::nullopt;
             }
             return old;
@@ -56,12 +56,12 @@ namespace mem {
             if (pNtProtectVirtualMemory == nullptr || !g_self_process) {
                 return std::nullopt;
             }
-            auto      *base   = reinterpret_cast<void *>(addr);
-            auto       region = size;
-            ULONG      old    = 0;
-            const LONG status =
+            auto          *base   = reinterpret_cast<void *>(addr);
+            auto           region = size;
+            ULONG          old    = 0;
+            const NTSTATUS status =
                 pNtProtectVirtualMemory(g_self_process.get(), &base, &region, new_protect, &old);
-            if (status < 0) {
+            if (!NT_SUCCESS(status)) {
                 return std::nullopt;
             }
             return old;

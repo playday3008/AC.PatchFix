@@ -37,14 +37,14 @@ namespace diagnostics {
                 GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                    reinterpret_cast<LPCSTR>(&build_dump_path),
-                                   &hSelf) != 0;
+                                   &hSelf) != FALSE;
 
             std::string_view dir;
             std::string_view stem = "patchfix_crash";
 
             if (has_self && GetModuleFileNameA(hSelf,
                                                module_path.data(),
-                                               static_cast<DWORD>(module_path.size())) != 0) {
+                                               static_cast<DWORD>(module_path.size())) != FALSE) {
                 const std::string_view path(module_path.data());
                 const auto             sep = path.rfind('\\');
                 dir                 = (sep != std::string_view::npos) ? path.substr(0, sep + 1)

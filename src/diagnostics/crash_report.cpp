@@ -180,13 +180,13 @@ namespace diagnostics {
         bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                                  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                              reinterpret_cast<LPCSTR>(fault_addr),
-                                             &hModule) != 0;
+                                             &hModule) != FALSE;
         if (has_module) {
             auto base          = reinterpret_cast<std::uintptr_t>(hModule);
             auto module_offset = fault_addr - base;
             if (GetModuleFileNameA(hModule,
                                    module_path.data(),
-                                   static_cast<DWORD>(module_path.size())) == 0) {
+                                   static_cast<DWORD>(module_path.size())) == FALSE) {
                 has_module = false;
             } else {
                 const std::string_view path(module_path.data());

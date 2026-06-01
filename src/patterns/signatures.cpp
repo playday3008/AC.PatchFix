@@ -33,7 +33,7 @@ namespace {
         MEMORY_BASIC_INFORMATION mbi;
 
         while (addr < limit) {
-            if (VirtualQuery(reinterpret_cast<const void *>(addr), &mbi, sizeof(mbi)) == 0) {
+            if (VirtualQuery(reinterpret_cast<const void *>(addr), &mbi, sizeof(mbi)) == FALSE) {
                 break;
             }
 

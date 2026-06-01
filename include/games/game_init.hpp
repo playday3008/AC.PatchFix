@@ -1,5 +1,6 @@
 #pragma once
 
+#include <exception>
 #include <filesystem>
 #include <memory>
 
@@ -52,8 +53,16 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
     }
     log::get()->info("Pattern scan: {}", all_found ? "all found" : "some missing");
 
-    registry.install_all(addrs, ini);
-    log::get()->trace("Hook registry initialized");
+    try {
+        registry.install_all(addrs, ini);
+    } catch (const std::exception &e) {
+        log::get()->critical("install_all failed: {}", e.what());
+        return;
+    } catch (...) {
+        log::get()->critical("install_all failed: unknown exception");
+        return;
+    }
+    log::get()->info("Hook registry initialized");
 
     if constexpr (games::game_is_vmprotect<G>) {
         vmp::uninstall();

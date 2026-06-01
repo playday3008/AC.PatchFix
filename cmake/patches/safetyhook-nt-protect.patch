@@ -1,0 +1,77 @@
+diff --git a/src/os.windows.cpp b/src/os.windows.cpp
+index 82f6080..bb72eb4 100644
+--- a/src/os.windows.cpp
++++ b/src/os.windows.cpp
+@@ -18,6 +18,43 @@
+ 
+ #include "safetyhook/os.hpp"
+ 
++namespace {
++using NtProtectVirtualMemory_t = NTSTATUS NTAPI(HANDLE  ProcessHandle,
++                                                PVOID  *BaseAddress,
++                                                PSIZE_T RegionSize,
++                                                ULONG   NewProtection,
++                                                PULONG  OldProtection);
++
++NtProtectVirtualMemory_t *pNtProtectVirtualMemory = nullptr;
++HANDLE                    g_self_process           = nullptr;
++
++void ensure_nt_protect() {
++    if (pNtProtectVirtualMemory != nullptr) {
++        return;
++    }
++    pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(
++        GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
++    if (pNtProtectVirtualMemory != nullptr) {
++        g_self_process = OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId());
++    }
++}
++
++BOOL nt_virtual_protect(LPVOID addr, SIZE_T size, DWORD protect, PDWORD old_protect) {
++    ensure_nt_protect();
++    if (pNtProtectVirtualMemory != nullptr && g_self_process != nullptr) {
++        void  *base   = addr;
++        SIZE_T region = size;
++        ULONG  old    = 0;
++        const LONG status = pNtProtectVirtualMemory(g_self_process, &base, &region, protect, &old);
++        if (status >= 0) {
++            *old_protect = old;
++            return TRUE;
++        }
++    }
++    return VirtualProtect(addr, size, protect, old_protect);
++}
++} // namespace
++
+ namespace safetyhook {
+ std::expected<uint8_t*, OsError> vm_allocate(uint8_t* address, size_t size, VmAccess access) {
+     DWORD protect = 0;
+@@ -68,7 +105,7 @@ std::expected<uint32_t, OsError> vm_protect(uint8_t* address, size_t size, VmAcc
+ std::expected<uint32_t, OsError> vm_protect(uint8_t* address, size_t size, uint32_t protect) {
+     DWORD old_protect = 0;
+ 
+-    if (VirtualProtect(address, size, protect, &old_protect) == FALSE) {
++    if (nt_virtual_protect(address, size, protect, &old_protect) == FALSE) {
+         return std::unexpected{OsError::FAILED_TO_PROTECT};
+     }
+ 
+@@ -306,15 +343,15 @@ void trap_threads(uint8_t* from, uint8_t* to, size_t len, const std::function<vo
+     DWORD from_protect;
+     DWORD to_protect;
+ 
+-    VirtualProtect(from, len, new_protect, &from_protect);
+-    VirtualProtect(to, len, new_protect, &to_protect);
++    nt_virtual_protect(from, len, new_protect, &from_protect);
++    nt_virtual_protect(to, len, new_protect, &to_protect);
+ 
+     if (run_fn) {
+         run_fn();
+     }
+ 
+-    VirtualProtect(to, len, to_protect, &to_protect);
+-    VirtualProtect(from, len, from_protect, &from_protect);
++    nt_virtual_protect(to, len, to_protect, &to_protect);
++    nt_virtual_protect(from, len, from_protect, &from_protect);
+ }
+ 
+ void fix_ip(ThreadContext thread_ctx, uint8_t* old_ip, uint8_t* new_ip) {

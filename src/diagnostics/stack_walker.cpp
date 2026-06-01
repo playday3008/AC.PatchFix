@@ -52,13 +52,14 @@ namespace diagnostics {
             if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                    reinterpret_cast<LPCSTR>(frame.address),
-                                   &hModule) == 0) {
+                                   &hModule) == FALSE) {
                 continue;
             }
             frame.module_base   = reinterpret_cast<std::uintptr_t>(hModule);
             frame.module_offset = frame.address - frame.module_base;
 
-            if (GetModuleFileNameA(hModule, frame.module_name.data(), MAX_PATH) == 0) {
+            if (GetModuleFileNameA(hModule, frame.module_name.data(), frame.module_name.size()) ==
+                FALSE) {
                 continue;
             }
 
