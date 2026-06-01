@@ -57,13 +57,18 @@ namespace diagnostics {
             }
             frame.module_base   = reinterpret_cast<std::uintptr_t>(hModule);
             frame.module_offset = frame.address - frame.module_base;
-            GetModuleFileNameA(hModule, frame.module_name.data(), MAX_PATH);
+
+            if (GetModuleFileNameA(hModule, frame.module_name.data(), MAX_PATH) == 0) {
+                continue;
+            }
 
             const std::string_view path(frame.module_name.data());
             const auto             sep = path.rfind('\\');
             if (sep != std::string_view::npos) {
-                auto filename = path.substr(sep + 1);
-                std::copy_n(filename.data(), filename.size() + 1, frame.module_name.data());
+                auto                       filename = path.substr(sep + 1);
+                std::array<char, MAX_PATH> tmp {};
+                std::copy_n(filename.data(), filename.size() + 1, tmp.data());
+                frame.module_name = tmp;
             }
         }
     }

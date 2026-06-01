@@ -178,23 +178,30 @@ namespace diagnostics {
 
         HMODULE                    hModule = nullptr;
         std::array<char, MAX_PATH> module_path {};
-        const bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                                   reinterpret_cast<LPCSTR>(fault_addr),
-                                                   &hModule) != 0;
+        bool has_module = GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                                 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                             reinterpret_cast<LPCSTR>(fault_addr),
+                                             &hModule) != 0;
         if (has_module) {
             auto base          = reinterpret_cast<std::uintptr_t>(hModule);
             auto module_offset = fault_addr - base;
-            GetModuleFileNameA(hModule, module_path.data(), module_path.size());
-            const std::string_view path(module_path.data());
-            const auto             sep = path.rfind('\\');
-            const auto module_name = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
-            logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
-                             exception_code_name(code),
-                             code,
-                             module_name,
-                             module_offset);
-        } else {
+            if (GetModuleFileNameA(hModule,
+                                   module_path.data(),
+                                   static_cast<DWORD>(module_path.size())) == 0) {
+                has_module = false;
+            } else {
+                const std::string_view path(module_path.data());
+                const auto             sep = path.rfind('\\');
+                const auto module_name =
+                    (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
+                logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
+                                 exception_code_name(code),
+                                 code,
+                                 module_name,
+                                 module_offset);
+            }
+        }
+        if (!has_module) {
             logger->critical("VEH: {} (0x{:08X}) at 0x{:016X}",
                              exception_code_name(code),
                              code,
