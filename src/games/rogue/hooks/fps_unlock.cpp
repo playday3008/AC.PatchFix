@@ -1,5 +1,6 @@
 #include "games/rogue/hooks/fps_unlock.hpp"
 
+#include <cstddef>
 #include <cstdint>
 
 #include <algorithm>
@@ -10,36 +11,36 @@
 #include "mem/x64.hpp"
 
 #include "games/rogue/registry.hpp"
+#include "games/rogue/structs.hpp"
 
 namespace hooks {
     namespace {
         using Tag = games::rogue::FPSUnlockHook;
+        using games::rogue::FrameTiming;
 
-        std::uintptr_t g_sleep_branch_addr   = 0;
-        std::uintptr_t g_frame_time_addr     = 0;
-        float          g_original_frame_time = 15.6666F;
+        std::uintptr_t g_frame_timing_addr = 0;
 
-        constexpr std::uint8_t k_jnb_opcode = 0x73;
-        constexpr std::uint8_t k_jmp_opcode = 0xEB;
-        constexpr float        k_min_fps    = 1.0F;
+        constexpr float k_min_fps    = 1.0F;
+        constexpr float k_uncap_rate = 1000000.0F;
 
-        void apply_fps_patch(float target) {
+        void apply_fps_rate(float target) {
+            if (g_frame_timing_addr == 0) {
+                return;
+            }
             target = std::max(target, 0.0F);
 
+            const auto rate_addr = g_frame_timing_addr + offsetof(FrameTiming, fixed_rate);
+
             if (target < k_min_fps) {
-                if (!mem::write<std::uint8_t>(g_sleep_branch_addr, k_jmp_opcode) ||
-                    !mem::write<float>(g_frame_time_addr, g_original_frame_time)) {
-                    log::get()->error("FPSUnlockHook: failed to write uncap patch");
+                if (!mem::write<float>(rate_addr, k_uncap_rate)) {
+                    log::get()->error("FPSUnlockHook: failed to write uncap rate");
                 }
-                log::get()->trace("FPSUnlockHook: uncapped");
+                log::get()->trace("FPSUnlockHook: uncapped (fixed_rate={})", k_uncap_rate);
             } else {
-                if (!mem::write<std::uint8_t>(g_sleep_branch_addr, k_jnb_opcode) ||
-                    !mem::write<float>(g_frame_time_addr, 1000.0F / target)) {
-                    log::get()->error("FPSUnlockHook: failed to write cap patch");
+                if (!mem::write<float>(rate_addr, target)) {
+                    log::get()->error("FPSUnlockHook: failed to write cap rate");
                 }
-                log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS ({:.4f} ms)",
-                                  target,
-                                  1000.0F / target);
+                log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS", target);
             }
         }
     } // namespace
@@ -47,25 +48,39 @@ namespace hooks {
     void HookTraits<games::rogue::FPSUnlockHook>::on_reload(const Config &cfg) {
         float target = cfg.target.get();
         log::get()->trace("FPSUnlockHook: on_reload target={}", target);
-        apply_fps_patch(target);
+        apply_fps_rate(target);
     }
 
     auto HookTraits<games::rogue::FPSUnlockHook>::install(const Addrs &addrs) -> bool {
-        g_sleep_branch_addr = addrs.fps_sleep_branch.value();
-        log::get()->trace("FPSUnlockHook: sleep branch at 0x{:X}", g_sleep_branch_addr);
+        auto pattern_addr    = addrs.frame_timing_global.value();
+        auto global_var_addr = mem::x64::read_rel(pattern_addr + 3);
+        auto ft_ptr          = mem::read<std::uintptr_t>(global_var_addr);
 
-        auto mulss_addr   = addrs.fps_frame_time.value();
-        g_frame_time_addr = mem::x64::read_rel(mulss_addr + 4, 4);
-        log::get()->trace("FPSUnlockHook: frame time constant at 0x{:X}", g_frame_time_addr);
+        log::get()->trace("FPSUnlockHook: FrameTiming global at 0x{:X}, instance at 0x{:X}",
+                          global_var_addr,
+                          ft_ptr);
 
-        g_original_frame_time = mem::read<float>(g_frame_time_addr);
-        log::get()->trace("FPSUnlockHook: original frame time = {:.4f} ms ({:.1f} FPS)",
-                          g_original_frame_time,
-                          1000.0F / g_original_frame_time);
+        if (ft_ptr == 0) {
+            log::get()->error("FPSUnlockHook: FrameTiming not yet allocated");
+            return false;
+        }
 
-        apply_fps_patch(games::rogue::registry().config<Tag>().target.get());
+        g_frame_timing_addr = ft_ptr;
 
-        log::get()->trace("FPSUnlockHook: installed");
+        auto original_mode = mem::read<std::uint32_t>(ft_ptr + offsetof(FrameTiming, timing_mode));
+        auto original_rate = mem::read<float>(ft_ptr + offsetof(FrameTiming, fixed_rate));
+        log::get()->trace("FPSUnlockHook: original timing_mode={}, fixed_rate={:.1f}",
+                          original_mode,
+                          original_rate);
+
+        if (!mem::write<std::uint32_t>(ft_ptr + offsetof(FrameTiming, timing_mode), 0)) {
+            log::get()->error("FPSUnlockHook: failed to write timing_mode");
+            return false;
+        }
+
+        apply_fps_rate(games::rogue::registry().config<Tag>().target.get());
+
+        log::get()->trace("FPSUnlockHook: installed (timing_mode=0, struct-based)");
         return true;
     }
 } // namespace hooks
