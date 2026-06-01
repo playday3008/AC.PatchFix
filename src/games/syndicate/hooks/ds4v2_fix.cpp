@@ -23,6 +23,8 @@ namespace hooks {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
         mem::MidHook g_hook;
+        mem::MidHook g_diag_ctor;
+        mem::MidHook g_diag_enum;
 #pragma clang diagnostic pop
 
         std::uintptr_t g_skip_target = 0;
@@ -40,6 +42,21 @@ namespace hooks {
                 regs.rip = g_skip_target;
             }
         };
+
+        struct DiagDIControllerCtor {
+            static constexpr std::string_view name = "DS4v2Fix.diag.ctor";
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+                log::get()->info("DS4v2Fix DIAG: DI controller ctor called (this=0x{:X}, device=0x{:X})",
+                                 regs.rcx, regs.rdx);
+            }
+        };
+
+        struct DiagDIEnumCallback {
+            static constexpr std::string_view name = "DS4v2Fix.diag.enum";
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+                log::get()->info("DS4v2Fix DIAG: DI enum callback fired (ctx=0x{:X})", regs.rcx);
+            }
+        };
     } // namespace
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
@@ -51,18 +68,43 @@ namespace hooks {
             return true;
         }
 
+        // --- Diagnostic hooks (always-on, temporary) ---
+
+        if (addrs.di_enum_callback) {
+            auto addr = addrs.di_enum_callback.value();
+            auto result = mem::make_hook<DiagDIEnumCallback>(addr);
+            if (result) {
+                g_diag_enum = std::move(*result);
+                log::get()->info("DS4v2Fix DIAG: enum callback hook at 0x{:X}", addr);
+            } else {
+                log::get()->warn("DS4v2Fix DIAG: enum callback hook failed: {}", result.error());
+            }
+        } else {
+            log::get()->warn("DS4v2Fix DIAG: DI_ENUM_CALLBACK pattern not found");
+        }
+
+        if (addrs.di_controller_ctor) {
+            auto addr = addrs.di_controller_ctor.value();
+            auto result = mem::make_hook<DiagDIControllerCtor>(addr);
+            if (result) {
+                g_diag_ctor = std::move(*result);
+                log::get()->info("DS4v2Fix DIAG: controller ctor hook at 0x{:X}", addr);
+            } else {
+                log::get()->warn("DS4v2Fix DIAG: controller ctor hook failed: {}", result.error());
+            }
+        } else {
+            log::get()->warn("DS4v2Fix DIAG: DI_CONTROLLER_CTOR pattern not found");
+        }
+
+        // --- Existing PID classification hook ---
+
         auto match_addr = addrs.ds4_type_classify.value();
         log::get()->trace("Syndicate DS4v2FixHook: DS4 PID check at 0x{:X}", match_addr);
 
-        // Read the original jnz displacement to compute skip target
-        // jnz is at match_addr + 8, displacement is 1 byte at match_addr + 9
         auto jnz_disp = mem::read<std::int8_t>(match_addr + 9);
         g_skip_target = match_addr + 10 + static_cast<std::uintptr_t>(jnz_disp);
         log::get()->trace("Syndicate DS4v2FixHook: skip target at 0x{:X}", g_skip_target);
 
-        // NOP the original mov ecx + cmp ax,cx + jnz (10 bytes)
-        // and hook at the start. The mov [rbx+790h],0Bh at match_addr+10
-        // remains intact — our hook falls through to it on PID match.
         auto hook_result = mem::make_hook<CheckDS4PID>(match_addr, match_addr + 10);
         if (!hook_result) {
             log::get()->error("Syndicate DS4v2FixHook: hook failed: {}", hook_result.error());
