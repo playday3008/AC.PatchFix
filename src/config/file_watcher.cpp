@@ -50,8 +50,8 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
     win32::UniqueHandle<win32::NullInvalid> stop_event(CreateEventA(nullptr, TRUE, FALSE, nullptr));
     const std::stop_callback on_stop(token, [&] -> void { SetEvent(stop_event.get()); });
 
-    alignas(DWORD) std::array<char, 4096> buffer {};
-    OVERLAPPED                            overlapped {};
+    alignas(DWORD) std::array<std::byte, 4096> buffer {};
+    OVERLAPPED                                 overlapped {};
 
     const win32::UniqueHandle<win32::NullInvalid> event_handle(
         CreateEventA(nullptr, TRUE, FALSE, nullptr));

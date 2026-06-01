@@ -3,12 +3,12 @@
 #include "games/syndicate/hooks/drift_fix.hpp"
 #include "games/syndicate/hooks/ds4v2_fix.hpp"
 #include "games/syndicate/hooks/language_unlock.hpp"
-#include "games/syndicate/hooks/refresh_rate_fix.hpp"
+#include "games/syndicate/hooks/platform_specs_fix.hpp"
 #include "games/syndicate/hooks/resolution_fix.hpp"
 #include "hooks/registry/registry.hpp"
 
 namespace games::syndicate {
-    using AllHooks = hooks::hook_list<RefreshRateFixHook,
+    using AllHooks = hooks::hook_list<PlatformSpecsFixHook,
                                       ResolutionFixHook,
                                       DS4v2FixHook,
                                       DriftFixHook,
