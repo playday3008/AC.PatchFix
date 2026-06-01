@@ -30,19 +30,28 @@ namespace diagnostics {
         void build_dump_path(std::array<char, MAX_PATH> &out) {
             std::array<char, MAX_PATH> module_path {};
             HMODULE                    hSelf = nullptr;
-            GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                   GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                               reinterpret_cast<LPCSTR>(&build_dump_path),
-                               &hSelf);
-            GetModuleFileNameA(hSelf, module_path.data(), module_path.size());
 
-            const std::string_view path(module_path.data());
+            const bool has_self =
+                GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                   reinterpret_cast<LPCSTR>(&build_dump_path),
+                                   &hSelf) != 0;
 
-            const auto sep      = path.rfind('\\');
-            const auto dir      = (sep != std::string_view::npos) ? path.substr(0, sep + 1) : path;
-            const auto filename = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
-            const auto dot      = filename.rfind('.');
-            const auto stem = (dot != std::string_view::npos) ? filename.substr(0, dot) : filename;
+            std::string_view dir;
+            std::string_view stem = "patchfix_crash";
+
+            if (has_self &&
+                GetModuleFileNameA(hSelf,
+                                   module_path.data(),
+                                   static_cast<DWORD>(module_path.size())) != 0) {
+                const std::string_view path(module_path.data());
+                const auto             sep = path.rfind('\\');
+                dir = (sep != std::string_view::npos) ? path.substr(0, sep + 1) : std::string_view {};
+                const auto filename =
+                    (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
+                const auto dot = filename.rfind('.');
+                stem = (dot != std::string_view::npos) ? filename.substr(0, dot) : filename;
+            }
 
             SYSTEMTIME st {};
             GetLocalTime(&st);
