@@ -18,8 +18,8 @@
 
 namespace games::syndicate {
     enum class PromptType : std::uint8_t {
-        Xbox = 2,
-        PS3  = 4,
+        Xbox = 0,
+        PS3  = 10,
         PS4  = 5,
     };
 
