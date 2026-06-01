@@ -1,6 +1,7 @@
 #include "games/rogue/hooks/game_state.hpp"
 
 #include <atomic>
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -27,6 +28,7 @@ namespace hooks {
         using Tag = games::rogue::GameStateHook;
 
         struct GameUnpause {
+            static constexpr std::string_view name = "GameState/Unpause";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(true, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rcx);
@@ -35,6 +37,7 @@ namespace hooks {
         };
 
         struct GamePause {
+            static constexpr std::string_view name = "GameState/Pause";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.r8);
@@ -43,6 +46,7 @@ namespace hooks {
         };
 
         struct GamePause2 {
+            static constexpr std::string_view name = "GameState/Pause2";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rdi);

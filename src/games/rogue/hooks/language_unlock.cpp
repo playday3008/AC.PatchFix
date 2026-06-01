@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -48,6 +49,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct LangBitfieldPatch {
+            static constexpr std::string_view name = "LanguageUnlock/Bitfield";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto orig = *s_subtitle_bf_global;
 
@@ -77,6 +79,7 @@ namespace hooks {
         };
 
         struct GetGameIdGuard {
+            static constexpr std::string_view name = "LanguageUnlock/GameId";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 regs.rax = std::to_underlying(s_real_game_id);
             }

@@ -1,5 +1,6 @@
 #include "games/syndicate/hooks/refresh_rate_fix.hpp"
 
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -20,6 +21,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct FixRefreshRate {
+            static constexpr std::string_view name = "RefreshRateFix";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto mode = static_cast<int>(regs.r9);
                 if (mode != 2) {

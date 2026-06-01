@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include <numeric>
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -36,6 +37,7 @@ namespace hooks {
         }
 
         struct FilterModeInsert {
+            static constexpr std::string_view name = "ResolutionFix";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const auto *entry = reinterpret_cast<const games::syndicate::ModeEntry *>(regs.rdx);
 

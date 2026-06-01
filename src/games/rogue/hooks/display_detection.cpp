@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include <atomic>
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -29,6 +30,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct DisplayFlagHook {
+            static constexpr std::string_view name = "DisplayDetection";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_display_object.store(regs.rbx, std::memory_order_relaxed);
 

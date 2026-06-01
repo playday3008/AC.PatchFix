@@ -1,6 +1,7 @@
 #include "games/rogue/hooks/viewport_fitting.hpp"
 
 #include <atomic>
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -30,6 +31,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct ViewportRatioLoad {
+            static constexpr std::string_view name = "ViewportFitting/RatioLoad";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
                     !is_in_game().load(std::memory_order_relaxed)) {
@@ -54,6 +56,7 @@ namespace hooks {
         };
 
         struct ViewportRatioMul {
+            static constexpr std::string_view name = "ViewportFitting/RatioMul";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
                     !is_in_game().load(std::memory_order_relaxed)) {
@@ -76,6 +79,7 @@ namespace hooks {
         };
 
         struct CoordTransformHook {
+            static constexpr std::string_view name = "ViewportFitting/CoordTransform";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);
                 auto *a5_y = reinterpret_cast<float *>(regs.r10 + 4);

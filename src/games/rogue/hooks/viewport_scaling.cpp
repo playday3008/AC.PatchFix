@@ -1,6 +1,7 @@
 #include "games/rogue/hooks/viewport_scaling.hpp"
 
 #include <atomic>
+#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
@@ -24,6 +25,7 @@ namespace hooks {
 #pragma clang diagnostic pop
 
         struct ViewportScalingBranch {
+            static constexpr std::string_view name = "ViewportScaling/Branch";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const float w = regs.xmm8.f32[0];
                 const float h = regs.xmm9.f32[0];
@@ -70,6 +72,7 @@ namespace hooks {
         };
 
         struct ScalingOffsetsHook {
+            static constexpr std::string_view name = "ViewportScaling/Offsets";
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const float fade = 1.0F - g_active_stretch.load(std::memory_order_relaxed);
 
