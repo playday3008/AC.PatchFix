@@ -4,6 +4,7 @@
 #include "games/syndicate/hooks/ds4v2_fix.hpp"
 #include "games/syndicate/hooks/language_unlock.hpp"
 #include "games/syndicate/hooks/platform_specs_fix.hpp"
+#include "games/syndicate/hooks/prompt_override.hpp"
 #include "games/syndicate/hooks/resolution_fix.hpp"
 #include "hooks/registry/registry.hpp"
 
@@ -12,7 +13,8 @@ namespace games::syndicate {
                                       ResolutionFixHook,
                                       DS4v2FixHook,
                                       DriftFixHook,
-                                      LanguageUnlockHook>;
+                                      LanguageUnlockHook,
+                                      PromptOverrideHook>;
 
     using SyndicateRegistry = hooks::Registry<AllHooks>;
 
