@@ -10,6 +10,7 @@
 #include "mem/hook.hpp"
 
 #include "games/syndicate/registry.hpp"
+#include "games/syndicate/structs.hpp"
 
 namespace hooks {
     namespace {
@@ -26,21 +27,13 @@ namespace hooks {
 
         struct OverrideDeviceType {
             static constexpr std::string_view name = "PromptOverride";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
-                // Walk the same pointer chain as the original function:
-                //   obj       = *(rcx + 0x10)
-                //   dev_mgr   = *(obj + 0x08)
-                //   index     = *(dev_mgr + 0x798)
-                //   dev_array = *(dev_mgr + 0x79C)
-                //   type      = *(dev_array + 0x238*index + 0x08)
-                auto obj       = *reinterpret_cast<std::uintptr_t *>(regs.rcx + 0x10);
-                auto dev_mgr   = *reinterpret_cast<std::uintptr_t *>(obj + 0x08);
-                auto index     = *reinterpret_cast<std::uint32_t *>(dev_mgr + 0x798);
-                auto dev_array = *reinterpret_cast<std::uintptr_t *>(dev_mgr + 0x79C);
-                auto type =
-                    *reinterpret_cast<std::uint32_t *>(dev_array + (0x238ULL * index) + 0x08);
 
-                if (type == 0) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+                auto *ctx  = reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
+                auto *mgr  = ctx->state->device_manager;
+                auto &slot = mgr->active_slot();
+
+                if (slot.device_type == 0) {
                     return;
                 }
 

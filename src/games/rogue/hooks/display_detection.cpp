@@ -31,7 +31,8 @@ namespace hooks {
 
         struct DisplayFlagHook {
             static constexpr std::string_view name = "DisplayDetection";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 g_display_object.store(regs.rbx, std::memory_order_relaxed);
 
                 if (!games::rogue::registry().enabled<Tag>()) {

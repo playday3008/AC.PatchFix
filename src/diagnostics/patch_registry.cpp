@@ -29,13 +29,13 @@ namespace diagnostics::patch_registry {
         std::copy_n(original.data(), copy_size, entry.original_bytes.data());
         entry.original_size = static_cast<std::uint8_t>(copy_size);
 
-        std::unique_lock<std::shared_mutex> lock(g_mutex);
+        const std::unique_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::lower_bound(g_patches, base, {}, &PatchEntry::base);
         g_patches.insert(it, entry);
     }
 
     auto find_patch(std::uintptr_t addr) -> const PatchEntry * {
-        std::shared_lock<std::shared_mutex> lock(g_mutex);
+        const std::shared_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::upper_bound(g_patches, addr, {}, &PatchEntry::base);
         if (it != g_patches.begin()) {
             --it;
@@ -47,7 +47,7 @@ namespace diagnostics::patch_registry {
     }
 
     auto find_nearby(std::uintptr_t addr, std::size_t threshold) -> const PatchEntry * {
-        std::shared_lock<std::shared_mutex> lock(g_mutex);
+        const std::shared_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::lower_bound(g_patches, addr, {}, &PatchEntry::base);
 
         const PatchEntry *best      = nullptr;
@@ -78,7 +78,7 @@ namespace diagnostics::patch_registry {
     }
 
     auto all_patches() -> std::span<const PatchEntry> {
-        std::shared_lock<std::shared_mutex> lock(g_mutex);
+        const std::shared_lock<std::shared_mutex> lock(g_mutex);
         return g_patches;
     }
 } // namespace diagnostics::patch_registry

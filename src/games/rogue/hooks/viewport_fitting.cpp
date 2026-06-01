@@ -32,7 +32,8 @@ namespace hooks {
 
         struct ViewportRatioLoad {
             static constexpr std::string_view name = "ViewportFitting/RatioLoad";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
                     !is_in_game().load(std::memory_order_relaxed)) {
                     regs.xmm0.f32[0] = Data::k_inv_default_aspect;
@@ -57,7 +58,8 @@ namespace hooks {
 
         struct ViewportRatioMul {
             static constexpr std::string_view name = "ViewportFitting/RatioMul";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 if (!games::rogue::registry().enabled<Tag>() ||
                     !is_in_game().load(std::memory_order_relaxed)) {
                     regs.xmm4.f32[0] *= Data::k_default_aspect;
@@ -80,7 +82,8 @@ namespace hooks {
 
         struct CoordTransformHook {
             static constexpr std::string_view name = "ViewportFitting/CoordTransform";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);
                 auto *a5_y = reinterpret_cast<float *>(regs.r10 + 4);
 

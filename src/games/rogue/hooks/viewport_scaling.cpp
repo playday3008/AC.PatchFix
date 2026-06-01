@@ -26,7 +26,8 @@ namespace hooks {
 
         struct ViewportScalingBranch {
             static constexpr std::string_view name = "ViewportScaling/Branch";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const float w = regs.xmm8.f32[0];
                 const float h = regs.xmm9.f32[0];
 
@@ -73,7 +74,8 @@ namespace hooks {
 
         struct ScalingOffsetsHook {
             static constexpr std::string_view name = "ViewportScaling/Offsets";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const float fade = 1.0F - g_active_stretch.load(std::memory_order_relaxed);
 
                 const float offset_x = regs.xmm1.f32[0] * fade;

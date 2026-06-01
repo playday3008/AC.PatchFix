@@ -57,7 +57,8 @@ namespace hooks {
 
         struct GameUnpause {
             static constexpr std::string_view name = "GameState/Unpause";
-            [[maybe_unused]] static void      operator()(mem::Registers &) {
+
+            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
                 is_in_game().store(true, std::memory_order_relaxed);
                 auto *state = resolve_state();
                 if (state != nullptr) {
@@ -73,7 +74,8 @@ namespace hooks {
 
         struct GamePause {
             static constexpr std::string_view name = "GameState/Pause";
-            [[maybe_unused]] static void      operator()(mem::Registers &) {
+
+            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state = resolve_state();
                 if (state != nullptr) {
@@ -89,7 +91,8 @@ namespace hooks {
 
         struct GamePause2 {
             static constexpr std::string_view name = "GameState/Pause2";
-            [[maybe_unused]] static void      operator()(mem::Registers &) {
+
+            [[maybe_unused]] static void operator()(mem::Registers &) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state = resolve_state();
                 if (state != nullptr) {
