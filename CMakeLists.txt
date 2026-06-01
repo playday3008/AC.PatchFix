@@ -54,6 +54,7 @@ add_library(patchfix_core OBJECT
     src/diagnostics/address_registry.cpp
     src/diagnostics/crash_handler.cpp
     src/diagnostics/seh_guard.cpp
+    src/diagnostics/crash_logger.cpp
 )
 
 target_include_directories(patchfix_core PUBLIC "${INC_DIR}")

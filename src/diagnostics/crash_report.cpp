@@ -9,8 +9,9 @@
 
 #include <Windows.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include <spdlog/spdlog.h>
 
+#include "diagnostics/crash_logger.hpp"
 #include "diagnostics/minidump.hpp"
 #include "diagnostics/stack_walker.hpp"
 
@@ -34,55 +35,53 @@ namespace diagnostics {
                 type_str = "UNKNOWN";
             }
 
-            log::get()->critical("  Access violation: {} at address 0x{:016X}",
-                                 type_str,
-                                 fault_addr);
+            log().critical("  Access violation: {} at address 0x{:016X}", type_str, fault_addr);
         }
 
         void log_registers(const CONTEXT *ctx) {
-            log::get()->critical("  RAX={:016X}  RBX={:016X}  RCX={:016X}  RDX={:016X}",
-                                 ctx->Rax,
-                                 ctx->Rbx,
-                                 ctx->Rcx,
-                                 ctx->Rdx);
-            log::get()->critical("  RSI={:016X}  RDI={:016X}  RBP={:016X}  RSP={:016X}",
-                                 ctx->Rsi,
-                                 ctx->Rdi,
-                                 ctx->Rbp,
-                                 ctx->Rsp);
-            log::get()->critical("  R8 ={:016X}  R9 ={:016X}  R10={:016X}  R11={:016X}",
-                                 ctx->R8,
-                                 ctx->R9,
-                                 ctx->R10,
-                                 ctx->R11);
-            log::get()->critical("  R12={:016X}  R13={:016X}  R14={:016X}  R15={:016X}",
-                                 ctx->R12,
-                                 ctx->R13,
-                                 ctx->R14,
-                                 ctx->R15);
-            log::get()->critical("  RIP={:016X}  RFLAGS={:016X}", ctx->Rip, ctx->EFlags);
+            log().critical("  RAX={:016X}  RBX={:016X}  RCX={:016X}  RDX={:016X}",
+                           ctx->Rax,
+                           ctx->Rbx,
+                           ctx->Rcx,
+                           ctx->Rdx);
+            log().critical("  RSI={:016X}  RDI={:016X}  RBP={:016X}  RSP={:016X}",
+                           ctx->Rsi,
+                           ctx->Rdi,
+                           ctx->Rbp,
+                           ctx->Rsp);
+            log().critical("  R8 ={:016X}  R9 ={:016X}  R10={:016X}  R11={:016X}",
+                           ctx->R8,
+                           ctx->R9,
+                           ctx->R10,
+                           ctx->R11);
+            log().critical("  R12={:016X}  R13={:016X}  R14={:016X}  R15={:016X}",
+                           ctx->R12,
+                           ctx->R13,
+                           ctx->R14,
+                           ctx->R15);
+            log().critical("  RIP={:016X}  RFLAGS={:016X}", ctx->Rip, ctx->EFlags);
         }
 
         void log_stack_trace(std::span<const StackFrame> frames) {
-            log::get()->critical("  Stack trace ({} frames):", frames.size());
+            log().critical("  Stack trace ({} frames):", frames.size());
             for (std::size_t i = 0; i < frames.size(); ++i) {
                 const auto &frame = frames[i];
                 if (frame.module_base != 0) {
                     if (frame.has_symbol) {
-                        log::get()->critical("    #{:02d}  {}+0x{:X} ({} +0x{:X})",
-                                             i,
-                                             frame.module_name.data(),
-                                             frame.module_offset,
-                                             frame.symbol_name.data(),
-                                             frame.symbol_offset);
+                        log().critical("    #{:02d}  {}+0x{:X} ({} +0x{:X})",
+                                       i,
+                                       frame.module_name.data(),
+                                       frame.module_offset,
+                                       frame.symbol_name.data(),
+                                       frame.symbol_offset);
                     } else {
-                        log::get()->critical("    #{:02d}  {}+0x{:X}",
-                                             i,
-                                             frame.module_name.data(),
-                                             frame.module_offset);
+                        log().critical("    #{:02d}  {}+0x{:X}",
+                                       i,
+                                       frame.module_name.data(),
+                                       frame.module_offset);
                     }
                 } else {
-                    log::get()->critical("    #{:02d}  0x{:016X}", i, frame.address);
+                    log().critical("    #{:02d}  0x{:016X}", i, frame.address);
                 }
             }
         }
@@ -144,13 +143,13 @@ namespace diagnostics {
     void log_crash_report(EXCEPTION_POINTERS *ep, std::string_view context_name) {
         auto *rec    = ep->ExceptionRecord;
         auto  code   = static_cast<std::uint32_t>(rec->ExceptionCode);
-        auto  logger = log::get();
+        auto &logger = log();
 
-        logger->critical("=== CRASH in {} ===", context_name);
-        logger->critical("  Exception: {} (0x{:08X}) at 0x{:016X}",
-                         exception_code_name(code),
-                         code,
-                         reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress));
+        logger.critical("=== CRASH in {} ===", context_name);
+        logger.critical("  Exception: {} (0x{:08X}) at 0x{:016X}",
+                        exception_code_name(code),
+                        code,
+                        reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress));
 
         if (code == EXCEPTION_ACCESS_VIOLATION) {
             log_access_violation_detail(rec);
@@ -164,15 +163,15 @@ namespace diagnostics {
         resolve_symbols(frames);
         log_stack_trace(frames);
 
-        logger->critical("=== END CRASH REPORT ===");
-        logger->flush();
+        logger.critical("=== END CRASH REPORT ===");
+        logger.flush();
     }
 
     void log_crash_report_lightweight(EXCEPTION_POINTERS *ep) {
         auto *rec    = ep->ExceptionRecord;
         auto  code   = static_cast<std::uint32_t>(rec->ExceptionCode);
         auto *ctx    = ep->ContextRecord;
-        auto  logger = log::get();
+        auto &logger = log();
 
         auto fault_addr = reinterpret_cast<std::uintptr_t>(rec->ExceptionAddress);
 
@@ -192,24 +191,24 @@ namespace diagnostics {
             } else {
                 const std::string_view path(module_path.data());
                 const auto             sep = path.rfind('\\');
-                const auto module_name =
-                    (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
-                logger->critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
-                                 exception_code_name(code),
-                                 code,
-                                 module_name,
-                                 module_offset);
+                const auto module_name     = (sep != std::string_view::npos) ? path.substr(sep + 1)
+                                                                             : path;
+                logger.critical("VEH: {} (0x{:08X}) at {}+0x{:X}",
+                                exception_code_name(code),
+                                code,
+                                module_name,
+                                module_offset);
             }
         }
         if (!has_module) {
-            logger->critical("VEH: {} (0x{:08X}) at 0x{:016X}",
-                             exception_code_name(code),
-                             code,
-                             fault_addr);
+            logger.critical("VEH: {} (0x{:08X}) at 0x{:016X}",
+                            exception_code_name(code),
+                            code,
+                            fault_addr);
         }
 
-        logger->critical("VEH: RIP={:016X} RSP={:016X} RBP={:016X}", ctx->Rip, ctx->Rsp, ctx->Rbp);
-        logger->flush();
+        logger.critical("VEH: RIP={:016X} RSP={:016X} RBP={:016X}", ctx->Rip, ctx->Rsp, ctx->Rbp);
+        logger.flush();
     }
 
     auto callback_fault_filter(EXCEPTION_POINTERS *ep) -> int {

@@ -4,6 +4,7 @@
 
 #include "logger.hpp" // IWYU pragma: keep
 
+#include "diagnostics/crash_logger.hpp"
 #include "diagnostics/crash_report.hpp"
 #include "games/game_init.hpp"
 #include "games/syndicate/registry.hpp"
@@ -24,6 +25,7 @@ namespace {
         auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
 
         log::init((dll_dir / (log_name + ".log")).string());
+        diagnostics::init_log();
         log::get()->info("{} initializing for {}", log_name, exe_name);
 
         auto ini_path = dll_dir / (log_name + ".ini");

@@ -8,7 +8,9 @@
 
 #include <DbgHelp.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include <spdlog/spdlog.h>
+
+#include "diagnostics/crash_logger.hpp"
 
 namespace diagnostics {
     namespace {
@@ -40,16 +42,15 @@ namespace diagnostics {
             std::string_view dir;
             std::string_view stem = "patchfix_crash";
 
-            if (has_self &&
-                GetModuleFileNameA(hSelf,
-                                   module_path.data(),
-                                   static_cast<DWORD>(module_path.size())) != 0) {
+            if (has_self && GetModuleFileNameA(hSelf,
+                                               module_path.data(),
+                                               static_cast<DWORD>(module_path.size())) != 0) {
                 const std::string_view path(module_path.data());
                 const auto             sep = path.rfind('\\');
-                dir = (sep != std::string_view::npos) ? path.substr(0, sep + 1) : std::string_view {};
-                const auto filename =
-                    (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
-                const auto dot = filename.rfind('.');
+                dir                 = (sep != std::string_view::npos) ? path.substr(0, sep + 1)
+                                                                      : std::string_view {};
+                const auto filename = (sep != std::string_view::npos) ? path.substr(sep + 1) : path;
+                const auto dot      = filename.rfind('.');
                 stem = (dot != std::string_view::npos) ? filename.substr(0, dot) : filename;
             }
 
@@ -74,7 +75,7 @@ namespace diagnostics {
     void write_minidump(EXCEPTION_POINTERS *ep) {
         auto *fn = get_dump_fn();
         if (fn == nullptr) {
-            log::get()->warn("Minidump: dbghelp.dll not available");
+            log().warn("Minidump: dbghelp.dll not available");
             return;
         }
 
@@ -89,7 +90,7 @@ namespace diagnostics {
                                    FILE_ATTRIBUTE_NORMAL,
                                    nullptr);
         if (hFile == INVALID_HANDLE_VALUE) {
-            log::get()->warn("Minidump: failed to create {}", dump_path.data());
+            log().warn("Minidump: failed to create {}", dump_path.data());
             return;
         }
 
@@ -107,9 +108,9 @@ namespace diagnostics {
         CloseHandle(hFile);
 
         if (ok != FALSE) {
-            log::get()->critical("Minidump written: {}", dump_path.data());
+            log().critical("Minidump written: {}", dump_path.data());
         } else {
-            log::get()->warn("Minidump: MiniDumpWriteDump failed (error {})", GetLastError());
+            log().warn("Minidump: MiniDumpWriteDump failed (error {})", GetLastError());
         }
     }
 } // namespace diagnostics
