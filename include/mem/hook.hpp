@@ -1,13 +1,17 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <expected>
+#include <span>
 #include <string>
 
 #include <safetyhook/context.hpp>
 #include <safetyhook/mid_hook.hpp>
 
+#include "diagnostics/hook_context.hpp"
+#include "diagnostics/patch_registry.hpp"
 #include "diagnostics/seh_guard.hpp"
 #include "mem/write.hpp"
 
@@ -31,11 +35,27 @@ namespace mem {
         explicit operator bool() const { return static_cast<bool>(inner_); }
 
         void reset() { inner_.reset(); }
+
+        [[nodiscard]] auto original_bytes_size() const -> std::size_t {
+            return inner_.original_bytes().size();
+        }
+
+        [[nodiscard]] auto original_bytes_data() const -> std::span<const std::uint8_t> {
+            const auto &ob = inner_.original_bytes();
+            return {ob.data(), ob.size()};
+        }
     };
 
     template<typename Functor>
     [[nodiscard]] auto make_hook(std::uintptr_t addr) -> std::expected<MidHook, std::string> {
-        return MidHook::create(addr, diagnostics::guarded_callback<Functor>);
+        auto result = MidHook::create(addr, diagnostics::guarded_callback<Functor>);
+        if (result) {
+            diagnostics::patch_registry::register_patch(
+                addr, result->original_bytes_size(), result->original_bytes_data(),
+                diagnostics::current_hook_name(),
+                diagnostics::patch_registry::PatchType::mid_hook);
+        }
+        return result;
     }
 
     template<typename Functor>
@@ -44,6 +64,13 @@ namespace mem {
         if (end > addr) {
             (void)nop(addr, end - addr);
         }
-        return MidHook::create(addr, diagnostics::guarded_callback<Functor>);
+        auto result = MidHook::create(addr, diagnostics::guarded_callback<Functor>);
+        if (result) {
+            diagnostics::patch_registry::register_patch(
+                addr, result->original_bytes_size(), result->original_bytes_data(),
+                diagnostics::current_hook_name(),
+                diagnostics::patch_registry::PatchType::mid_hook);
+        }
+        return result;
     }
 } // namespace mem

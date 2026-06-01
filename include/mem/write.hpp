@@ -8,6 +8,8 @@
 
 #include <Windows.h>
 
+#include "diagnostics/hook_context.hpp"
+#include "diagnostics/patch_registry.hpp"
 #include "mem/protect.hpp"
 
 namespace mem {
@@ -17,12 +19,20 @@ namespace mem {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
 
     [[nodiscard]] inline auto write(std::uintptr_t addr, const void *data, std::size_t size)
         -> bool {
         auto old = detail::protect(addr, size, PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
+        }
+        auto hook_name = diagnostics::current_hook_name();
+        if (!hook_name.empty()) {
+            const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
+            diagnostics::patch_registry::register_patch(
+                addr, size, {src, size}, hook_name,
+                diagnostics::patch_registry::PatchType::byte_write);
         }
         std::memcpy(reinterpret_cast<void *>(addr), data, size);
         detail::unprotect(addr, size, *old);
@@ -35,6 +45,13 @@ namespace mem {
         auto old = detail::protect(addr, sizeof(T), PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
+        }
+        auto hook_name = diagnostics::current_hook_name();
+        if (!hook_name.empty()) {
+            const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
+            diagnostics::patch_registry::register_patch(
+                addr, sizeof(T), {src, sizeof(T)}, hook_name,
+                diagnostics::patch_registry::PatchType::byte_write);
         }
         *reinterpret_cast<T *>(addr) = value;
         detail::unprotect(addr, sizeof(T), *old);
@@ -52,6 +69,13 @@ namespace mem {
         if (!old) {
             return false;
         }
+        auto hook_name = diagnostics::current_hook_name();
+        if (!hook_name.empty()) {
+            const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
+            diagnostics::patch_registry::register_patch(
+                addr, count, {src, count}, hook_name,
+                diagnostics::patch_registry::PatchType::byte_write);
+        }
         std::memset(reinterpret_cast<void *>(addr), op_nop, count);
         detail::unprotect(addr, count, *old);
         return true;
@@ -64,6 +88,13 @@ namespace mem {
         auto old = detail::protect(addr, 3, PAGE_EXECUTE_READWRITE);
         if (!old) {
             return false;
+        }
+        auto hook_name = diagnostics::current_hook_name();
+        if (!hook_name.empty()) {
+            const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
+            diagnostics::patch_registry::register_patch(
+                addr, 3, {src, 3}, hook_name,
+                diagnostics::patch_registry::PatchType::byte_write);
         }
         *reinterpret_cast<std::uint8_t *>(addr)      = op_retn;
         *reinterpret_cast<std::uint16_t *>(addr + 1) = pop;
