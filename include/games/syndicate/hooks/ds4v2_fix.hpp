@@ -31,10 +31,7 @@ namespace hooks {
         static constexpr auto required_patterns = std::array<PatternField, 1> {
             &Addrs::ds4_type_classify,
         };
-        static constexpr auto optional_patterns = std::array<PatternField, 2> {
-            &Addrs::di_controller_ctor,
-            &Addrs::di_enum_callback,
-        };
+        static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
         struct Config : config_base<Config> {
             ini_field<bool> enabled {"DS4v2Fix", "Enabled", true};

@@ -25,8 +25,6 @@ namespace games {
             std::optional<std::uintptr_t> mode_insert;
             std::optional<std::uintptr_t> ds4_type_classify;
             std::optional<std::uintptr_t> specs_enumerate_modes;
-            std::optional<std::uintptr_t> di_controller_ctor;
-            std::optional<std::uintptr_t> di_enum_callback;
         };
 
         struct ScanEntry {
@@ -38,13 +36,11 @@ namespace games {
 
         // clang-format off
         static constexpr auto scan_entries = std::to_array<ScanEntry>({
-            {.name="LANG_SETUP",        .field=&ResolvedAddresses::lang_setup,           .offset=0, .bytes="40 55 53 48 8B EC 48 83 EC 48 45 33 C9 48 89 74 24 40 48 8D 15"},
-            {.name="LANG_BF_WRITE",     .field=&ResolvedAddresses::lang_bf_write,        .offset=0, .bytes="89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
-            {.name="MODE_INSERT",       .field=&ResolvedAddresses::mode_insert,          .offset=0, .bytes="4C 8B DC 49 89 5B ? 57 48 83 EC ? 4C 8B 41 ? 48 8B 41 ? 48 8B DA 48 8B F9 4C 3B C0 0F 82 ? ? ? ? 4D 85 C0 0F 84 ? ? ? ? 48 8B 49 ? 48 3B D1 0F 82 ? ? ? ? 48 8D 04 40"},
-            {.name="DS4_TYPE_CLASSIFY", .field=&ResolvedAddresses::ds4_type_classify,    .offset=0, .bytes="B9 C4 05 00 00 66 3B C1 75 ? C7 83 90 07 00 00 0B 00 00 00"},
-            {.name="SPECS_ENUM_MODES", .field=&ResolvedAddresses::specs_enumerate_modes, .offset=0, .bytes="48 8B C4 55 48 8D 68 ? 48 81 EC ? ? ? ? 48 89 58 ? 48 89 70 ? 48 89 78 ? 4C 89 60 ? 45 33 E4"},
-            {.name="DI_CONTROLLER_CTOR", .field=&ResolvedAddresses::di_controller_ctor,  .offset=0, .bytes="48 89 5C 24 ? 57 48 83 EC ? 48 8B FA 48 8B D9 E8 ? ? ? ? 48 8D 05 ? ? ? ? C7 83"},
-            {.name="DI_ENUM_CALLBACK",   .field=&ResolvedAddresses::di_enum_callback,    .offset=0, .bytes="40 55 53 57 41 54 41 55 41 56 41 57 48 8D AC 24"},
+            {.name="LANG_SETUP",         .field=&ResolvedAddresses::lang_setup,            .offset=0, .bytes="40 55 53 48 8B EC 48 83 EC 48 45 33 C9 48 89 74 24 40 48 8D 15"},
+            {.name="LANG_BF_WRITE",      .field=&ResolvedAddresses::lang_bf_write,         .offset=0, .bytes="89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
+            {.name="MODE_INSERT",        .field=&ResolvedAddresses::mode_insert,           .offset=0, .bytes="4C 8B DC 49 89 5B ? 57 48 83 EC ? 4C 8B 41 ? 48 8B 41 ? 48 8B DA 48 8B F9 4C 3B C0 0F 82 ? ? ? ? 4D 85 C0 0F 84 ? ? ? ? 48 8B 49 ? 48 3B D1 0F 82 ? ? ? ? 48 8D 04 40"},
+            {.name="DS4_TYPE_CLASSIFY",  .field=&ResolvedAddresses::ds4_type_classify,     .offset=0, .bytes="B9 C4 05 00 00 66 3B C1 75 ? C7 83 90 07 00 00 0B 00 00 00"},
+            {.name="SPECS_ENUM_MODES",   .field=&ResolvedAddresses::specs_enumerate_modes, .offset=0, .bytes="48 8B C4 55 48 8D 68 ? 48 81 EC ? ? ? ? 48 89 58 ? 48 89 70 ? 48 89 78 ? 4C 89 60 ? 45 33 E4"},
         });
         // clang-format on
     };

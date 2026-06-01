@@ -23,8 +23,6 @@ namespace hooks {
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
         mem::MidHook g_hook;
-        mem::MidHook g_diag_ctor;
-        mem::MidHook g_diag_enum;
 #pragma clang diagnostic pop
 
         std::uintptr_t g_skip_target = 0;
@@ -43,22 +41,6 @@ namespace hooks {
             }
         };
 
-        struct DiagDIControllerCtor {
-            static constexpr std::string_view name = "DS4v2Fix.diag.ctor";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
-                log::get()->info(
-                    "DS4v2Fix DIAG: DI controller ctor called (this=0x{:X}, device=0x{:X})",
-                    regs.rcx,
-                    regs.rdx);
-            }
-        };
-
-        struct DiagDIEnumCallback {
-            static constexpr std::string_view name = "DS4v2Fix.diag.enum";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
-                log::get()->info("DS4v2Fix DIAG: DI enum callback fired (ctx=0x{:X})", regs.rcx);
-            }
-        };
     } // namespace
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
@@ -69,36 +51,6 @@ namespace hooks {
             log::get()->info("Syndicate DS4v2FixHook: disabled, skipping");
             return true;
         }
-
-        // --- Diagnostic hooks (always-on, temporary) ---
-
-        if (addrs.di_enum_callback) {
-            auto addr   = addrs.di_enum_callback.value();
-            auto result = mem::make_hook<DiagDIEnumCallback>(addr);
-            if (result) {
-                g_diag_enum = std::move(*result);
-                log::get()->info("DS4v2Fix DIAG: enum callback hook at 0x{:X}", addr);
-            } else {
-                log::get()->warn("DS4v2Fix DIAG: enum callback hook failed: {}", result.error());
-            }
-        } else {
-            log::get()->warn("DS4v2Fix DIAG: DI_ENUM_CALLBACK pattern not found");
-        }
-
-        if (addrs.di_controller_ctor) {
-            auto addr   = addrs.di_controller_ctor.value();
-            auto result = mem::make_hook<DiagDIControllerCtor>(addr);
-            if (result) {
-                g_diag_ctor = std::move(*result);
-                log::get()->info("DS4v2Fix DIAG: controller ctor hook at 0x{:X}", addr);
-            } else {
-                log::get()->warn("DS4v2Fix DIAG: controller ctor hook failed: {}", result.error());
-            }
-        } else {
-            log::get()->warn("DS4v2Fix DIAG: DI_CONTROLLER_CTOR pattern not found");
-        }
-
-        // --- Existing PID classification hook ---
 
         auto match_addr = addrs.ds4_type_classify.value();
         log::get()->trace("Syndicate DS4v2FixHook: DS4 PID check at 0x{:X}", match_addr);
