@@ -34,13 +34,12 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path) {
     }
 
     auto journal_path = ini_path.parent_path() /
-        (std::string("AC.") + std::string(Data::name) + ".PatchFix.journal");
+                        (std::string("AC.") + std::string(Data::name) + ".PatchFix.journal");
     diagnostics::crash_journal::open(journal_path.string());
 
     auto prev = diagnostics::crash_journal::read_previous();
     if (!prev.clean && !prev.hooks_active.empty()) {
-        log::get()->warn("Previous session did not shut down cleanly (started {})",
-                         prev.timestamp);
+        log::get()->warn("Previous session did not shut down cleanly (started {})", prev.timestamp);
         std::string hook_list;
         for (const auto &h : prev.hooks_active) {
             if (!hook_list.empty()) {

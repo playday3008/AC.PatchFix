@@ -29,7 +29,7 @@ namespace hooks {
 
         struct GameUnpause {
             static constexpr std::string_view name = "GameState/Unpause";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 is_in_game().store(true, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rcx);
                 state->pause_flag = 0;
@@ -38,7 +38,7 @@ namespace hooks {
 
         struct GamePause {
             static constexpr std::string_view name = "GameState/Pause";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.r8);
                 state->pause_flag = 1;
@@ -47,7 +47,7 @@ namespace hooks {
 
         struct GamePause2 {
             static constexpr std::string_view name = "GameState/Pause2";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
                 auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rdi);
                 state->pause_flag = 1;

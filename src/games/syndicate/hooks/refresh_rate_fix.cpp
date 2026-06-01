@@ -22,7 +22,7 @@ namespace hooks {
 
         struct FixRefreshRate {
             static constexpr std::string_view name = "RefreshRateFix";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 auto mode = static_cast<int>(regs.r9);
                 if (mode != 2) {
                     return;

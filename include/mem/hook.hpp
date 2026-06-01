@@ -51,7 +51,9 @@ namespace mem {
         auto result = MidHook::create(addr, diagnostics::guarded_callback<Functor>);
         if (result) {
             diagnostics::patch_registry::register_patch(
-                addr, result->original_bytes_size(), result->original_bytes_data(),
+                addr,
+                result->original_bytes_size(),
+                result->original_bytes_data(),
                 diagnostics::current_hook_name(),
                 diagnostics::patch_registry::PatchType::mid_hook);
         }
@@ -67,7 +69,9 @@ namespace mem {
         auto result = MidHook::create(addr, diagnostics::guarded_callback<Functor>);
         if (result) {
             diagnostics::patch_registry::register_patch(
-                addr, result->original_bytes_size(), result->original_bytes_data(),
+                addr,
+                result->original_bytes_size(),
+                result->original_bytes_data(),
                 diagnostics::current_hook_name(),
                 diagnostics::patch_registry::PatchType::mid_hook);
         }

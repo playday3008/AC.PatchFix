@@ -29,7 +29,7 @@ namespace hooks {
 
         struct CheckDS4PID {
             static constexpr std::string_view name = "DS4v2Fix";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 auto pid = static_cast<std::uint16_t>(regs.rax & 0xFFFFU);
 
                 if (pid == k_ds4_v1_pid || pid == k_ds4_v2_pid) {

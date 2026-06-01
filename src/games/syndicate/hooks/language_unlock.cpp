@@ -35,7 +35,7 @@ namespace hooks {
 
         struct LangBitfieldPatch {
             static constexpr std::string_view name = "LanguageUnlock/Bitfield";
-            [[maybe_unused]] static void operator()(mem::Registers & /*regs*/) {
+            [[maybe_unused]] static void      operator()(mem::Registers      &/*regs*/) {
                 *s_menu_bf_global     = k_all_menu;
                 *s_subtitle_bf_global = k_all_subtitle;
                 *s_audio_bf_global    = k_all_audio;

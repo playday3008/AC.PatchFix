@@ -50,7 +50,7 @@ namespace hooks {
 
         struct LangBitfieldPatch {
             static constexpr std::string_view name = "LanguageUnlock/Bitfield";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 auto orig = *s_subtitle_bf_global;
 
                 const bool is_steam = mem::invoke<std::uint8_t()>(s_is_steam_addr) != 0;
@@ -80,7 +80,7 @@ namespace hooks {
 
         struct GetGameIdGuard {
             static constexpr std::string_view name = "LanguageUnlock/GameId";
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
                 regs.rax = std::to_underlying(s_real_game_id);
             }
         };

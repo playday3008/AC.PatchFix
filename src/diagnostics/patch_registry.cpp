@@ -14,9 +14,11 @@ namespace diagnostics::patch_registry {
 #pragma clang diagnostic pop
     } // namespace
 
-    void register_patch(std::uintptr_t base, std::size_t size,
+    void register_patch(std::uintptr_t                base,
+                        std::size_t                   size,
                         std::span<const std::uint8_t> original,
-                        std::string_view hook_name, PatchType type) {
+                        std::string_view              hook_name,
+                        PatchType                     type) {
         PatchEntry entry;
         entry.base      = base;
         entry.size      = size;
@@ -44,13 +46,12 @@ namespace diagnostics::patch_registry {
         return nullptr;
     }
 
-    auto find_nearby(std::uintptr_t addr, std::size_t threshold)
-        -> const PatchEntry * {
+    auto find_nearby(std::uintptr_t addr, std::size_t threshold) -> const PatchEntry * {
         std::shared_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::lower_bound(g_patches, addr, {}, &PatchEntry::base);
 
-        const PatchEntry *best = nullptr;
-        std::size_t best_dist  = threshold + 1;
+        const PatchEntry *best      = nullptr;
+        std::size_t       best_dist = threshold + 1;
 
         if (it != g_patches.begin()) {
             auto prev     = std::prev(it);

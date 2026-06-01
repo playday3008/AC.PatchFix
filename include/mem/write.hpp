@@ -31,7 +31,10 @@ namespace mem {
         if (!hook_name.empty()) {
             const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
             diagnostics::patch_registry::register_patch(
-                addr, size, {src, size}, hook_name,
+                addr,
+                size,
+                {src, size},
+                hook_name,
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         std::memcpy(reinterpret_cast<void *>(addr), data, size);
@@ -50,7 +53,10 @@ namespace mem {
         if (!hook_name.empty()) {
             const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
             diagnostics::patch_registry::register_patch(
-                addr, sizeof(T), {src, sizeof(T)}, hook_name,
+                addr,
+                sizeof(T),
+                {src, sizeof(T)},
+                hook_name,
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         *reinterpret_cast<T *>(addr) = value;
@@ -73,7 +79,10 @@ namespace mem {
         if (!hook_name.empty()) {
             const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
             diagnostics::patch_registry::register_patch(
-                addr, count, {src, count}, hook_name,
+                addr,
+                count,
+                {src, count},
+                hook_name,
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         std::memset(reinterpret_cast<void *>(addr), op_nop, count);
@@ -93,7 +102,10 @@ namespace mem {
         if (!hook_name.empty()) {
             const auto *src = reinterpret_cast<const std::uint8_t *>(addr);
             diagnostics::patch_registry::register_patch(
-                addr, 3, {src, 3}, hook_name,
+                addr,
+                3,
+                {src, 3},
+                hook_name,
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         *reinterpret_cast<std::uint8_t *>(addr)      = op_retn;

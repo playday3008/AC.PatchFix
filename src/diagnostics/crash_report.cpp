@@ -89,8 +89,8 @@ namespace diagnostics {
         }
 
         void log_patch_bytes(const patch_registry::PatchEntry &patch) {
-            auto &logger = log();
-            auto format_hex = [](std::span<const std::uint8_t> data) -> std::string {
+            auto &logger     = log();
+            auto  format_hex = [](std::span<const std::uint8_t> data) -> std::string {
                 std::string result;
                 result.reserve(data.size() * 3);
                 for (std::size_t i = 0; i < data.size(); ++i) {
@@ -109,8 +109,8 @@ namespace diagnostics {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
-            auto orig_span = std::span<const std::uint8_t>(patch.original_bytes.data(),
-                                                           patch.original_size);
+            auto orig_span =
+                std::span<const std::uint8_t>(patch.original_bytes.data(), patch.original_size);
             logger.critical("VEH: >>> Original: {}", format_hex(orig_span));
 
             std::array<std::uint8_t, 64> current {};
