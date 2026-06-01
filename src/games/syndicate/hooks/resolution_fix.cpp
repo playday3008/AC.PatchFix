@@ -10,7 +10,6 @@
 
 #include "mem/hook.hpp"
 
-#include "games/syndicate/registry.hpp"
 #include "games/syndicate/structs.hpp"
 
 namespace hooks {
@@ -56,12 +55,6 @@ namespace hooks {
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("Syndicate ResolutionFixHook: installing");
-
-        const auto &cfg = games::syndicate::registry().config<Tag>();
-        if (!cfg.enabled.get()) {
-            log::get()->info("Syndicate ResolutionFixHook: disabled, skipping");
-            return true;
-        }
 
         auto addr = addrs.mode_insert.value();
         log::get()->trace("Syndicate ResolutionFixHook: ModeList_InsertSorted at 0x{:X}", addr);

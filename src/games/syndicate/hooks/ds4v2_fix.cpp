@@ -10,8 +10,6 @@
 #include "mem/hook.hpp"
 #include "mem/write.hpp"
 
-#include "games/syndicate/registry.hpp"
-
 namespace hooks {
     namespace {
         using Tag = games::syndicate::DS4v2FixHook;
@@ -46,12 +44,6 @@ namespace hooks {
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("Syndicate DS4v2FixHook: installing");
-
-        const auto &cfg = games::syndicate::registry().config<Tag>();
-        if (!cfg.enabled.get()) {
-            log::get()->info("Syndicate DS4v2FixHook: disabled, skipping");
-            return true;
-        }
 
         auto match_addr = addrs.ds4_type_classify.value();
         log::get()->trace("Syndicate DS4v2FixHook: DS4 PID check at 0x{:X}", match_addr);

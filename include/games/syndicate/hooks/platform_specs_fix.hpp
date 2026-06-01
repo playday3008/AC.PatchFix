@@ -5,13 +5,11 @@
 #include <array>
 #include <optional>
 #include <string_view>
-#include <tuple>
 
 #include "games/syndicate/game_data.hpp"
 #include "hooks/registry/config_base.hpp"
 #include "hooks/registry/dep_list.hpp"
 #include "hooks/registry/hook_traits.hpp"
-#include "hooks/registry/ini_field.hpp"
 
 namespace games::syndicate {
     struct PlatformSpecsFixHook {};
@@ -33,11 +31,7 @@ namespace hooks {
         };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
-        struct Config : config_base<Config> {
-            ini_field<bool> enabled {"PlatformSpecsFix", "Enabled", true};
-
-            static constexpr auto field_ptrs = std::tuple {&Config::enabled};
-        };
+        using Config = empty_config;
 
         static auto install(const Addrs &addrs) -> bool;
     };

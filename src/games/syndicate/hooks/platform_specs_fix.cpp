@@ -4,8 +4,6 @@
 
 #include "mem/write.hpp"
 
-#include "games/syndicate/registry.hpp"
-
 namespace hooks {
     namespace {
         using Tag = games::syndicate::PlatformSpecsFixHook;
@@ -13,12 +11,6 @@ namespace hooks {
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("Syndicate PlatformSpecsFixHook: installing");
-
-        const auto &cfg = games::syndicate::registry().config<Tag>();
-        if (!cfg.enabled.get()) {
-            log::get()->info("Syndicate PlatformSpecsFixHook: disabled, skipping");
-            return true;
-        }
 
         auto addr = addrs.specs_enumerate_modes.value();
         if (!mem::ret(addr)) {
