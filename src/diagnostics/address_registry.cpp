@@ -24,8 +24,8 @@ namespace diagnostics {
     }
 
     auto is_plugin_address(std::uintptr_t addr) -> bool {
-        auto base = g_module_base.load(std::memory_order_acquire);
         auto end  = g_module_end.load(std::memory_order_acquire);
+        auto base = g_module_base.load(std::memory_order_acquire);
         return addr >= base && addr < end;
     }
 } // namespace diagnostics

@@ -16,6 +16,9 @@ namespace diagnostics {
             if (!is_hardware_exception(code)) {
                 return EXCEPTION_CONTINUE_SEARCH;
             }
+            if (code == EXCEPTION_STACK_OVERFLOW) {
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
 
             auto rip = static_cast<std::uintptr_t>(ep->ContextRecord->Rip);
             if (!is_plugin_address(rip)) {
