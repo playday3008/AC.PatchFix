@@ -22,13 +22,18 @@ namespace hooks {
         mem::MidHook g_hook;
 #pragma clang diagnostic pop
 
-        std::uintptr_t g_ret_addr    = 0;
-        std::uint32_t  g_forced_type = 0;
+        std::uintptr_t g_ret_addr = 0;
 
         struct OverrideDeviceType {
             [[maybe_unused]] static constexpr std::string_view name = "PromptOverride";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
+                const auto &cfg = games::syndicate::registry().config<Tag>();
+
+                if (!cfg.enabled.get()) {
+                    return;
+                }
+
                 const auto *ctx =
                     reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
                 auto       *mgr  = ctx->state->device_manager;
@@ -38,7 +43,7 @@ namespace hooks {
                     return;
                 }
 
-                regs.rax = g_forced_type;
+                regs.rax = static_cast<std::uint32_t>(std::to_underlying(cfg.type.get()));
                 regs.rip = g_ret_addr;
             }
         };
@@ -47,19 +52,11 @@ namespace hooks {
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
         log::get()->trace("Syndicate PromptOverrideHook: installing");
 
-        const auto &cfg = games::syndicate::registry().config<Tag>();
-        if (!cfg.enabled.get()) {
-            log::get()->info("Syndicate PromptOverrideHook: disabled, skipping");
-            return true;
-        }
-
-        auto fn_addr  = addrs.get_active_device_type.value();
-        g_ret_addr    = fn_addr + 0x1F;
-        g_forced_type = static_cast<std::uint32_t>(std::to_underlying(cfg.type.get()));
+        auto fn_addr = addrs.get_active_device_type.value();
+        g_ret_addr   = fn_addr + 0x1F;
 
         log::get()->trace("Syndicate PromptOverrideHook: get_active_device_type at 0x{:X}",
                           fn_addr);
-        log::get()->trace("Syndicate PromptOverrideHook: forcing type={}", g_forced_type);
 
         auto hook_result = mem::make_hook<OverrideDeviceType>(fn_addr);
         if (!hook_result) {
@@ -68,8 +65,10 @@ namespace hooks {
         }
         g_hook = std::move(*hook_result);
 
-        log::get()->info("Syndicate PromptOverrideHook: installed — forcing device type {}",
-                         g_forced_type);
+        const auto &cfg = games::syndicate::registry().config<Tag>();
+        log::get()->info("Syndicate PromptOverrideHook: installed (enabled={}, type={})",
+                         cfg.enabled.get(),
+                         std::to_underlying(cfg.type.get()));
         return true;
     }
 } // namespace hooks
