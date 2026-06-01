@@ -3,6 +3,10 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <array>
+
+#include <guiddef.h>
+
 namespace games::syndicate {
 
     // Display mode entry passed to ModeList_InsertSorted (0x141C72310)
@@ -24,16 +28,16 @@ namespace games::syndicate {
     // Packed: bindings_ptr at +0x22C is not 8-byte aligned
 #pragma pack(push, 1)
     struct DeviceSlot {
-        void         *device_obj;     // +0x000  vtable-based device driver object
-        std::uint32_t device_type;    // +0x008  0=keyboard 2=xbox 4=ps3 5=ds4
-        wchar_t       name[260];      // +0x00C  device display name
-        std::uint16_t vendor_id;      // +0x214
-        std::uint16_t product_id;     // +0x216
-        std::int32_t  xbox_subtype;   // +0x218  -1 if not xbox
-        std::uint8_t  guid[16];       // +0x21C  DirectInput device GUID
-        void         *bindings_ptr;   // +0x22C  action-map binding array
-        std::uint16_t bindings_cap;   // +0x234
-        std::uint16_t bindings_count; // +0x236
+        void                    *device_obj;     // +0x000  vtable-based device driver object
+        std::uint32_t            device_type;    // +0x008  0=keyboard 2=xbox 4=ps3 5=ds4
+        std::array<wchar_t, 260> name;           // +0x00C  device display name
+        std::uint16_t            vendor_id;      // +0x214
+        std::uint16_t            product_id;     // +0x216
+        std::int32_t             xbox_subtype;   // +0x218  -1 if not xbox
+        GUID                     guid;           // +0x21C  DirectInput device GUID
+        void                    *bindings_ptr;   // +0x22C  action-map binding array
+        std::uint16_t            bindings_cap;   // +0x234
+        std::uint16_t            bindings_count; // +0x236
     };
 #pragma pack(pop)
     static_assert(0x008 == offsetof(DeviceSlot, device_type));
@@ -52,19 +56,23 @@ namespace games::syndicate {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     struct DeviceManager {
-        auto active_device_index() const -> std::uint32_t {
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        [[nodiscard]] auto active_device_index() const -> std::uint32_t {
             return *reinterpret_cast<const std::uint32_t *>(reinterpret_cast<const char *>(this) +
                                                             0x798);
         }
 
-        auto slot_array() const -> const DeviceSlot * {
+        [[nodiscard]] auto slot_array() const -> const DeviceSlot * {
             return *reinterpret_cast<const DeviceSlot *const *>(
                 reinterpret_cast<const char *>(this) + 0x79C);
         }
 
-        auto active_slot() const -> const DeviceSlot & {
+        [[nodiscard]] auto active_slot() const -> const DeviceSlot & {
             return slot_array()[active_device_index()];
         }
+        // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
     };
 #pragma clang diagnostic pop
 
@@ -78,9 +86,9 @@ namespace games::syndicate {
     // Top-level input singleton at qword_147333CB8
     // Passed as rcx to get_active_device_type (sub_142331CA0)
     struct InputContext {
-        void             *vtable;    // +0x00
-        std::uint32_t     _pad08[2]; // +0x08
-        InputSystemState *state;     // +0x10
+        void                    *vtable; // +0x00
+        std::array<std::byte, 8> _pad08; // +0x08
+        InputSystemState        *state;  // +0x10
     };
     static_assert(0x10 == offsetof(InputContext, state));
 
