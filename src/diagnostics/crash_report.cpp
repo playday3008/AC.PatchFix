@@ -211,8 +211,8 @@ namespace diagnostics {
         logger.flush();
     }
 
-    auto callback_fault_filter(EXCEPTION_POINTERS *ep) -> int {
-        return fault_filter_impl(ep, "hook callback");
+    auto callback_fault_filter(EXCEPTION_POINTERS *ep, std::string_view hook_name) -> int {
+        return fault_filter_impl(ep, hook_name);
     }
 
     auto install_fault_filter(EXCEPTION_POINTERS *ep, std::string_view hook_name) -> int {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <concepts>
 #include <string_view>
 #include <type_traits>
 
@@ -14,6 +15,11 @@
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
 
 namespace diagnostics {
+    template<typename F>
+    concept named_functor = requires {
+        { F::name } -> std::convertible_to<std::string_view>;
+    };
+
     template<typename Functor>
     void guarded_callback(safetyhook::Context &regs) {
         static_assert(std::is_trivially_destructible_v<Functor>,
@@ -25,7 +31,13 @@ namespace diagnostics {
         }
         __try {
             Functor {}(regs);
-        } __except (callback_fault_filter(GetExceptionInformation())) {
+        } __except ([] -> int {
+            if constexpr (named_functor<Functor>) {
+                return callback_fault_filter(GetExceptionInformation(), Functor::name);
+            } else {
+                return callback_fault_filter(GetExceptionInformation());
+            }
+        }()) {
             s_faulted.store(true, std::memory_order_relaxed);
         }
     }
