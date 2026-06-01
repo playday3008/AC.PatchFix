@@ -86,6 +86,16 @@ namespace diagnostics {
                 }
             }
         }
+
+        auto fault_filter_impl(EXCEPTION_POINTERS *ep, std::string_view context) -> int {
+            auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
+            if (!is_hardware_exception(code) || code == EXCEPTION_STACK_OVERFLOW) {
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
+            log_crash_report(ep, context);
+            write_minidump(ep);
+            return EXCEPTION_EXECUTE_HANDLER;
+        }
     } // namespace
 
     auto exception_code_name(std::uint32_t code) -> std::string_view {
@@ -196,28 +206,10 @@ namespace diagnostics {
     }
 
     auto callback_fault_filter(EXCEPTION_POINTERS *ep) -> int {
-        auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
-        if (!is_hardware_exception(code)) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        if (code == EXCEPTION_STACK_OVERFLOW) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        log_crash_report(ep, "hook callback");
-        write_minidump(ep);
-        return EXCEPTION_EXECUTE_HANDLER;
+        return fault_filter_impl(ep, "hook callback");
     }
 
     auto install_fault_filter(EXCEPTION_POINTERS *ep, std::string_view hook_name) -> int {
-        auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
-        if (!is_hardware_exception(code)) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        if (code == EXCEPTION_STACK_OVERFLOW) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        log_crash_report(ep, hook_name);
-        write_minidump(ep);
-        return EXCEPTION_EXECUTE_HANDLER;
+        return fault_filter_impl(ep, hook_name);
     }
 } // namespace diagnostics
