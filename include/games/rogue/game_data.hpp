@@ -44,6 +44,7 @@ namespace games {
             std::optional<std::uintptr_t> lang_setup;
             std::optional<std::uintptr_t> get_language;
             std::optional<std::uintptr_t> frame_timing_global;
+            std::optional<std::uintptr_t> game_state_global;
         };
 
         struct ScanEntry {
@@ -71,6 +72,7 @@ namespace games {
             {.name="LANG_SETUP",          .field=&ResolvedAddresses::lang_setup,           .offset=0x00, .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?"},
             {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,         .offset=0x00, .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
             {.name="FRAME_TIMING_GLOBAL", .field=&ResolvedAddresses::frame_timing_global,  .offset=0x00, .bytes="48 8B 05 ? ? ? ? 48 8B 48 78 48 2B 88 80 00 00 00"},
+            {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,    .offset=0x00, .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
         });
         // clang-format on
     };

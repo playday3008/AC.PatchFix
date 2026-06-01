@@ -1,18 +1,26 @@
 #include "games/rogue/hooks/game_state.hpp"
 
+#include <cstdint>
+
 #include <atomic>
-#include <string_view>
 #include <utility>
 
 #include "logger.hpp" // IWYU pragma: keep
 
 #include "mem/hook.hpp"
+#include "mem/write.hpp"
+#include "mem/x64.hpp"
 
 #include "games/rogue/structs.hpp"
 
 namespace hooks {
     auto is_in_game() -> std::atomic<bool> & {
         static std::atomic<bool> instance {false};
+        return instance;
+    }
+
+    auto game_state_ptr() -> std::atomic<games::rogue::GameState *> & {
+        static std::atomic<games::rogue::GameState *> instance {nullptr};
         return instance;
     }
 
@@ -29,34 +37,76 @@ namespace hooks {
 
         struct GameUnpause {
             static constexpr std::string_view name = "GameState/Unpause";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &) {
                 is_in_game().store(true, std::memory_order_relaxed);
-                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rcx);
-                state->pause_flag = 0;
+                auto *state = game_state_ptr().load(std::memory_order_relaxed);
+                if (state != nullptr) {
+                    state->pause_flag = 0;
+                    log::get()->trace("GameStateHook: unpause (pause_mode={}, is_ready={}, "
+                                      "state_index={})",
+                                      state->pause_mode,
+                                      state->is_ready,
+                                      state->state_index);
+                }
             }
         };
 
         struct GamePause {
             static constexpr std::string_view name = "GameState/Pause";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.r8);
-                state->pause_flag = 1;
+                auto *state = game_state_ptr().load(std::memory_order_relaxed);
+                if (state != nullptr) {
+                    state->pause_flag = 1;
+                    log::get()->trace("GameStateHook: pause (pause_mode={}, is_ready={}, "
+                                      "state_index={})",
+                                      state->pause_mode,
+                                      state->is_ready,
+                                      state->state_index);
+                }
             }
         };
 
         struct GamePause2 {
             static constexpr std::string_view name = "GameState/Pause2";
-            [[maybe_unused]] static void      operator()(mem::Registers &regs) {
+            [[maybe_unused]] static void      operator()(mem::Registers &) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                auto *state       = reinterpret_cast<games::rogue::GameState *>(regs.rdi);
-                state->pause_flag = 1;
+                auto *state = game_state_ptr().load(std::memory_order_relaxed);
+                if (state != nullptr) {
+                    state->pause_flag = 1;
+                    log::get()->trace("GameStateHook: pause2 (pause_mode={}, is_ready={}, "
+                                      "state_index={})",
+                                      state->pause_mode,
+                                      state->is_ready,
+                                      state->state_index);
+                }
             }
         };
     } // namespace
 
     auto HookTraits<games::rogue::GameStateHook>::install(const Addrs &addrs) -> bool {
         log::get()->trace("GameStateHook: installing");
+
+        auto pattern_addr    = addrs.game_state_global.value();
+        auto global_var_addr = mem::x64::read_rel(pattern_addr + 3);
+        auto gs_ptr          = mem::read<std::uintptr_t>(global_var_addr);
+
+        log::get()->trace("GameStateHook: g_pGameState global at 0x{:X}, instance at 0x{:X}",
+                          global_var_addr,
+                          gs_ptr);
+
+        if (gs_ptr != 0) {
+            auto *state = reinterpret_cast<games::rogue::GameState *>(gs_ptr);
+            game_state_ptr().store(state, std::memory_order_relaxed);
+            log::get()->trace("GameStateHook: cached GameState* (is_ready={}, pause_mode={}, "
+                              "state_index={})",
+                              state->is_ready,
+                              state->pause_mode,
+                              state->state_index);
+        } else {
+            log::get()->warn("GameStateHook: g_pGameState is null (game not yet initialized?)");
+        }
+
         auto unpause = addrs.game_unpause.value();
         auto pause   = addrs.game_pause.value();
         if (auto h = mem::make_hook<GameUnpause>(unpause, unpause + 7)) {

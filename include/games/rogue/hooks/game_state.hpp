@@ -15,11 +15,13 @@
 #include "hooks/registry/hook_traits.hpp"
 
 namespace games::rogue {
+    struct GameState;
     struct GameStateHook {};
 } // namespace games::rogue
 
 namespace hooks {
     auto is_in_game() -> std::atomic<bool> &;
+    auto game_state_ptr() -> std::atomic<games::rogue::GameState *> &;
 
     template<>
     struct HookTraits<games::rogue::GameStateHook> {
@@ -31,9 +33,10 @@ namespace hooks {
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<>;
 
-        static constexpr auto required_patterns = std::array<PatternField, 2> {
+        static constexpr auto required_patterns = std::array<PatternField, 3> {
             &Addrs::game_unpause,
             &Addrs::game_pause,
+            &Addrs::game_state_global,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 1> {
             &Addrs::game_pause2,
