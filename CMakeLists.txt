@@ -57,6 +57,7 @@ add_library(patchfix_core OBJECT
     src/diagnostics/crash_logger.cpp
     src/diagnostics/patch_registry.cpp
     src/diagnostics/hook_context.cpp
+    src/diagnostics/crash_journal.cpp
 )
 
 target_include_directories(patchfix_core PUBLIC "${INC_DIR}")
