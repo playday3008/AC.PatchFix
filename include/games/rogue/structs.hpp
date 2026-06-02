@@ -31,6 +31,12 @@ namespace games::rogue {
     static_assert(0x40 == offsetof(CameraSettings, fov));
     static_assert(0x44 == sizeof(CameraSettings));
 
+    struct Vec2f {
+        float x;
+        float y;
+    };
+    static_assert(sizeof(Vec2f) == 8);
+
     // Frame pacing state from UpdateFrameTiming (0x140821150)
     struct FrameTiming {
         std::uint32_t         stability_counter; // +0x00

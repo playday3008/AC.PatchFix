@@ -85,8 +85,7 @@ namespace hooks {
                 "ViewportFitting/CoordTransform";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto *a5_x = reinterpret_cast<float *>(regs.r10);
-                auto *a5_y = reinterpret_cast<float *>(regs.r10 + 4);
+                auto *a5 = reinterpret_cast<games::rogue::Vec2f *>(regs.r10);
 
                 if (games::rogue::registry().enabled<Tag>()) {
                     return;
@@ -96,9 +95,9 @@ namespace hooks {
                 const float h        = regs.xmm1.f32[0];
                 const float fitted_h = w * Data::k_inv_default_aspect;
                 if (h > fitted_h) {
-                    *a5_y = regs.xmm3.f32[0] * h / fitted_h;
+                    a5->y = regs.xmm3.f32[0] * h / fitted_h;
                 } else {
-                    *a5_x = (w * *a5_x) / (h * Data::k_default_aspect);
+                    a5->x = (w * a5->x) / (h * Data::k_default_aspect);
                 }
             }
         };
