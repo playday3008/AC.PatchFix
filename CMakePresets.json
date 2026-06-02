@@ -8,7 +8,8 @@
             "toolchainFile": "${sourceDir}/cmake/toolchains/msvc-wine-clang-cl-x64.cmake",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_CONFIGURATION_TYPES": "Release;Debug"
+                "CMAKE_CONFIGURATION_TYPES": "Release;Debug",
+                "PATCHFIX_BUILD_TESTS": "ON"
             },
             "condition": {
                 "type": "equals",
@@ -24,7 +25,8 @@
             "toolset": "ClangCL",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "PATCHFIX_BUILD_TESTS": "ON"
             },
             "condition": {
                 "type": "equals",
@@ -40,7 +42,8 @@
             "toolset": "ClangCL",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "PATCHFIX_BUILD_TESTS": "ON"
             },
             "condition": {
                 "type": "equals",
