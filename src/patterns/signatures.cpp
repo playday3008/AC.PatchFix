@@ -29,7 +29,7 @@ namespace {
         std::uintptr_t           scan_begin = 0;
         std::uintptr_t           scan_end   = 0;
         std::uintptr_t           addr       = text->base;
-        std::uintptr_t           limit      = text->end();
+        const std::uintptr_t     limit      = text->end();
         MEMORY_BASIC_INFORMATION mbi;
 
         while (addr < limit) {

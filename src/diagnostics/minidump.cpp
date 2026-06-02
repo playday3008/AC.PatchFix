@@ -100,6 +100,7 @@ namespace diagnostics {
         mei.ExceptionPointers = ep;
         mei.ClientPointers    = FALSE;
 
+        // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
         auto dump_type = static_cast<MINIDUMP_TYPE>(
             static_cast<unsigned>(MiniDumpWithThreadInfo) |
             static_cast<unsigned>(MiniDumpWithIndirectlyReferencedMemory));

@@ -88,9 +88,14 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
         auto *info = reinterpret_cast<FILE_NOTIFY_INFORMATION *>(buffer.data());
 #endif
         for (;;) {
-            std::string name =
-                win32::wchar_to_utf8(static_cast<LPCWCH>(info->FileName),
-                                     static_cast<int>(info->FileNameLength / sizeof(WCHAR)));
+            std::string name;
+            try {
+                name = win32::wchar_to_utf8(static_cast<LPCWCH>(info->FileName),
+                                            static_cast<int>(info->FileNameLength / sizeof(WCHAR)));
+            } catch (const std::exception &e) {
+                log::get()->warn("FileWatcher: wchar_to_utf8 failed: {}", e.what());
+                break;
+            }
 
             if (std::filesystem::path(name) == m_file_name) {
                 log::get()->trace("FileWatcher: change detected for {}", name);

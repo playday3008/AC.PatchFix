@@ -31,14 +31,14 @@ namespace diagnostics {
                 break;
             }
 
-            void   *handler_data      = nullptr;
-            ULONG64 establisher_frame = 0;
+            const void *handler_data      = nullptr;
+            ULONG64     establisher_frame = 0;
             RtlVirtualUnwind(UNW_FLAG_NHANDLER,
                              image_base,
                              local_ctx.Rip,
                              fn_entry,
                              &local_ctx,
-                             &handler_data,
+                             const_cast<void **>(&handler_data),
                              &establisher_frame,
                              nullptr);
         }
