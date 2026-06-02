@@ -8,7 +8,6 @@
 #include <guiddef.h>
 
 namespace games::syndicate {
-
     // Display mode entry passed to ModeList_InsertSorted (0x141C72310)
     struct ModeEntry {
         std::uintptr_t vtable;       // +0x00
@@ -91,5 +90,4 @@ namespace games::syndicate {
         InputSystemState        *state;  // +0x10
     };
     static_assert(0x10 == offsetof(InputContext, state));
-
 } // namespace games::syndicate

@@ -81,7 +81,8 @@ namespace hooks {
         };
 
         struct CoordTransformHook {
-            [[maybe_unused]] static constexpr std::string_view name = "ViewportFitting/CoordTransform";
+            [[maybe_unused]] static constexpr std::string_view name =
+                "ViewportFitting/CoordTransform";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 auto *a5_x = reinterpret_cast<float *>(regs.r10);

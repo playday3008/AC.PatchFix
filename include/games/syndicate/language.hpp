@@ -80,4 +80,5 @@ namespace games::syndicate {
     static_assert(k_all_audio == 0x0068262EU);
 
     // clang-format on
+
 } // namespace games::syndicate

@@ -100,7 +100,9 @@ namespace games::rogue {
         {"Mexican",     Language::Mexican},
         {"LocTest",     Language::LocTest},
     });
+
     // clang-format on
+
 } // namespace games::rogue
 
 namespace hooks {
