@@ -15,8 +15,14 @@ namespace win32 {
             hModule != nullptr ? hModule : GetModuleHandleA(nullptr));
 
         const auto *dos = reinterpret_cast<const IMAGE_DOS_HEADER *>(base);
-        const auto *nt  = reinterpret_cast<const IMAGE_NT_HEADERS *>(
+        if (dos->e_magic != IMAGE_DOS_SIGNATURE) {
+            return {};
+        }
+        const auto *nt = reinterpret_cast<const IMAGE_NT_HEADERS *>(
             base + static_cast<std::uintptr_t>(dos->e_lfanew));
+        if (nt->Signature != IMAGE_NT_SIGNATURE) {
+            return {};
+        }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-container"
