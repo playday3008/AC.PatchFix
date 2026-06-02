@@ -18,7 +18,6 @@
 namespace hooks {
     using games::rogue::Language;
     using games::rogue::k_all_menu;
-    using games::rogue::k_all_subtitle;
     using games::rogue::k_all_audio;
 
     namespace {
@@ -33,13 +32,12 @@ namespace hooks {
             steam_asia = 0x67EU,
         };
 
-        std::uintptr_t s_is_steam_addr      = 0;
-        std::uintptr_t s_set_audio_bf_addr  = 0;
-        std::uint32_t *s_subtitle_bf_global = nullptr;
-        std::uint32_t *s_audio_bf_global    = nullptr;
-        std::uint32_t *s_lang_idx_global    = nullptr;
-        Language       s_ui_language        = Language::None;
-        GameId         s_real_game_id       = GameId::uplay_ww;
+        std::uintptr_t s_is_steam_addr   = 0;
+        std::uint32_t *s_menu_bf_global  = nullptr;
+        std::uint32_t *s_audio_bf_global = nullptr;
+        std::uint32_t *s_lang_idx_global = nullptr;
+        Language       s_ui_language     = Language::None;
+        GameId         s_real_game_id    = GameId::uplay_ww;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -51,8 +49,8 @@ namespace hooks {
         struct LangBitfieldPatch {
             [[maybe_unused]] static constexpr std::string_view name = "LanguageUnlock/Bitfield";
 
-            [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                auto orig = *s_subtitle_bf_global;
+            [[maybe_unused]] static void operator()(mem::Registers & /*regs*/) {
+                auto orig = *s_menu_bf_global;
 
                 const bool is_steam = mem::invoke<std::uint8_t()>(s_is_steam_addr) != 0;
 
@@ -65,17 +63,12 @@ namespace hooks {
                     s_real_game_id = is_steam ? GameId::steam_ww : GameId::uplay_ww;
                 }
 
-                *s_subtitle_bf_global = k_all_subtitle;
-                *s_audio_bf_global    = k_all_audio;
+                *s_menu_bf_global  = k_all_menu;
+                *s_audio_bf_global = k_all_audio;
 
                 if (s_lang_idx_global != nullptr && s_ui_language != Language::None) {
                     *s_lang_idx_global = std::to_underlying(s_ui_language);
                 }
-
-                regs.rbx = k_all_menu;
-                regs.rcx = regs.rbx;
-                mem::invoke<void(std::uint32_t)>(s_set_audio_bf_addr,
-                                                 static_cast<std::uint32_t>(regs.rcx));
             }
         };
 
@@ -127,28 +120,19 @@ namespace hooks {
         }
         s_is_steam_addr = *is_steam_opt;
 
-        auto set_audio_opt = mem::x64::branch_target(lang_setup + 0x02);
-        if (!set_audio_opt) {
-            log::get()->error("LanguageUnlockHook: failed to resolve SetAudioBf branch target");
-            return false;
-        }
-        s_set_audio_bf_addr = *set_audio_opt;
-
-        s_subtitle_bf_global =
+        s_menu_bf_global =
             reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
         s_audio_bf_global =
             reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
 
         // Pre-patch bitfields before game main calls GetLanguage/SetGameLanguage.
         // The lang file loader may overwrite these later — the callback re-patches.
-        *s_subtitle_bf_global = k_all_subtitle;
-        *s_audio_bf_global    = k_all_audio;
+        *s_menu_bf_global  = k_all_menu;
+        *s_audio_bf_global = k_all_audio;
 
-        log::get()->trace("LanguageUnlockHook: IsSteam=0x{:X} SetAudioBf=0x{:X}",
-                          s_is_steam_addr,
-                          s_set_audio_bf_addr);
-        log::get()->trace("LanguageUnlockHook: subtitle_bf=0x{:X} audio_bf=0x{:X}",
-                          reinterpret_cast<std::uintptr_t>(s_subtitle_bf_global),
+        log::get()->trace("LanguageUnlockHook: IsSteam=0x{:X}", s_is_steam_addr);
+        log::get()->trace("LanguageUnlockHook: menu_bf=0x{:X} audio_bf=0x{:X}",
+                          reinterpret_cast<std::uintptr_t>(s_menu_bf_global),
                           reinterpret_cast<std::uintptr_t>(s_audio_bf_global));
 
         if (auto h = mem::make_hook<LangBitfieldPatch>(lang_setup, lang_setup + 7)) {
