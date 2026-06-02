@@ -45,7 +45,6 @@ namespace games {
             std::optional<std::uintptr_t> get_language;
             std::optional<std::uintptr_t> fps_sleep_branch;
             std::optional<std::uintptr_t> fps_frame_time;
-            std::optional<std::uintptr_t> frame_timing_global;
             std::optional<std::uintptr_t> game_state_global;
         };
 
@@ -68,7 +67,6 @@ namespace games {
             {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,         .offset=0x00, .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
             {.name="FPS_SLEEP_BRANCH",    .field=&ResolvedAddresses::fps_sleep_branch,     .offset=0x0F, .bytes="48 89 43 78 48 2B BB 80 00 00 00 48 3B 43 70 73"},
             {.name="FPS_FRAME_TIME",      .field=&ResolvedAddresses::fps_frame_time,       .offset=0x06, .bytes="79 04 F3 0F 58 C1 F3 0F 59 05"},
-            {.name="FRAME_TIMING_GLOBAL", .field=&ResolvedAddresses::frame_timing_global,  .offset=0x00, .bytes="48 8B 05 ? ? ? ? 48 8B 48 78 48 2B 88 80 00 00 00"},
             {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,    .offset=0x00, .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
         });
         // clang-format on
