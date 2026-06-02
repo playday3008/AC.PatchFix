@@ -32,7 +32,7 @@ namespace mem {
         std::once_flag g_nt_init_flag;
 
         void ensure_nt_protect() {
-            std::call_once(g_nt_init_flag, [] {
+            std::call_once(g_nt_init_flag, [] -> void {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-strict"
                 pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(

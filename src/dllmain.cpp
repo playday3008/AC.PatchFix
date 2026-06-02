@@ -33,7 +33,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
         DisableThreadLibraryCalls(hModule);
         diagnostics::register_plugin_module(hModule);
         diagnostics::install_veh();
-        g_init_thread.emplace([hModule](std::stop_token stop) -> void {
+        g_init_thread.emplace([hModule](const std::stop_token &stop) -> void {
             (void)vmp::install(GetModuleHandleW(nullptr));
             game_init(hModule, stop);
         });

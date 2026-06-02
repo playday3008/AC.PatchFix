@@ -9,9 +9,9 @@ namespace vmp {
 
     [[nodiscard]] auto active() -> bool;
 
-    void wait_for_unpack(std::stop_token stop);
+    void wait_for_unpack(const std::stop_token &stop);
 
-    void wait_for_integrity_blocked(std::stop_token stop);
+    void wait_for_integrity_blocked(const std::stop_token &stop);
 
     void uninstall();
 } // namespace vmp

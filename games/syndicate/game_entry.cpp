@@ -13,7 +13,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
 
-void game_init(HMODULE hModule, std::stop_token stop) {
+void game_init(HMODULE hModule, const std::stop_token &stop) {
     __try {
         game_init_impl<games::Syndicate>(hModule, stop, games::syndicate::registry());
     } __except (diagnostics::install_fault_filter(GetExceptionInformation(), "game_init")) {

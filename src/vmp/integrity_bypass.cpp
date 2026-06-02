@@ -88,7 +88,7 @@ namespace vmp {
         return true;
     }
 
-    void wait_for_unpack(std::stop_token stop) {
+    void wait_for_unpack(const std::stop_token &stop) {
         if (!g_active.load(std::memory_order_acquire)) {
             return;
         }
@@ -117,7 +117,7 @@ namespace vmp {
         log::get()->warn("[VMP] Unpack timeout after {}s", timeout_seconds);
     }
 
-    void wait_for_integrity_blocked(std::stop_token stop) {
+    void wait_for_integrity_blocked(const std::stop_token &stop) {
         if (!g_active.load(std::memory_order_acquire)) {
             return;
         }

@@ -43,13 +43,13 @@ namespace diagnostics::crash_journal {
         }
 
         auto read_file_contents(std::string_view path) -> std::string {
-            win32::UniqueHandle<> h(CreateFileA(std::string(path).c_str(),
-                                                GENERIC_READ,
-                                                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                                nullptr,
-                                                OPEN_EXISTING,
-                                                FILE_ATTRIBUTE_NORMAL,
-                                                nullptr));
+            const win32::UniqueHandle<> h(CreateFileA(std::string(path).c_str(),
+                                                      GENERIC_READ,
+                                                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                                      nullptr,
+                                                      OPEN_EXISTING,
+                                                      FILE_ATTRIBUTE_NORMAL,
+                                                      nullptr));
             if (!h) {
                 return {};
             }

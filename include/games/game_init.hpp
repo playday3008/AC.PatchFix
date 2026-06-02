@@ -25,10 +25,10 @@
 
 auto watcher() -> std::unique_ptr<FileWatcher> &;
 
-void game_init(HMODULE hModule, std::stop_token stop);
+void game_init(HMODULE hModule, const std::stop_token &stop);
 
 template<typename G, typename Registry>
-void init_game(Registry &registry, const std::filesystem::path &ini_path, std::stop_token stop) {
+void init_game(Registry &registry, const std::filesystem::path &ini_path, const std::stop_token &stop) {
     using Data  = games::game_data<G>;
     using Addrs = Data::ResolvedAddresses;
 
@@ -111,7 +111,7 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path, std::s
 }
 
 template<typename G, typename Registry>
-void game_init_impl(HMODULE hModule, std::stop_token stop, Registry &registry) {
+void game_init_impl(HMODULE hModule, const std::stop_token &stop, Registry &registry) {
     auto dll_dir  = win32::get_module_path(hModule).parent_path();
     auto exe_name = win32::get_module_path(nullptr).filename().string();
 
