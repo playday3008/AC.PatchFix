@@ -25,6 +25,8 @@ include(cmake/deps/spdlog.cmake)
 
 set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+option(PATCHFIX_WERROR "Treat warnings as errors" OFF)
+
 set(SHARED_COMPILE_OPTIONS
     $<$<CXX_COMPILER_ID:Clang,AppleClang>:
         -Wall -Wextra -Wpedantic
@@ -32,10 +34,12 @@ set(SHARED_COMPILE_OPTIONS
         -Wno-c++20-compat -Wno-c++20-compat-pedantic
         -Wno-padded
         -Wno-covered-switch-default
+        $<$<BOOL:${PATCHFIX_WERROR}>:-Werror>
     >
     $<$<CXX_COMPILER_ID:MSVC>:
         /W4
         /wd4201
+        $<$<BOOL:${PATCHFIX_WERROR}>:/WX>
     >
 )
 
