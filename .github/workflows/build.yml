@@ -109,10 +109,10 @@ jobs:
         run: cmake --build --preset windows-x64-release --config Release
 
       - name: Build tests
-        run: cmake --build --preset windows-x64-release --config Release --target patchfix_tests
+        run: cmake --build --preset windows-x64-release --config Release --target AC.PatchFix.Tests
 
       - name: Run tests
-        run: build\tests\Release\patchfix_tests.exe
+        run: build\tests\Release\AC.PatchFix.Tests.exe
 
       - name: Configure Debug
         run: cmake --preset windows-x64-debug
@@ -177,7 +177,7 @@ jobs:
         run: cmake --build --preset wine-x64-debug
 
       - name: Build tests
-        run: cmake --build --preset wine-x64-release --target patchfix_tests
+        run: cmake --build --preset wine-x64-release --target AC.PatchFix.Tests
 
       - name: Install Wine
         run: |
@@ -186,7 +186,7 @@ jobs:
           sudo apt-get install -y wine
 
       - name: Run tests
-        run: wine build/tests/Release/patchfix_tests.exe
+        run: wine build/tests/Release/AC.PatchFix.Tests.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
