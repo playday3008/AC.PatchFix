@@ -12,6 +12,7 @@ on:
 
 env:
   LLVM_VERSION: '21'
+  MSVC_WINE_COMMIT: '514f8ea34842cd6d831804d0e9658d3a32870ae1'
 
 concurrency:
   group: build-${{ github.ref }}
@@ -55,7 +56,7 @@ jobs:
           extra-tools: clang-tidy
 
       - name: Clone msvc-wine
-        run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine
+        run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine && git -C /tmp/msvc-wine checkout $MSVC_WINE_COMMIT
 
       - name: Get MSVC version
         id: msvc-version
@@ -129,7 +130,7 @@ jobs:
           llvm-version: ${{ env.LLVM_VERSION }}
 
       - name: Clone msvc-wine
-        run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine
+        run: git clone https://github.com/mstorsjo/msvc-wine.git /tmp/msvc-wine && git -C /tmp/msvc-wine checkout $MSVC_WINE_COMMIT
 
       - name: Get MSVC version
         id: msvc-version
