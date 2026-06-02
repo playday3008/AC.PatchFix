@@ -33,7 +33,7 @@ Cpp11BracedListStyle: 'true'
 DerivePointerAlignment: 'false'
 DisableFormat: 'false'
 FixNamespaceComments: 'true'
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
 IndentCaseLabels: 'true'
 IndentPPDirectives: AfterHash
 IndentWidth: '4'
@@ -53,7 +53,43 @@ PenaltyExcessCharacter: '120'
 PenaltyReturnTypeOnItsOwnLine: '5'
 PointerAlignment: Right
 ReflowComments: 'true'
-SortIncludes: 'false'
+SortIncludes: CaseSensitive
+IncludeCategories:
+  # C standard library
+  - Regex: '^<c(assert|ctype|errno|fenv|float|inttypes|limits|locale|math|setjmp|signal|stdarg|stddef|stdint|stdio|stdlib|string|time|uchar|wchar|wctype)>'
+    Priority: 10
+  # C++ standard library (catch-all for angle brackets without .h)
+  - Regex: '^<[a-z_]+(|/.*)>$'
+    Priority: 20
+  # Windows.h must precede headers that depend on it (SortPriority 0 is
+  # a sentinel in clang-format — use non-zero values for both entries)
+  - Regex: '^<Windows\.h>'
+    Priority: 30
+    SortPriority: 30
+  # Other Windows / system headers
+  - Regex: '^<(winternl|DbgHelp|guiddef)\.h>'
+    Priority: 30
+    SortPriority: 31
+  # External libraries
+  - Regex: '^<(injector|mini|safetyhook|spdlog|zydis)/'
+    Priority: 40
+  - Regex: '^<Hooking\.Patterns\.h>'
+    Priority: 40
+  # Angle-bracket fallback
+  - Regex: '^<'
+    Priority: 25
+  # Logger (foundational utility, before other project headers)
+  - Regex: '^"core/logger\.hpp"'
+    Priority: 50
+  # Core project headers
+  - Regex: '^"core/'
+    Priority: 60
+  # Game project headers
+  - Regex: '^"games/'
+    Priority: 70
+  # Other project headers
+  - Regex: '^"'
+    Priority: 80
 SortUsingDeclarations: 'false'
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'

@@ -5,7 +5,6 @@
 #include <string_view>
 
 #include <Windows.h>
-
 #include <DbgHelp.h>
 
 #include <spdlog/spdlog.h>

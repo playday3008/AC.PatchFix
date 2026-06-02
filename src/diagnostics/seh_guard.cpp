@@ -4,9 +4,10 @@
 
 #include <Windows.h>
 
+#include "core/logger.hpp" // IWYU pragma: keep
+
 #include "core/diagnostics/crash_report.hpp"
 #include "core/diagnostics/hook_context.hpp"
-#include "core/logger.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
