@@ -37,6 +37,21 @@ namespace games::rogue {
     };
     static_assert(sizeof(Vec2f) == 8);
 
+    // Language availability bitfields — single instance at 0x142D076F0
+    // Written by InitLanguageFromFile (sub_140018570)
+    struct LanguageBitfields {
+        std::array<std::uintptr_t, 3> internal_ptrs;   // +0x00
+        std::uint32_t                 ui_available;    // +0x18  one bit per language
+        std::uint32_t                 ui_default;      // +0x1C  fallback language index
+        std::uint32_t                 audio_available; // +0x20  one bit per language
+        std::uint32_t                 audio_default;   // +0x24  fallback language index
+    };
+    static_assert(0x18 == offsetof(LanguageBitfields, ui_available));
+    static_assert(0x1C == offsetof(LanguageBitfields, ui_default));
+    static_assert(0x20 == offsetof(LanguageBitfields, audio_available));
+    static_assert(0x24 == offsetof(LanguageBitfields, audio_default));
+    static_assert(0x28 == sizeof(LanguageBitfields));
+
     // Frame pacing state from UpdateFrameTiming (0x140821150)
     struct FrameTiming {
         std::uint32_t         stability_counter; // +0x00
