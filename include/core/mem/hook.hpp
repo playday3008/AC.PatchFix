@@ -41,8 +41,7 @@ namespace mem {
         }
 
         [[nodiscard]] auto original_bytes_data() const -> std::span<const std::uint8_t> {
-            const auto &ob = inner_.original_bytes();
-            return {ob.data(), ob.size()};
+            return inner_.original_bytes();
         }
     };
 
