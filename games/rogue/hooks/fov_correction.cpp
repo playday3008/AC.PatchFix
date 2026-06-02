@@ -18,14 +18,14 @@ auto games::rogue::compute_hor_plus_correction() -> float {
     using Data = games::game_data<games::Rogue>;
 
     const float aspect = hooks::current_aspect().load(std::memory_order_relaxed);
-    if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_epsilon) {
+    if (aspect <= 0.0F || std::abs(aspect - Data::k_default_aspect) < Data::k_float_tolerance) {
         return 1.0F;
     }
 
     const float ratio     = Data::k_default_aspect / aspect;
     const float corrected = 2.0F * std::atan(Data::k_fov_base_zoom * ratio);
     const float original  = 2.0F * std::atan(Data::k_fov_base_zoom);
-    if (std::abs(original) < Data::k_float_epsilon) {
+    if (std::abs(original) < Data::k_float_tolerance) {
         return 1.0F;
     }
     return corrected / original;

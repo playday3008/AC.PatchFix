@@ -88,7 +88,7 @@ log::log(std::string_view path, std::size_t maxSize, std::size_t maxFiles)
 }
 
 log::~log() {
-    for (auto [_, logger] : m->loggers) {
+    for (const auto &[_, logger] : m->loggers) {
         if (logger) {
             logger->flush();
         }

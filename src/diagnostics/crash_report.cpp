@@ -221,7 +221,7 @@ namespace diagnostics {
             auto module_offset = fault_addr - base;
             if (GetModuleFileNameA(hModule,
                                    module_path.data(),
-                                   static_cast<DWORD>(module_path.size())) == FALSE) {
+                                   static_cast<DWORD>(module_path.size())) == 0) {
                 has_module = false;
             } else {
                 const std::string_view path(module_path.data());

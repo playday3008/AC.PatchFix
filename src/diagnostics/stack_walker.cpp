@@ -59,7 +59,7 @@ namespace diagnostics {
             frame.module_offset = frame.address - frame.module_base;
 
             if (GetModuleFileNameA(hModule, frame.module_name.data(), frame.module_name.size()) ==
-                FALSE) {
+                0) {
                 continue;
             }
 

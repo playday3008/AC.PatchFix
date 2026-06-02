@@ -19,17 +19,17 @@ namespace win32 {
         std::uint32_t  characteristics {};
         // NOLINTEND(misc-non-private-member-variables-in-classes)
 
-        [[nodiscard]] auto end() const -> std::uintptr_t { return base + size; }
+        [[nodiscard]] constexpr auto end() const -> std::uintptr_t { return base + size; }
 
-        [[nodiscard]] auto is_executable() const -> bool {
+        [[nodiscard]] constexpr auto is_executable() const -> bool {
             return (characteristics & IMAGE_SCN_MEM_EXECUTE) != 0;
         }
 
-        [[nodiscard]] auto is_writable() const -> bool {
+        [[nodiscard]] constexpr auto is_writable() const -> bool {
             return (characteristics & IMAGE_SCN_MEM_WRITE) != 0;
         }
 
-        [[nodiscard]] auto contains(std::uintptr_t addr) const -> bool {
+        [[nodiscard]] constexpr auto contains(std::uintptr_t addr) const -> bool {
             return addr >= base && addr < end();
         }
     };
