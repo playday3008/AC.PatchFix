@@ -38,6 +38,7 @@ namespace mem {
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         std::memcpy(reinterpret_cast<void *>(addr), data, size);
+        FlushInstructionCache(GetCurrentProcess(), reinterpret_cast<void *>(addr), size);
         detail::unprotect(addr, size, *old);
         return true;
     }
@@ -60,6 +61,7 @@ namespace mem {
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         *reinterpret_cast<T *>(addr) = value;
+        FlushInstructionCache(GetCurrentProcess(), reinterpret_cast<void *>(addr), sizeof(T));
         detail::unprotect(addr, sizeof(T), *old);
         return true;
     }
@@ -86,6 +88,7 @@ namespace mem {
                 diagnostics::patch_registry::PatchType::byte_write);
         }
         std::memset(reinterpret_cast<void *>(addr), op_nop, count);
+        FlushInstructionCache(GetCurrentProcess(), reinterpret_cast<void *>(addr), count);
         detail::unprotect(addr, count, *old);
         return true;
     }
@@ -110,6 +113,7 @@ namespace mem {
         }
         *reinterpret_cast<std::uint8_t *>(addr)      = op_retn;
         *reinterpret_cast<std::uint16_t *>(addr + 1) = pop;
+        FlushInstructionCache(GetCurrentProcess(), reinterpret_cast<void *>(addr), 3);
         detail::unprotect(addr, 3, *old);
         return true;
     }
