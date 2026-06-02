@@ -86,10 +86,9 @@ jobs:
             CMakeFiles/patchfix_core.dir/Release/cmake_pch.cxx.pch \
             CMakeFiles/AC.Rogue.PatchFix.dir/Release/cmake_pch.cxx.pch \
             CMakeFiles/AC.Syndicate.PatchFix.dir/Release/cmake_pch.cxx.pch
-          cmake --build --preset wine-x64-debug --target \
-            CMakeFiles/patchfix_core.dir/Debug/cmake_pch.cxx.pch \
-            CMakeFiles/AC.Rogue.PatchFix.dir/Debug/cmake_pch.cxx.pch \
-            CMakeFiles/AC.Syndicate.PatchFix.dir/Debug/cmake_pch.cxx.pch
+
+      - name: Filter compile DB to Release
+        run: python3 -c "import json,sys;j=json.load(sys.stdin);json.dump([e for e in j if '/Release/' in e.get('command','')],sys.stdout)" < build/compile_commands.json > build/cc_release.json && mv build/cc_release.json build/compile_commands.json
 
       - name: clang-tidy check
         run: |
