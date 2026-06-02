@@ -30,6 +30,10 @@ namespace hooks {
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 const auto *ctx =
                     reinterpret_cast<const games::syndicate::InputContext *>(regs.rcx);
+                if (ctx == nullptr || ctx->state == nullptr ||
+                    ctx->state->device_manager == nullptr) {
+                    return;
+                }
                 const auto &slot = ctx->state->device_manager->active_slot();
 
                 if (slot.device_type == 0) {
