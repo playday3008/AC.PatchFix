@@ -9,7 +9,7 @@ FetchContent_Declare(hooking
 FetchContent_MakeAvailable(hooking)
 
 add_library(HookingPatterns STATIC "${hooking_SOURCE_DIR}/Hooking.Patterns.cpp")
-set_property(TARGET HookingPatterns PROPERTY
+set_target_properties(HookingPatterns PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )

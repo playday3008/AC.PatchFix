@@ -9,5 +9,6 @@ FetchContent_Declare(mINI
 )
 FetchContent_MakeAvailable(mINI)
 
-get_target_property(_mini_includes mINI INTERFACE_INCLUDE_DIRECTORIES)
-set_target_properties(mINI PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_mini_includes}")
+# Promote mINI includes to SYSTEM to suppress warnings from its headers.
+get_target_property(_mini_inc mINI INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(mINI PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_mini_inc}")
