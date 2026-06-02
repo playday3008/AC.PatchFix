@@ -32,13 +32,16 @@ namespace hooks {
             steam_asia = 0x67EU,
         };
 
-        std::uintptr_t s_is_steam_addr   = 0;
-        std::uint32_t *s_menu_bf_global  = nullptr;
-        std::uint32_t *s_audio_bf_global = nullptr;
-        std::uint32_t *s_lang_idx_global = nullptr;
-        std::uint32_t *s_ui_lang_global  = nullptr;
-        Language       s_ui_language     = Language::None;
-        GameId         s_real_game_id    = GameId::uplay_ww;
+        std::uintptr_t  s_is_steam_addr    = 0;
+        std::uint32_t  *s_menu_bf_global   = nullptr;
+        std::uint32_t  *s_audio_bf_global  = nullptr;
+        std::uint32_t  *s_lang_idx_global  = nullptr;
+        std::uint32_t  *s_ui_lang_global   = nullptr;
+        Language        s_ui_language      = Language::None;
+        GameId          s_real_game_id     = GameId::uplay_ww;
+        std::uintptr_t *s_loc_mgr_ptr      = nullptr;
+        std::uintptr_t  s_reload_lang_fn   = 0;
+        Language        s_current_language = Language::None;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -87,8 +90,48 @@ namespace hooks {
         };
     } // namespace
 
+    void HookTraits<games::rogue::LanguageUnlockHook>::on_reload(const Config &cfg) {
+        auto new_lang = cfg.ui_language.get();
+        if (new_lang == s_current_language) {
+            return;
+        }
+
+        if (new_lang == Language::None) {
+            log::get()->warn(
+                "LanguageUnlockHook: cannot revert to default language at runtime, restart required");
+            return;
+        }
+
+        auto idx = std::to_underlying(new_lang);
+        if (s_ui_lang_global != nullptr) {
+            *s_ui_lang_global = idx;
+        }
+        if (s_lang_idx_global != nullptr) {
+            *s_lang_idx_global = idx;
+        }
+
+        if (s_loc_mgr_ptr != nullptr && s_reload_lang_fn != 0) {
+            auto loc_mgr = *s_loc_mgr_ptr;
+            if (loc_mgr != 0) {
+                mem::invoke<void(std::uintptr_t, unsigned, int, int)>(s_reload_lang_fn,
+                                                                      loc_mgr,
+                                                                      0U,
+                                                                      static_cast<int>(idx),
+                                                                      0);
+                mem::invoke<void(std::uintptr_t, unsigned, int, int)>(s_reload_lang_fn,
+                                                                      loc_mgr,
+                                                                      2U,
+                                                                      static_cast<int>(idx),
+                                                                      0);
+                log::get()->info("LanguageUnlockHook: reloaded UI strings for language {}", idx);
+            }
+        }
+
+        s_current_language = new_lang;
+        log::get()->info("LanguageUnlockHook: runtime language switched to {}", idx);
+    }
+
     auto HookTraits<games::rogue::LanguageUnlockHook>::install(const Addrs &addrs) -> bool {
-        // on_reload intentionally absent: one-time binary patches applied at install time.
         log::get()->trace("LanguageUnlockHook: installing");
 
         const auto &cfg        = games::rogue::registry().config<Tag>();
@@ -128,6 +171,28 @@ namespace hooks {
                 log::get()->warn(
                     "LanguageUnlockHook: failed to resolve GetLanguage from lang_setup");
             }
+
+            if (addrs.loc_init.has_value()) {
+                auto loc_init = addrs.loc_init.value();
+                s_loc_mgr_ptr =
+                    reinterpret_cast<std::uintptr_t *>(mem::x64::read_rel(loc_init + 0x0C));
+                auto reload_opt = mem::x64::branch_target(loc_init + 0x20);
+                if (reload_opt) {
+                    s_reload_lang_fn = *reload_opt;
+                    log::get()->trace("LanguageUnlockHook: loc_mgr_ptr=0x{:X} reload_fn=0x{:X}",
+                                      reinterpret_cast<std::uintptr_t>(s_loc_mgr_ptr),
+                                      s_reload_lang_fn);
+                } else {
+                    log::get()->warn(
+                        "LanguageUnlockHook: failed to resolve reload_fn from LOC_INIT");
+                    s_loc_mgr_ptr = nullptr;
+                }
+            } else {
+                log::get()->info(
+                    "LanguageUnlockHook: LOC_INIT pattern not found, runtime switching unavailable");
+            }
+
+            s_current_language = s_ui_language;
         }
 
         if (!unlock_all) {
