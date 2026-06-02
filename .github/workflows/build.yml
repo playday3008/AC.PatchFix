@@ -83,7 +83,7 @@ jobs:
       - name: Build PCH
         run: |
           cmake --build --preset wine-x64-release --target \
-            CMakeFiles/patchfix_core.dir/Release/cmake_pch.cxx.pch \
+            CMakeFiles/AC.PatchFix.Core.dir/Release/cmake_pch.cxx.pch \
             CMakeFiles/AC.Rogue.PatchFix.dir/Release/cmake_pch.cxx.pch \
             CMakeFiles/AC.Syndicate.PatchFix.dir/Release/cmake_pch.cxx.pch
 
@@ -125,8 +125,8 @@ jobs:
         with:
           name: AC.PatchFix-windows-${{ github.sha }}
           path: |
-            build/Release/*.asi
-            build/Debug/*.asi
+            build/bin/Release/*.asi
+            build/bin/Debug/*.asi
             config/*.ini
           if-no-files-found: error
 
@@ -193,7 +193,7 @@ jobs:
         with:
           name: AC.PatchFix-wine-${{ github.sha }}
           path: |
-            build/Release/*.asi
-            build/Debug/*.asi
+            build/bin/Release/*.asi
+            build/bin/Debug/*.asi
             config/*.ini
           if-no-files-found: error

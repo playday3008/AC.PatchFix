@@ -16,6 +16,8 @@ configure_file(
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -49,7 +51,7 @@ set(SHARED_COMPILE_DEFINITIONS
     NOMINMAX
 )
 
-add_library(patchfix_core OBJECT
+add_library(AC.PatchFix.Core OBJECT
     src/logger.cpp
     src/patterns/signatures.cpp
     src/config/file_watcher.cpp
@@ -71,30 +73,30 @@ add_library(patchfix_core OBJECT
     src/diagnostics/crash_journal.cpp
 )
 
-target_include_directories(patchfix_core PUBLIC "${INC_DIR}")
-target_link_libraries(patchfix_core PUBLIC
+target_include_directories(AC.PatchFix.Core PUBLIC "${INC_DIR}")
+target_link_libraries(AC.PatchFix.Core PUBLIC
     safetyhook
     HookingPatterns
     mINI
     spdlog::spdlog_header_only
 )
-target_compile_definitions(patchfix_core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
-target_compile_options(patchfix_core PUBLIC ${SHARED_COMPILE_OPTIONS})
-target_compile_options(patchfix_core PUBLIC
+target_compile_definitions(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
+target_compile_options(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_OPTIONS})
+target_compile_options(AC.PatchFix.Core PUBLIC
     $<$<CXX_COMPILER_ID:Clang>:/GS>
     $<$<CXX_COMPILER_ID:MSVC>:/GS>
 )
-target_link_options(patchfix_core PUBLIC
+target_link_options(AC.PatchFix.Core PUBLIC
     $<$<CXX_COMPILER_ID:Clang>:/DYNAMICBASE /NXCOMPAT>
     $<$<CXX_COMPILER_ID:MSVC>:/DYNAMICBASE /NXCOMPAT>
 )
-set_target_properties(patchfix_core PROPERTIES
+set_target_properties(AC.PatchFix.Core PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )
 
-target_precompile_headers(patchfix_core PUBLIC
+target_precompile_headers(AC.PatchFix.Core PUBLIC
     <Windows.h>
     <mini/ini.h>
     <spdlog/spdlog.h>
@@ -108,7 +110,7 @@ function(add_game GAME_TAG)
     set(TARGET_NAME "AC.${GAME_TAG}.PatchFix")
 
     add_library(${TARGET_NAME} SHARED ${GAME_SOURCES})
-    target_link_libraries(${TARGET_NAME} PRIVATE patchfix_core)
+    target_link_libraries(${TARGET_NAME} PRIVATE AC.PatchFix.Core)
     set_target_properties(${TARGET_NAME} PROPERTIES
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED ON
