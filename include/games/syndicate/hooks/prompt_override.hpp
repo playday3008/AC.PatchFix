@@ -30,12 +30,16 @@ namespace hooks {
     struct default_parser<games::syndicate::PromptType> {
         [[maybe_unused]] static auto operator()(const std::string &s)
             -> games::syndicate::PromptType {
-            constexpr auto table =
-                std::to_array<std::pair<std::string_view, games::syndicate::PromptType>>({
-                    {"Xbox", games::syndicate::PromptType::Xbox},
-                    {"PlayStation", games::syndicate::PromptType::PlayStation},
-                });
-            return detail::parse_enum(s, table, games::syndicate::PromptType::PlayStation);
+            using PT              = games::syndicate::PromptType;
+            constexpr auto table  = std::to_array<std::pair<std::string_view, PT>>({
+                {"Xbox", PT::Xbox},
+                {"PlayStation", PT::PlayStation},
+            });
+            auto           result = detail::parse_enum(s, table, PT::PlayStation);
+            if (result != PT::Xbox && result != PT::PlayStation) {
+                return PT::PlayStation;
+            }
+            return result;
         }
     };
 
