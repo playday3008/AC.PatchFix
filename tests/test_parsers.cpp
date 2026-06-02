@@ -70,6 +70,7 @@ TEST_CASE("clamped_unit_parser clamps to [0, 1]", "[parsers][clamped]") {
 }
 
 namespace {
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class Color : std::uint8_t {
         Red   = 0,
         Green = 1,
@@ -120,6 +121,7 @@ TEST_CASE("parse_enum without _count allows any integer", "[parsers][enum]") {
         {"a", Sparse::A},
         {"b", Sparse::B},
     });
-    CHECK(detail::parse_enum<Sparse>(std::string("99"), table, Sparse::A) == static_cast<Sparse>(99));
+    CHECK(detail::parse_enum<Sparse>(std::string("99"), table, Sparse::A) ==
+          static_cast<Sparse>(99));
     CHECK(detail::parse_enum<Sparse>(std::string("b"), table, Sparse::A) == Sparse::B);
 }

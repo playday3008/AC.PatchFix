@@ -19,6 +19,7 @@ namespace {
 namespace hooks {
     template<>
     struct HookTraits<MockA> {
+        [[maybe_unused]]
         static constexpr std::string_view name = "MockA";
         using hard_deps                        = dep_list<>;
         using soft_deps                        = dep_list<>;
@@ -26,6 +27,7 @@ namespace hooks {
 
     template<>
     struct HookTraits<MockB> {
+        [[maybe_unused]]
         static constexpr std::string_view name = "MockB";
         using hard_deps                        = dep_list<MockA>;
         using soft_deps                        = dep_list<>;
@@ -33,6 +35,7 @@ namespace hooks {
 
     template<>
     struct HookTraits<MockC> {
+        [[maybe_unused]]
         static constexpr std::string_view name = "MockC";
         using hard_deps                        = dep_list<MockA>;
         using soft_deps                        = dep_list<MockB>;
@@ -48,7 +51,9 @@ namespace {
     constexpr auto hook_idx(hooks::hook_list<Tags...> /*unused*/) -> std::size_t {
         constexpr std::array matches = {std::is_same_v<Tag, Tags>...};
         for (std::size_t i = 0; i < sizeof...(Tags); ++i) {
-            if (matches[i]) return i;
+            if (matches[i]) {
+                return i;
+            }
         }
         return sizeof...(Tags);
     }
@@ -66,12 +71,12 @@ namespace {
         // MockB: hard dep on MockA
         // MockC: hard dep on MockA, soft dep on MockB
         // Expected order: A, B, C
-        std::array<std::size_t, N> hard_counts = {0, 1, 1};
+        std::array<std::size_t, N>                hard_counts = {0, 1, 1};
         std::array<std::array<std::size_t, N>, N> hard_deps {};
         hard_deps[1][0] = kA; // B depends on A
         hard_deps[2][0] = kA; // C depends on A
 
-        std::array<std::size_t, N> soft_counts = {0, 0, 1};
+        std::array<std::size_t, N>                soft_counts = {0, 0, 1};
         std::array<std::array<std::size_t, N>, N> soft_deps {};
         soft_deps[2][0] = kB; // C soft-depends on B
 
@@ -81,31 +86,35 @@ namespace {
 
         for (std::size_t i = 0; i < N; ++i) {
             for (std::size_t j = 0; j < hard_counts[i]; ++j) {
-                auto dep          = hard_deps[i][j];
+                auto dep                   = hard_deps[i][j];
                 adj[dep][adj_count[dep]++] = i;
                 in_degree[i]++;
             }
             for (std::size_t j = 0; j < soft_counts[i]; ++j) {
-                auto dep          = soft_deps[i][j];
+                auto dep                   = soft_deps[i][j];
                 adj[dep][adj_count[dep]++] = i;
                 in_degree[i]++;
             }
         }
 
         std::array<std::size_t, N> queue {};
-        std::size_t front = 0, back = 0;
+        std::size_t                front = 0, back = 0;
         for (std::size_t i = 0; i < N; ++i) {
-            if (in_degree[i] == 0) queue[back++] = i;
+            if (in_degree[i] == 0) {
+                queue[back++] = i;
+            }
         }
 
         std::array<std::size_t, N> order {};
-        std::size_t count = 0;
+        std::size_t                count = 0;
         while (front < back) {
-            auto u       = queue[front++];
+            auto u         = queue[front++];
             order[count++] = u;
             for (std::size_t i = 0; i < adj_count[u]; ++i) {
                 auto v = adj[u][i];
-                if (--in_degree[v] == 0) queue[back++] = v;
+                if (--in_degree[v] == 0) {
+                    queue[back++] = v;
+                }
             }
         }
         return {order, count};

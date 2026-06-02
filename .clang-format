@@ -70,6 +70,9 @@ IncludeCategories:
   - Regex: '^<(winternl|DbgHelp|guiddef)\.h>'
     Priority: 30
     SortPriority: 31
+  # Test frameworks
+  - Regex: '^<catch2/'
+    Priority: 35
   # External libraries
   - Regex: '^<(injector|mini|safetyhook|spdlog|zydis)/'
     Priority: 40

@@ -21,11 +21,12 @@
 #include "games/rogue/game_data.hpp"
 
 namespace games::rogue {
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class MultiMonitor : std::uint8_t {
         Auto        = 0,
         ForceSingle = 1,
         ForceMulti  = 2,
-        _count      = 3,
+        _count,
     };
     static_assert(bitfield::counted_enum<MultiMonitor>);
 

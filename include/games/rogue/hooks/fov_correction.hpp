@@ -22,11 +22,12 @@
 #include "games/rogue/hooks/viewport_fitting.hpp"
 
 namespace games::rogue {
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class FovMode : std::uint8_t {
         Auto     = 0,
         VertPlus = 1,
         HorPlus  = 2,
-        _count   = 3,
+        _count,
     };
     static_assert(bitfield::counted_enum<FovMode>);
 

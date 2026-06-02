@@ -5,6 +5,7 @@
 #include "core/util/bitfield.hpp"
 
 namespace games::syndicate {
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class Language : std::uint8_t {
         None        = 0,
         English     = 1,
@@ -30,7 +31,7 @@ namespace games::syndicate {
         Arabic      = 21,
         Mexican     = 22,
         LocTest     = 23,
-        _count      = 24,
+        _count,
     };
     static_assert(bitfield::counted_enum<Language>);
 

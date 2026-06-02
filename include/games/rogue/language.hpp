@@ -11,6 +11,7 @@
 #include "core/util/bitfield.hpp"
 
 namespace games::rogue {
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class Language : std::uint8_t {
         None        = 0,
         English     = 1,
@@ -35,7 +36,7 @@ namespace games::rogue {
         Arabic      = 20,
         Mexican     = 21,
         LocTest     = 22,
-        _count      = 23,
+        _count,
     };
     static_assert(bitfield::counted_enum<Language>);
 
