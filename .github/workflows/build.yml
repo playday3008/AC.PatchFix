@@ -81,7 +81,15 @@ jobs:
         run: cmake --preset wine-x64
 
       - name: Build PCH
-        run: cmake --build --preset wine-x64-release --target CMakeFiles/patchfix_core.dir/Release/cmake_pch.cxx.pch
+        run: |
+          cmake --build --preset wine-x64-release --target \
+            CMakeFiles/patchfix_core.dir/Release/cmake_pch.cxx.pch \
+            CMakeFiles/AC.Rogue.PatchFix.dir/Release/cmake_pch.cxx.pch \
+            CMakeFiles/AC.Syndicate.PatchFix.dir/Release/cmake_pch.cxx.pch
+          cmake --build --preset wine-x64-debug --target \
+            CMakeFiles/patchfix_core.dir/Debug/cmake_pch.cxx.pch \
+            CMakeFiles/AC.Rogue.PatchFix.dir/Debug/cmake_pch.cxx.pch \
+            CMakeFiles/AC.Syndicate.PatchFix.dir/Debug/cmake_pch.cxx.pch
 
       - name: clang-tidy check
         run: |

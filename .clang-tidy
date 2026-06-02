@@ -35,6 +35,7 @@ Checks: >
   -llvm-prefer-static-over-anonymous-namespace,
   -llvmlibc-*,
   misc-*,
+  -misc-include-cleaner,
   modernize-*,
   performance-*,
   -performance-avoid-endl,

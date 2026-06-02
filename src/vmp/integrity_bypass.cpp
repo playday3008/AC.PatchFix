@@ -95,6 +95,9 @@ namespace vmp {
             return;
         }
 
+        if (!g_sections.text.has_value()) {
+            return;
+        }
         const auto *text_byte =
             reinterpret_cast<volatile const std::uint8_t *>(g_sections.text->base);
         if (*text_byte != 0) {
