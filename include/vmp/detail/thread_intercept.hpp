@@ -15,6 +15,16 @@ namespace vmp::detail {
             return true;
         }
 
+        MEMORY_BASIC_INFORMATION mbi {};
+        if (VirtualQuery(reinterpret_cast<const void *>(addr), &mbi, sizeof(mbi)) == 0) {
+            return false;
+        }
+        constexpr DWORD exec_mask = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE |
+                                    PAGE_EXECUTE_WRITECOPY;
+        if ((mbi.Protect & exec_mask) == 0) {
+            return false;
+        }
+
         if (auto target = mem::x64::branch_target(addr)) {
             if (sections.contains_vmp(*target)) {
                 return true;
