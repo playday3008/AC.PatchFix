@@ -29,7 +29,7 @@ namespace mem {
         MidHook(MidHook &&other) noexcept                     = default;
         auto operator=(MidHook &&other) noexcept -> MidHook & = default;
 
-        static auto create(std::uintptr_t addr, void (*callback)(Registers &))
+        [[nodiscard]] static auto create(std::uintptr_t addr, void (*callback)(Registers &))
             -> std::expected<MidHook, std::string>;
 
         explicit operator bool() const { return static_cast<bool>(inner_); }
