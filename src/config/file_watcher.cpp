@@ -19,9 +19,6 @@
 #include "core/win32/string.hpp"
 #include "core/win32/unique_handle.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
-// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 
@@ -114,6 +111,3 @@ void FileWatcher::watch_loop(const std::stop_token &token) {
 }
 
 #pragma clang diagnostic pop
-
-// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
