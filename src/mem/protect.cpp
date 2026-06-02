@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <atomic>
+#include <mutex>
 #include <optional>
 
 #include <Windows.h>
@@ -28,17 +29,18 @@ namespace mem {
         win32::UniqueHandle<win32::NullInvalid> g_self_process;
 #pragma clang diagnostic pop
 
+        std::once_flag g_nt_init_flag;
+
         void ensure_nt_protect() {
-            if (pNtProtectVirtualMemory != nullptr) {
-                return;
-            }
+            std::call_once(g_nt_init_flag, [] {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-strict"
-            pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(
-                GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
+                pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(
+                    GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
 #pragma clang diagnostic pop
-            g_self_process = win32::UniqueHandle<win32::NullInvalid>(
-                OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId()));
+                g_self_process = win32::UniqueHandle<win32::NullInvalid>(
+                    OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId()));
+            });
         }
 
         auto protect_vp(std::uintptr_t addr, std::size_t size, std::uint32_t new_protect)
