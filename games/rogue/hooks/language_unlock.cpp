@@ -36,6 +36,7 @@ namespace hooks {
         std::uint32_t *s_menu_bf_global  = nullptr;
         std::uint32_t *s_audio_bf_global = nullptr;
         std::uint32_t *s_lang_idx_global = nullptr;
+        std::uint32_t *s_ui_lang_global  = nullptr;
         Language       s_ui_language     = Language::None;
         GameId         s_real_game_id    = GameId::uplay_ww;
 
@@ -66,8 +67,13 @@ namespace hooks {
                 *s_menu_bf_global  = k_all_menu;
                 *s_audio_bf_global = k_all_audio;
 
-                if (s_lang_idx_global != nullptr && s_ui_language != Language::None) {
-                    *s_lang_idx_global = std::to_underlying(s_ui_language);
+                if (s_ui_language != Language::None) {
+                    if (s_lang_idx_global != nullptr) {
+                        *s_lang_idx_global = std::to_underlying(s_ui_language);
+                    }
+                    if (s_ui_lang_global != nullptr) {
+                        *s_ui_lang_global = std::to_underlying(s_ui_language);
+                    }
                 }
             }
         };
@@ -94,15 +100,34 @@ namespace hooks {
             return true;
         }
 
-        if (s_ui_language != Language::None && addrs.get_language.has_value()) {
-            s_lang_idx_global = reinterpret_cast<std::uint32_t *>(
-                mem::x64::read_rel(addrs.get_language.value() + 6));
-            *s_lang_idx_global = std::to_underlying(s_ui_language);
-            log::get()->trace("LanguageUnlockHook: lang_idx=0x{:X} override={}",
-                              reinterpret_cast<std::uintptr_t>(s_lang_idx_global),
-                              std::to_underlying(s_ui_language));
-        } else if (s_ui_language != Language::None) {
-            log::get()->warn("LanguageUnlockHook: UILanguage set but GET_LANGUAGE pattern failed");
+        if (s_ui_language != Language::None) {
+            if (addrs.get_language.has_value()) {
+                s_lang_idx_global = reinterpret_cast<std::uint32_t *>(
+                    mem::x64::read_rel(addrs.get_language.value() + 6));
+                *s_lang_idx_global = std::to_underlying(s_ui_language);
+                log::get()->trace("LanguageUnlockHook: lang_idx=0x{:X} override={}",
+                                  reinterpret_cast<std::uintptr_t>(s_lang_idx_global),
+                                  std::to_underlying(s_ui_language));
+            } else {
+                log::get()->warn(
+                    "LanguageUnlockHook: UILanguage set but GET_LANGUAGE pattern failed");
+            }
+
+            // g_uiLanguage is the actual runtime language state read by GetLanguage().
+            // g_languageIndex (above) is only copied into g_uiLanguage once during GameInit,
+            // so we must write g_uiLanguage directly to survive InitLanguageFromFile's
+            // validation pass that reads GetLanguage() after our hook fires.
+            auto get_lang_fn = mem::x64::branch_target(addrs.lang_setup.value() + 7);
+            if (get_lang_fn) {
+                s_ui_lang_global =
+                    reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(*get_lang_fn + 2));
+                *s_ui_lang_global = std::to_underlying(s_ui_language);
+                log::get()->trace("LanguageUnlockHook: ui_lang=0x{:X}",
+                                  reinterpret_cast<std::uintptr_t>(s_ui_lang_global));
+            } else {
+                log::get()->warn(
+                    "LanguageUnlockHook: failed to resolve GetLanguage from lang_setup");
+            }
         }
 
         if (!unlock_all) {
