@@ -86,4 +86,18 @@ namespace games::syndicate {
         InputSystemState        *state;  // +0x10
     };
     static_assert(0x10 == offsetof(InputContext, state));
+
+    // Per-category language availability — three static instances:
+    //   Menu:     0x146E150C0  (bitfield at 0x146E150D8)
+    //   Subtitle: 0x146E16130  (bitfield at 0x146E16148)
+    //   Audio:    0x146E16C80  (bitfield at 0x146E16C98)
+    // Written by InitLanguageFromFile (sub_141882C70)
+    struct LanguageCategoryInfo {
+        std::array<std::uintptr_t, 3> internal_ptrs;   // +0x00
+        std::uint32_t                 available_langs; // +0x18  one bit per language
+        std::uint32_t                 default_lang;    // +0x1C  fallback language index
+    };
+    static_assert(0x18 == offsetof(LanguageCategoryInfo, available_langs));
+    static_assert(0x1C == offsetof(LanguageCategoryInfo, default_lang));
+    static_assert(0x20 == sizeof(LanguageCategoryInfo));
 } // namespace games::syndicate
