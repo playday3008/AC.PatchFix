@@ -37,8 +37,9 @@ namespace hooks {
             &Addrs::lang_bf_write,
             &Addrs::lang_setup,
         };
-        static constexpr auto optional_patterns = std::array<PatternField, 1> {
+        static constexpr auto optional_patterns = std::array<PatternField, 2> {
             &Addrs::get_language,
+            &Addrs::loc_init,
         };
 
         struct Config : config_base<Config> {
@@ -51,6 +52,7 @@ namespace hooks {
                 std::tuple {&Config::unlock_all, &Config::ui_language};
         };
 
+        static void on_reload(const Config &cfg);
         static auto install(const Addrs &addrs) -> bool;
     };
 } // namespace hooks
