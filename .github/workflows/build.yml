@@ -22,7 +22,7 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 2
     defaults:
       run:
         shell: bash
@@ -42,7 +42,7 @@ jobs:
   tidy:
     name: Clang-Tidy
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -99,7 +99,7 @@ jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-2025-vs2026
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
 
@@ -134,7 +134,7 @@ jobs:
   build-wine:
     name: Build (Wine cross-compile)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     defaults:
       run:
         shell: bash
