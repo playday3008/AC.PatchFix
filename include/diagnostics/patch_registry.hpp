@@ -6,6 +6,7 @@
 #include <array>
 #include <span>
 #include <string_view>
+#include <vector>
 
 namespace diagnostics::patch_registry {
     enum class PatchType : std::uint8_t { mid_hook, byte_write };
@@ -29,5 +30,5 @@ namespace diagnostics::patch_registry {
 
     auto find_nearby(std::uintptr_t addr, std::size_t threshold = 64) -> const PatchEntry *;
 
-    auto all_patches() -> std::span<const PatchEntry>;
+    auto all_patches() -> std::vector<PatchEntry>;
 } // namespace diagnostics::patch_registry

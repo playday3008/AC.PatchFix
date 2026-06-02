@@ -77,8 +77,8 @@ namespace diagnostics::patch_registry {
         return best;
     }
 
-    auto all_patches() -> std::span<const PatchEntry> {
+    auto all_patches() -> std::vector<PatchEntry> {
         const std::shared_lock<std::shared_mutex> lock(g_mutex);
-        return g_patches;
+        return {g_patches.begin(), g_patches.end()};
     }
 } // namespace diagnostics::patch_registry
