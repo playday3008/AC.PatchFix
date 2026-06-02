@@ -17,6 +17,8 @@ namespace diagnostics {
         using MiniDumpWriteDump_t = decltype(MiniDumpWriteDump);
 
         auto get_dump_fn() -> MiniDumpWriteDump_t * {
+            // Null-forever if dbghelp is absent on first call;
+            // acceptable (always present on Windows).
             static auto *h_dbghelp = LoadLibraryA("dbghelp.dll");
             if (h_dbghelp == nullptr) {
                 return nullptr;

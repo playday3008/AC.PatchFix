@@ -1,7 +1,5 @@
 #include "games/rogue/hooks/display_detection.hpp"
 
-#include <cstdint>
-
 #include <atomic>
 #include <string_view>
 #include <utility>
@@ -9,7 +7,6 @@
 #include "core/logger.hpp" // IWYU pragma: keep
 
 #include "core/mem/hook.hpp"
-#include "core/mem/write.hpp"
 
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/registry.hpp"
@@ -25,15 +22,19 @@ namespace hooks {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-        std::atomic<std::uintptr_t> g_display_object {0};
-        mem::MidHook                g_display_hook;
+        std::atomic<float> g_cached_width {0.0F};
+        std::atomic<float> g_cached_height {0.0F};
+        mem::MidHook       g_display_hook;
 #pragma clang diagnostic pop
 
         struct DisplayFlagHook {
             [[maybe_unused]] static constexpr std::string_view name = "DisplayDetection";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                g_display_object.store(regs.rbx, std::memory_order_relaxed);
+                const auto *display =
+                    reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rbx);
+                g_cached_width.store(display->width, std::memory_order_relaxed);
+                g_cached_height.store(display->height, std::memory_order_relaxed);
 
                 if (!games::rogue::registry().enabled<Tag>()) {
                     if (regs.xmm1.f32[0] < regs.xmm0.f32[0]) {
@@ -51,8 +52,6 @@ namespace hooks {
                         regs.rdx = 1;
                         break;
                     case MultiMonitor::Auto: {
-                        const auto *display =
-                            reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rbx);
                         const float w = display->width;
                         const float h = display->height;
                         regs.rdx = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
@@ -67,46 +66,17 @@ namespace hooks {
     } // namespace
 
     void HookTraits<games::rogue::DisplayDetectionHook>::on_reload(const Config &cfg) {
-        std::uintptr_t obj = g_display_object.load(std::memory_order_relaxed);
-        if (obj == 0) {
+        const float w = g_cached_width.load(std::memory_order_relaxed);
+        const float h = g_cached_height.load(std::memory_order_relaxed);
+        if (w == 0.0F && h == 0.0F) {
             return;
         }
 
-        const auto  *display = reinterpret_cast<const games::rogue::DisplaySettings *>(obj);
-        auto         mode    = cfg.multi_monitor.get();
-        std::uint8_t flag    = 0;
-        switch (mode) {
-            case MultiMonitor::ForceSingle:
-                flag = 0;
-                break;
-            case MultiMonitor::ForceMulti:
-                flag = 1;
-                break;
-            case MultiMonitor::Auto: {
-                const float w = display->width;
-                const float h = display->height;
-                flag          = (h > 0.0F && (w / h) >= Data::k_triple_screen_threshold) ? 1 : 0;
-                break;
-            }
-            case MultiMonitor::_count:
-            default:
-                std::unreachable();
-        }
-
-        (void)mem::write<std::uint8_t>(obj + offsetof(games::rogue::DisplaySettings,
-                                                      multi_monitor_flag),
-                                       flag);
-        if (flag != 0) {
-            (void)mem::write<std::uint32_t>(
-                obj + offsetof(games::rogue::DisplaySettings, single_width),
-                static_cast<std::uint32_t>(display->width * Data::k_multi_monitor_split));
-        }
-
         log::get()->info(
-            "DisplayDetection: poked flag={}, singleWidth={}",
-            flag,
-            (flag != 0) ? static_cast<std::uint32_t>(display->width * Data::k_multi_monitor_split)
-                        : 0U);
+            "DisplayDetection: reload mode={}, w={}, h={} — flag written by callback each frame",
+            std::to_underlying(cfg.multi_monitor.get()),
+            w,
+            h);
     }
 
     auto HookTraits<games::rogue::DisplayDetectionHook>::install(const Addrs &addrs) -> bool {

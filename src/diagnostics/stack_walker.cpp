@@ -75,6 +75,7 @@ namespace diagnostics {
     }
 
     void resolve_symbols(std::span<StackFrame> frames) {
+        // Null-forever if dbghelp is absent on first call; acceptable (always present on Windows).
         static auto *h_dbghelp = LoadLibraryA("dbghelp.dll");
         if (h_dbghelp == nullptr) {
             return;
@@ -106,6 +107,7 @@ namespace diagnostics {
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbol->MaxNameLen   = k_max_sym_len - 1;
 
+        // DbgHelp is not thread-safe, but this only runs during crash reporting.
         for (auto &frame : frames) {
             DWORD64 displacement = 0;
             if (pSymFromAddr(GetCurrentProcess(), frame.address, &displacement, symbol) != FALSE) {

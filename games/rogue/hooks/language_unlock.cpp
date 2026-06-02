@@ -82,6 +82,7 @@ namespace hooks {
     } // namespace
 
     auto HookTraits<games::rogue::LanguageUnlockHook>::install(const Addrs &addrs) -> bool {
+        // on_reload intentionally absent: one-time binary patches applied at install time.
         log::get()->trace("LanguageUnlockHook: installing");
 
         const auto &cfg        = games::rogue::registry().config<Tag>();

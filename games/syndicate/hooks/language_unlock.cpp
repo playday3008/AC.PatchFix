@@ -45,6 +45,7 @@ namespace hooks {
     } // namespace
 
     auto HookTraits<Tag>::install(const Addrs &addrs) -> bool {
+        // on_reload intentionally absent: one-time binary patches applied at install time.
         log::get()->trace("Syndicate LanguageUnlockHook: installing");
 
         const auto &cfg        = games::syndicate::registry().config<Tag>();

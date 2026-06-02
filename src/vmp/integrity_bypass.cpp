@@ -31,6 +31,8 @@ namespace vmp {
         safetyhook::InlineHook g_create_thread_hook;
         std::atomic<int>       g_blocked_count {0};
 
+        // VMP's original param may leak,
+        // but letting the integrity thread run would crash the process.
         auto WINAPI empty_thread(LPVOID /*param*/) -> DWORD {
             return 0;
         }
