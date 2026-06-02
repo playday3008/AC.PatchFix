@@ -61,7 +61,12 @@ add_library(patchfix_core OBJECT
 )
 
 target_include_directories(patchfix_core PUBLIC "${INC_DIR}")
-target_link_libraries(patchfix_core PUBLIC safetyhook HookingPatterns mINI spdlog::spdlog)
+target_link_libraries(patchfix_core PUBLIC
+    safetyhook
+    HookingPatterns
+    mINI
+    spdlog::spdlog_header_only
+)
 target_compile_definitions(patchfix_core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
 target_compile_options(patchfix_core PUBLIC ${SHARED_COMPILE_OPTIONS})
 set_target_properties(patchfix_core PROPERTIES

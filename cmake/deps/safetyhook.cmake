@@ -8,6 +8,11 @@ FetchContent_Declare(safetyhook
     PATCH_COMMAND   git reset --hard HEAD
                  && git apply "${CMAKE_SOURCE_DIR}/cmake/patches/safetyhook-nt-protect.patch"
 )
+set(ZYDIS_FEATURE_ENCODER OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_FORMATTER OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_KNC OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_AVX512 OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_SEGMENT OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(safetyhook)
 
 get_target_property(_sh_inc safetyhook INTERFACE_INCLUDE_DIRECTORIES)
