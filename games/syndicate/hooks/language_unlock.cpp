@@ -36,10 +36,10 @@ namespace hooks {
         struct LangBitfieldPatch {
             [[maybe_unused]] static constexpr std::string_view name = "LanguageUnlock/Bitfield";
 
-            [[maybe_unused]] static void operator()(mem::Registers & /*regs*/) {
-                *s_menu_bf_global     = k_all_menu;
-                *s_subtitle_bf_global = k_all_subtitle;
-                *s_audio_bf_global    = k_all_audio;
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
+                regs.rdi = k_all_menu;
+                regs.rsi = k_all_subtitle;
+                regs.rbx = k_all_audio;
             }
         };
     } // namespace
@@ -64,10 +64,10 @@ namespace hooks {
                           lang_bf_write);
 
         s_menu_bf_global = reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
-        s_subtitle_bf_global =
-            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
         s_audio_bf_global =
-            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 14));
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
+        s_subtitle_bf_global =
+            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 0x18));
 
         log::get()->trace(
             "Syndicate LanguageUnlockHook: menu_bf=0x{:X} subtitle_bf=0x{:X} audio_bf=0x{:X}",
@@ -79,9 +79,7 @@ namespace hooks {
         *s_subtitle_bf_global = k_all_subtitle;
         *s_audio_bf_global    = k_all_audio;
 
-        constexpr std::uintptr_t k_bf_write_size = 18;
-        auto                     hook_result =
-            mem::make_hook<LangBitfieldPatch>(lang_bf_write, lang_bf_write + k_bf_write_size);
+        auto hook_result = mem::make_hook<LangBitfieldPatch>(lang_bf_write);
         if (!hook_result) {
             log::get()->error("Syndicate LanguageUnlockHook: hook failed: {}", hook_result.error());
             return false;
