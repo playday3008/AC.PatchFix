@@ -10,23 +10,25 @@
 
 #include <Windows.h>
 
+#include "win32/unique_handle.hpp"
+
 namespace diagnostics::crash_journal {
     namespace {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-        HANDLE      g_file = INVALID_HANDLE_VALUE;
-        std::string g_path;
+        win32::UniqueHandle<> g_file;
+        std::string           g_path;
 #pragma clang diagnostic pop
 
         void write_line(std::string_view line) {
-            if (g_file == INVALID_HANDLE_VALUE) {
+            if (!g_file) {
                 return;
             }
             DWORD written = 0;
-            WriteFile(g_file, line.data(), static_cast<DWORD>(line.size()), &written, nullptr);
-            WriteFile(g_file, "\n", 1, &written, nullptr);
-            FlushFileBuffers(g_file);
+            WriteFile(g_file.get(), line.data(), static_cast<DWORD>(line.size()), &written, nullptr);
+            WriteFile(g_file.get(), "\n", 1, &written, nullptr);
+            FlushFileBuffers(g_file.get());
         }
 
         auto now_iso() -> std::string {
@@ -41,28 +43,26 @@ namespace diagnostics::crash_journal {
         }
 
         auto read_file_contents(std::string_view path) -> std::string {
-            HANDLE h = CreateFileA(std::string(path).c_str(),
-                                   GENERIC_READ,
-                                   FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                   nullptr,
-                                   OPEN_EXISTING,
-                                   FILE_ATTRIBUTE_NORMAL,
-                                   nullptr);
-            if (h == INVALID_HANDLE_VALUE) {
+            win32::UniqueHandle<> h(CreateFileA(std::string(path).c_str(),
+                                                GENERIC_READ,
+                                                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                                nullptr,
+                                                OPEN_EXISTING,
+                                                FILE_ATTRIBUTE_NORMAL,
+                                                nullptr));
+            if (!h) {
                 return {};
             }
 
             LARGE_INTEGER size {};
-            GetFileSizeEx(h, &size);
+            GetFileSizeEx(h.get(), &size);
             if (size.QuadPart == 0 || size.QuadPart > 4096) {
-                CloseHandle(h);
                 return {};
             }
 
             std::string buf(static_cast<std::size_t>(size.QuadPart), '\0');
             DWORD       bytes_read = 0;
-            ReadFile(h, buf.data(), static_cast<DWORD>(buf.size()), &bytes_read, nullptr);
-            CloseHandle(h);
+            ReadFile(h.get(), buf.data(), static_cast<DWORD>(buf.size()), &bytes_read, nullptr);
             buf.resize(bytes_read);
             return buf;
         }
@@ -95,21 +95,21 @@ namespace diagnostics::crash_journal {
 
     void open(std::string_view path) {
         g_path = std::string(path);
-        g_file = CreateFileA(g_path.c_str(),
-                             GENERIC_READ | GENERIC_WRITE,
-                             FILE_SHARE_READ,
-                             nullptr,
-                             OPEN_ALWAYS,
-                             FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
-                             nullptr);
+        g_file = win32::UniqueHandle<>(CreateFileA(g_path.c_str(),
+                                                   GENERIC_READ | GENERIC_WRITE,
+                                                   FILE_SHARE_READ,
+                                                   nullptr,
+                                                   OPEN_ALWAYS,
+                                                   FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
+                                                   nullptr));
     }
 
     void write_session_start() {
-        if (g_file == INVALID_HANDLE_VALUE) {
+        if (!g_file) {
             return;
         }
-        SetFilePointer(g_file, 0, nullptr, FILE_BEGIN);
-        SetEndOfFile(g_file);
+        SetFilePointer(g_file.get(), 0, nullptr, FILE_BEGIN);
+        SetEndOfFile(g_file.get());
         write_line("session_start " + now_iso());
     }
 
@@ -137,9 +137,6 @@ namespace diagnostics::crash_journal {
     }
 
     void close() {
-        if (g_file != INVALID_HANDLE_VALUE) {
-            CloseHandle(g_file);
-            g_file = INVALID_HANDLE_VALUE;
-        }
+        g_file.reset();
     }
 } // namespace diagnostics::crash_journal
