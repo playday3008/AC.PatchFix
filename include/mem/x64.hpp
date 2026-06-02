@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <optional>
+#include <utility>
 
 namespace mem::x64 {
     inline constexpr std::uint8_t op_call_rel32  = 0xE8;
@@ -34,7 +35,7 @@ namespace mem::x64 {
                 return addr + 4 + static_cast<std::uintptr_t>(static_cast<std::intptr_t>(rel));
             }
             default:
-                return 0;
+                std::unreachable();
         }
     }
 
