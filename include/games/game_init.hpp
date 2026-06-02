@@ -3,6 +3,7 @@
 #include <exception>
 #include <filesystem>
 #include <memory>
+#include <stop_token>
 
 #include <Windows.h>
 
@@ -19,17 +20,17 @@
 
 auto watcher() -> std::unique_ptr<FileWatcher> &;
 
-void game_init(HMODULE hModule);
+void game_init(HMODULE hModule, std::stop_token stop);
 
 template<typename G, typename Registry>
-void init_game(Registry &registry, const std::filesystem::path &ini_path) {
+void init_game(Registry &registry, const std::filesystem::path &ini_path, std::stop_token stop) {
     using Data  = games::game_data<G>;
     using Addrs = Data::ResolvedAddresses;
 
     if constexpr (games::game_is_vmprotect<G>) {
         mem::set_protect_method(mem::ProtectMethod::nt_protect);
-        vmp::wait_for_unpack();
-        vmp::wait_for_integrity_blocked();
+        vmp::wait_for_unpack(stop);
+        vmp::wait_for_integrity_blocked(stop);
         log::get()->info("VMP bypass active, .text writable via NtProtectVirtualMemory");
     }
 

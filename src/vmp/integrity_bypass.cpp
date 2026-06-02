@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <stop_token>
 #include <thread>
 #include <utility>
 
@@ -87,7 +88,7 @@ namespace vmp {
         return true;
     }
 
-    void wait_for_unpack() {
+    void wait_for_unpack(std::stop_token stop) {
         if (!g_active.load(std::memory_order_acquire)) {
             return;
         }
@@ -100,20 +101,33 @@ namespace vmp {
         }
 
         log::get()->trace("[VMP] Polling .text for unpack...");
-        while (*text_byte == 0) {
+        constexpr int timeout_seconds = 30;
+        for (int i = 0; i < timeout_seconds * 100; ++i) {
+            if (stop.stop_requested()) {
+                log::get()->warn("[VMP] Unpack wait cancelled");
+                return;
+            }
+            if (*text_byte != 0) {
+                log::get()->info("[VMP] .text unpacked after ~{}ms", i * 10);
+                return;
+            }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
-        log::get()->info("[VMP] .text unpacked, proceeding with init");
+        log::get()->warn("[VMP] Unpack timeout after {}s", timeout_seconds);
     }
 
-    void wait_for_integrity_blocked() {
+    void wait_for_integrity_blocked(std::stop_token stop) {
         if (!g_active.load(std::memory_order_acquire)) {
             return;
         }
 
         constexpr int timeout_seconds = 30;
         for (int i = 0; i < timeout_seconds * 10; ++i) {
+            if (stop.stop_requested()) {
+                log::get()->warn("[VMP] Integrity wait cancelled");
+                return;
+            }
             if (g_blocked_count.load(std::memory_order_relaxed) > 0) {
                 log::get()->info("[VMP] Integrity thread blocked after ~{}ms", i * 100);
                 return;

@@ -1,3 +1,4 @@
+#include <stop_token>
 #include <string>
 
 #include <Windows.h>
@@ -11,7 +12,7 @@
 #include "win32/pe.hpp"
 
 namespace {
-    void init_impl(HMODULE hModule) {
+    void init_impl(HMODULE hModule, std::stop_token stop) {
         using G = games::Syndicate;
 
         auto dll_dir  = win32::get_module_path(hModule).parent_path();
@@ -29,16 +30,16 @@ namespace {
         log::get()->info("{} initializing for {}", log_name, exe_name);
 
         auto ini_path = dll_dir / (log_name + ".ini");
-        init_game<G>(games::syndicate::registry(), ini_path);
+        init_game<G>(games::syndicate::registry(), ini_path, stop);
     }
 } // namespace
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
 
-void game_init(HMODULE hModule) {
+void game_init(HMODULE hModule, std::stop_token stop) {
     __try {
-        init_impl(hModule);
+        init_impl(hModule, stop);
     } __except (diagnostics::install_fault_filter(GetExceptionInformation(), "game_init")) {
     }
 }
