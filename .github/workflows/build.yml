@@ -155,13 +155,19 @@ jobs:
           /tmp/msvc-wine/install.sh ~/.msvc
 
       - name: Configure
-        run: cmake --preset wine-x64
+        run: cmake --preset wine-x64 -DPATCHFIX_BUILD_TESTS=ON
 
       - name: Build Release
         run: cmake --build --preset wine-x64-release
 
       - name: Build Debug
         run: cmake --build --preset wine-x64-debug
+
+      - name: Build tests
+        run: cmake --build --preset wine-x64-release --target patchfix_tests
+
+      - name: Run tests
+        run: wine build/tests/Release/patchfix_tests.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
