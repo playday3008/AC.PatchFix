@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include <Windows.h>
+
 #include "core/logger.hpp" // IWYU pragma: keep
 
 #include "core/mem/write.hpp"
@@ -22,6 +24,15 @@ namespace hooks {
         constexpr std::uint32_t k_mode_fixed    = 0;
         constexpr std::uint32_t k_mode_averaged = 3;
 
+        void prime_timestamps() {
+            LARGE_INTEGER qpc;
+            QueryPerformanceCounter(&qpc);
+            auto now                        = static_cast<std::uint64_t>(qpc.QuadPart);
+            g_frame_timing->current_time    = now;
+            g_frame_timing->previous_time   = now;
+            g_frame_timing->target_time     = 0;
+        }
+
         void apply_fps_patch(float target) {
             if (g_frame_timing == nullptr) {
                 return;
@@ -31,11 +42,12 @@ namespace hooks {
 
             if (target < k_min_fps) {
                 g_frame_timing->timing_mode = k_mode_averaged;
-                g_frame_timing->target_time = 0;
-                log::get()->trace("FPSUnlockHook: uncapped (mode=averaged, target_time zeroed)");
+                prime_timestamps();
+                log::get()->trace("FPSUnlockHook: uncapped (mode=averaged, timestamps primed)");
             } else {
                 g_frame_timing->timing_mode = k_mode_fixed;
                 g_frame_timing->fixed_rate  = target;
+                prime_timestamps();
                 log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS (mode=fixed, "
                                   "fixed_rate={:.4f})",
                                   target,
