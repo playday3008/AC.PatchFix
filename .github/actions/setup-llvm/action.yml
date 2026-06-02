@@ -17,7 +17,8 @@ runs:
       shell: bash
       run: |
         sudo apt-get remove -y clang-format clang-tidy || true
-        wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- ${{ inputs.llvm-version }} all
+        wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh
+        sudo bash /tmp/llvm.sh ${{ inputs.llvm-version }} all
         sudo apt-get install -y ninja-build python3 msitools python3-simplejson python3-six
         for tool in clang-cl lld-link llvm-lib llvm-rc llvm-mt ${{ inputs.extra-tools }}; do
           sudo update-alternatives --install /usr/bin/$tool $tool \

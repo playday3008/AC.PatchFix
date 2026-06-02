@@ -4,3 +4,5 @@ updates:
     directory: /
     schedule:
       interval: weekly
+  # FetchContent deps (safetyhook, Hooking.Patterns, mINI, spdlog) are pinned
+  # in cmake/deps/*.cmake and tracked manually — Dependabot cannot monitor them.

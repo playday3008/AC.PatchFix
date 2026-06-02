@@ -43,7 +43,6 @@ jobs:
     name: Clang-Tidy
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [format]
     defaults:
       run:
         shell: bash
