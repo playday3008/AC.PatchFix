@@ -31,6 +31,7 @@ Checks: >
   -google-build-using-namespace,
   llvm-*,
   -llvm-header-guard,
+  -llvm-include-order,
   -llvm-prefer-static-over-anonymous-namespace,
   -llvmlibc-*,
   misc-*,

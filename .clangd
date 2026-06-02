@@ -14,3 +14,13 @@ Completion:
 
 Index:
   Background: Build
+
+---
+If:
+  PathMatch: [.*\.in]
+Diagnostics:
+  Suppress:
+    - '*'
+  ClangTidy:
+    Remove:
+      - '*'

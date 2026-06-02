@@ -54,11 +54,13 @@ struct log::Impl {
     std::flat_map<std::string, std::shared_ptr<spdlog::logger>, std::less<>> loggers;
 };
 
+namespace {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-static std::unique_ptr<class log> g_instance;
+    std::unique_ptr<class log> g_instance;
 #pragma clang diagnostic pop
+} // namespace
 
 log::log(std::string_view path, std::size_t maxSize, std::size_t maxFiles)
     : m(std::make_unique<Impl>()) {
@@ -88,13 +90,15 @@ log::log(std::string_view path, std::size_t maxSize, std::size_t maxFiles)
 }
 
 log::~log() {
-    for (const auto &[_, logger] : m->loggers) {
-        if (logger) {
-            logger->flush();
+    try {
+        for (const auto [_, logger] : m->loggers) {
+            if (logger) {
+                logger->flush();
+            }
         }
+        spdlog::shutdown();
+    } catch (...) { // NOLINT(bugprone-empty-catch)
     }
-
-    spdlog::shutdown();
 
     m->loggers.clear();
     m->sinks.clear();

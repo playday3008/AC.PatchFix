@@ -21,11 +21,13 @@ auto watcher() -> std::unique_ptr<FileWatcher> & {
 }
 #pragma clang diagnostic pop
 
+namespace {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
-static std::optional<std::jthread> g_init_thread;
+    std::optional<std::jthread> g_init_thread;
 #pragma clang diagnostic pop
+} // namespace
 
 // NOLINTNEXTLINE(misc-use-internal-linkage, modernize-use-trailing-return-type)
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {

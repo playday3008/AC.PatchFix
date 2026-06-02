@@ -12,7 +12,7 @@ namespace games {
     struct ScanEntry {
         std::string_view              name;
         std::optional<std::uintptr_t> Addrs::*field;
-        std::ptrdiff_t                        offset;
+        std::ptrdiff_t                        offset {};
         std::string_view                      bytes;
     };
 
