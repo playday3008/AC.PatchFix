@@ -42,8 +42,7 @@ namespace games {
             std::optional<std::uintptr_t> lang_bf_write;
             std::optional<std::uintptr_t> lang_setup;
             std::optional<std::uintptr_t> get_language;
-            std::optional<std::uintptr_t> fps_sleep_branch;
-            std::optional<std::uintptr_t> fps_frame_time;
+            std::optional<std::uintptr_t> fps_timing_ptr;
             std::optional<std::uintptr_t> game_state_global;
             std::optional<std::uintptr_t> loc_init;
         };
@@ -65,8 +64,7 @@ namespace games {
             {.name="LANG_BF_WRITE",       .field=&ResolvedAddresses::lang_bf_write,        .offset=0x05, .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
             {.name="LANG_SETUP",          .field=&ResolvedAddresses::lang_setup,           .offset=0x00, .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?"},
             {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,         .offset=0x00, .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
-            {.name="FPS_SLEEP_BRANCH",    .field=&ResolvedAddresses::fps_sleep_branch,     .offset=0x0F, .bytes="48 89 43 78 48 2B BB 80 00 00 00 48 3B 43 70 73"},
-            {.name="FPS_FRAME_TIME",      .field=&ResolvedAddresses::fps_frame_time,       .offset=0x06, .bytes="79 04 F3 0F 58 C1 F3 0F 59 05"},
+            {.name="FPS_TIMING_PTR",      .field=&ResolvedAddresses::fps_timing_ptr,       .offset=0x00, .bytes="48 8B 0D ? ? ? ? E9"},
             {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,    .offset=0x00, .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
             {.name="LOC_INIT",            .field=&ResolvedAddresses::loc_init,             .offset=0x00, .bytes="40 53 48 83 EC ? 48 8B D9 48 89 0D"},
         });
