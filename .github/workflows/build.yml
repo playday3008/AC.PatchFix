@@ -96,10 +96,16 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Configure Release
-        run: cmake --preset windows-x64-release
+        run: cmake --preset windows-x64-release -DPATCHFIX_BUILD_TESTS=ON
 
       - name: Build Release
         run: cmake --build --preset windows-x64-release --config Release
+
+      - name: Build tests
+        run: cmake --build --preset windows-x64-release --config Release --target patchfix_tests
+
+      - name: Run tests
+        run: build\tests\Release\patchfix_tests.exe
 
       - name: Configure Debug
         run: cmake --preset windows-x64-debug
