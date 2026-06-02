@@ -6,9 +6,8 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 
 | Game | Plugin | Status |
 |------|--------|--------|
-| Assassin's Creed Rogue | `AC.Rogue.PatchFix.asi` | Fully implemented |
-| Assassin's Creed Syndicate | `AC.Syndicate.PatchFix.asi` | In progress |
-| Assassin's Creed Unity | `AC.Unity.PatchFix.asi` | Planned |
+| Assassin's Creed Rogue | `AC.Rogue.PatchFix.asi` | Implemented |
+| Assassin's Creed Syndicate | `AC.Syndicate.PatchFix.asi` | Implemented |
 
 ## Features
 
@@ -38,6 +37,7 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 ### Diagnostics
 
 All games include a built-in diagnostics subsystem:
+
 - **Crash reports** with stack traces written to the game directory
 - **Minidump generation** for detailed post-mortem analysis
 - **Crash journal** tracking hook installation state at time of failure
