@@ -10,6 +10,7 @@
 #include <safetyhook/context.hpp>
 
 #include "diagnostics/crash_report.hpp"
+#include "logger.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
@@ -39,6 +40,9 @@ namespace diagnostics {
             }
         }()) {
             s_faulted.store(true, std::memory_order_relaxed);
+            if constexpr (named_functor<Functor>) {
+                log::get(Functor::name)->critical("Hook callback crashed — permanently disabled");
+            }
         }
     }
 

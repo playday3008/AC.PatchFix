@@ -42,6 +42,7 @@ void game_init(HMODULE hModule, std::stop_token stop) {
     __try {
         init_impl(hModule, stop);
     } __except (diagnostics::install_fault_filter(GetExceptionInformation(), "game_init")) {
+        log::get()->critical("Fatal exception during init — plugin disabled");
     }
 }
 

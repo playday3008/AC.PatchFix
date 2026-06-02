@@ -6,6 +6,7 @@
 
 #include "diagnostics/crash_report.hpp"
 #include "diagnostics/hook_context.hpp"
+#include "logger.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
@@ -17,6 +18,7 @@ namespace diagnostics {
         __try {
             return fn(addrs);
         } __except (install_fault_filter(GetExceptionInformation(), current_hook_name())) {
+            log::get()->critical("Hook installation crashed — hook skipped");
             return false;
         }
     }
