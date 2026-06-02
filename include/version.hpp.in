@@ -1,0 +1,10 @@
+#pragma once
+
+#include <string_view>
+
+namespace version {
+    inline constexpr std::string_view string = "@PROJECT_VERSION@";
+    inline constexpr int              major  = @PROJECT_VERSION_MAJOR@;
+    inline constexpr int              minor  = @PROJECT_VERSION_MINOR@;
+    inline constexpr int              patch  = @PROJECT_VERSION_PATCH@;
+} // namespace version

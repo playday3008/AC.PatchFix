@@ -4,6 +4,7 @@
 #include <Windows.h>
 
 #include "logger.hpp" // IWYU pragma: keep
+#include "version.hpp"
 
 #include "diagnostics/crash_logger.hpp"
 #include "diagnostics/crash_report.hpp"
@@ -27,7 +28,7 @@ namespace {
 
         log::init((dll_dir / (log_name + ".log")).string());
         diagnostics::init_log();
-        log::get()->info("{} initializing for {}", log_name, exe_name);
+        log::get()->info("{} v{} initializing for {}", log_name, version::string, exe_name);
 
         auto ini_path = dll_dir / (log_name + ".ini");
         init_game<G>(games::syndicate::registry(), ini_path, stop);

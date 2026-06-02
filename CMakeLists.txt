@@ -7,6 +7,12 @@ project(AC.PatchFix
     VERSION 3.0.0
 )
 
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp"
+    @ONLY
+)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
