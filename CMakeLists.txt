@@ -120,3 +120,9 @@ endfunction()
 
 add_game(Rogue)
 add_game(Syndicate)
+
+option(PATCHFIX_BUILD_TESTS "Build unit tests" OFF)
+if(PATCHFIX_BUILD_TESTS)
+    include(cmake/deps/catch2.cmake)
+    add_subdirectory(tests)
+endif()
