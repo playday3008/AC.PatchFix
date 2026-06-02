@@ -64,12 +64,11 @@ namespace hooks {
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
         struct Config : config_base<Config> {
-            ini_field<games::rogue::MultiMonitor> multi_monitor {"Display",
-                                                                 "MultiMonitor",
-                                                                 games::rogue::MultiMonitor::Auto};
+            ini_field<games::rogue::MultiMonitor> multi_monitor {
+                "Display", "MultiMonitor", games::rogue::MultiMonitor::Auto};
 
             static constexpr std::size_t field_count = 1;
-            static constexpr auto        field_ptrs = std::tuple {&Config::multi_monitor};
+            static constexpr auto        field_ptrs  = std::tuple {&Config::multi_monitor};
         };
 
         static void on_reload(const Config &cfg);

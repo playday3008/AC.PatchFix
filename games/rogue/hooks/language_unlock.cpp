@@ -120,8 +120,7 @@ namespace hooks {
         }
         s_is_steam_addr = *is_steam_opt;
 
-        s_menu_bf_global =
-            reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
+        s_menu_bf_global = reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 2));
         s_audio_bf_global =
             reinterpret_cast<std::uint32_t *>(mem::x64::read_rel(lang_bf_write + 8));
 

@@ -69,7 +69,7 @@ namespace hooks {
             ini_field<float>                 multiplier {"FOV", "Multiplier", 1.0F};
 
             static constexpr std::size_t field_count = 2;
-            static constexpr auto        field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
+            static constexpr auto field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
         };
 
         static auto install(const Addrs &addrs) -> bool;

@@ -25,7 +25,7 @@ namespace games {
         static constexpr float k_fov_base_zoom           = 0.768F;
         static constexpr float k_triple_screen_threshold = 4.0F;
         static constexpr float k_multi_monitor_split     = 0.33333F;
-        static constexpr float k_float_tolerance           = 1e-6F;
+        static constexpr float k_float_tolerance         = 1e-6F;
 
         struct ResolvedAddresses {
             std::optional<std::uintptr_t> viewport_ratio_load;

@@ -28,7 +28,9 @@ auto watcher() -> std::unique_ptr<FileWatcher> &;
 void game_init(HMODULE hModule, const std::stop_token &stop);
 
 template<typename G, typename Registry>
-void init_game(Registry &registry, const std::filesystem::path &ini_path, const std::stop_token &stop) {
+void init_game(Registry                    &registry,
+               const std::filesystem::path &ini_path,
+               const std::stop_token       &stop) {
     using Data  = games::game_data<G>;
     using Addrs = Data::ResolvedAddresses;
 

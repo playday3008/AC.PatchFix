@@ -43,9 +43,8 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<bool>                   unlock_all {"Language", "UnlockAll", false};
-            ini_field<games::rogue::Language> ui_language {"Language",
-                                                           "UILanguage",
-                                                           games::rogue::Language::None};
+            ini_field<games::rogue::Language> ui_language {
+                "Language", "UILanguage", games::rogue::Language::None};
 
             static constexpr std::size_t field_count = 2;
             static constexpr auto        field_ptrs =

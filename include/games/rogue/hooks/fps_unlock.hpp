@@ -42,7 +42,7 @@ namespace hooks {
             ini_field<float> target {"FPS", "Target", 0.0F};
 
             static constexpr std::size_t field_count = 1;
-            static constexpr auto        field_ptrs = std::tuple {&Config::target};
+            static constexpr auto        field_ptrs  = std::tuple {&Config::target};
         };
 
         static void on_reload(const Config &cfg);

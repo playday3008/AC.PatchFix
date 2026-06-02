@@ -61,12 +61,10 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<games::syndicate::PromptType> type {
-                "Input",
-                "PromptType",
-                games::syndicate::PromptType::PlayStation};
+                "Input", "PromptType", games::syndicate::PromptType::PlayStation};
 
             static constexpr std::size_t field_count = 1;
-            static constexpr auto        field_ptrs = std::tuple {&Config::type};
+            static constexpr auto        field_ptrs  = std::tuple {&Config::type};
         };
 
         static auto install(const Addrs &addrs) -> bool;
