@@ -1,8 +1,18 @@
-# AC.Rogue.PatchFix
+# AC.PatchFix
 
-ASI plugin for Assassin's Creed Rogue that fixes ultrawide/non-standard aspect ratios, corrects FOV, unlocks the FPS cap, and unlocks region-locked languages.
+ASI plugin framework for Assassin's Creed games that patches game binaries at runtime. All games are built from a single codebase with shared hook infrastructure and per-game specializations.
+
+## Supported Games
+
+| Game | Plugin | Status |
+|------|--------|--------|
+| Assassin's Creed Rogue | `AC.Rogue.PatchFix.asi` | Fully implemented |
+| Assassin's Creed Syndicate | `AC.Syndicate.PatchFix.asi` | In progress |
+| Assassin's Creed Unity | `AC.Unity.PatchFix.asi` | Planned |
 
 ## Features
+
+### Rogue
 
 - **Ultrawide and non-standard aspect ratio support** — 21:9, 32:9, 16:10, 4:3, 5:4, and any custom ratio
 - **FOV correction** — Vert+ and Hor+ modes with adjustable multiplier
@@ -13,6 +23,26 @@ ASI plugin for Assassin's Creed Rogue that fixes ultrawide/non-standard aspect r
 - **UI language override** — force any language independent of system/registry settings
 - **Hot-reload** — edit the INI file while the game is running, changes apply immediately
 - **Per-hook toggles** — enable or disable individual fixes at runtime
+
+### Syndicate
+
+- **Controller prompt override** — force PlayStation or Xbox button prompts regardless of connected controller
+- **DualShock 4 v2 fix** — recognize DS4v2 (PID 0x09CC) for correct PlayStation prompts
+- **Platform specs fix** — stub DxDiag COM initialization to prevent a startup freeze/deadlock
+- **FPS unlock** — remove or adjust the built-in frame rate cap
+- **Resolution fix** — filter non-standard aspect ratio resolutions (e.g., 4096x2160 / 17:9) from the display mode list
+- **Language unlock** — all languages available regardless of purchase region
+- **Hot-reload** — edit the INI file while the game is running, changes apply immediately
+- **Per-hook toggles** — enable or disable individual fixes at runtime
+
+### Diagnostics
+
+All games include a built-in diagnostics subsystem:
+- **Crash reports** with stack traces written to the game directory
+- **Minidump generation** for detailed post-mortem analysis
+- **Crash journal** tracking hook installation state at time of failure
+
+If you experience a crash, check the game directory for `.log` and `.dmp` files and include them in bug reports.
 
 ## Installation
 
@@ -25,9 +55,13 @@ An ASI loader is required. Install one of the following into the game directory:
 ### Steps
 
 1. Download the [latest release](https://github.com/playday3008/AC.Rogue-PatchFix/releases)
-2. Place `AC.Rogue.PatchFix.asi` and `AC.Rogue.PatchFix.ini` into `<path-to-game>/plugins/`
-3. Edit `AC.Rogue.PatchFix.ini` to configure the fixes
+2. Place the `.asi` and `.ini` files for your game into `<path-to-game>/plugins/`
+   - Rogue: `AC.Rogue.PatchFix.asi` + `AC.Rogue.PatchFix.ini`
+   - Syndicate: `AC.Syndicate.PatchFix.asi` + `AC.Syndicate.PatchFix.ini`
+3. Edit the INI file to configure the fixes
 4. Launch the game
+
+The plugin version is embedded in the DLL — check the log output or file properties to verify which version is installed.
 
 ### Steam Deck / Proton
 
@@ -39,7 +73,7 @@ WINEDLLOVERRIDES="version.dll=n,b" %command%
 
 Replace `version.dll` with the actual DLL name used by your ASI loader.
 
-## Configuration
+## Configuration — Rogue
 
 All settings are in `AC.Rogue.PatchFix.ini`. Changes are picked up automatically while the game is running.
 
@@ -91,9 +125,44 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
 | `LanguageUnlock`   | `true`  | Language unlock and override |
 
+## Configuration — Syndicate
+
+All settings are in `AC.Syndicate.PatchFix.ini`. Changes are picked up automatically while the game is running.
+
+### \[Input\]
+
+| Key          | Default       | Values                  | Description |
+|--------------|---------------|-------------------------| ----------- |
+| `PromptType` | `PlayStation` | `Xbox`, `PlayStation`   | Force controller button prompt type. Useful when Steam Input remapping causes wrong prompts. |
+
+### \[FPS\]
+
+| Key      | Default | Values | Description |
+|----------|---------| ------ | ----------- |
+| `Target` | `0`     | `0` = uncapped, any positive value (e.g., `60`) | FPS cap. `0` removes the frame limiter. Capping to 60 mitigates the London Drift perk not counting drifts at high FPS. |
+
+### \[Language\]
+
+| Key          | Default | Values | Description |
+|--------------|---------| ------ | ----------- |
+| `UnlockAll`  | `true`  | `true`, `false` | Make all languages available regardless of purchase region. Requires language data files to be present. |
+
+### \[Hooks\]
+
+Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`.
+
+| Key                | Default | Description |
+|--------------------|---------| ----------- |
+| `PlatformSpecsFix` | `true`  | Stub DxDiag COM init to prevent startup freeze |
+| `DS4v2Fix`         | `true`  | DualShock 4 v2 controller recognition |
+| `PromptOverride`   | `true`  | Force controller prompt type |
+| `ResolutionFix`    | `true`  | Filter non-standard aspect ratio resolutions |
+| `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
+| `LanguageUnlock`   | `true`  | Language unlock |
+
 ## How It Works
 
-### Language Region Lock
+### Language Region Lock (Rogue)
 
 Assassin's Creed Rogue ships with localization data on disk for all 22 supported languages, but gates which ones are selectable behind a pair of bitfield values loaded at startup. Each language is assigned a bit position, and the game maintains two separate bitfields — one for subtitles and one for audio:
 
@@ -111,7 +180,7 @@ uint32_t audio_languages;      // bit N set = language N available for audio
 
 A worldwide Steam copy might have bits set for English, French, Spanish, German, Italian, etc. — but not Russian, Korean, or ChineseTrad. A Russian retail copy will have Russian set but not others. The patch hooks the language setup routine and overwrites both bitfields with `0x007FFFFE` (all 22 language bits), making every language selectable. An optional `UILanguage` setting forces a specific default by writing directly to the game's global language index.
 
-### Game ID Detection
+### Game ID Detection (Rogue)
 
 The game determines its regional SKU at startup by inspecting the language bitfields:
 
@@ -130,7 +199,7 @@ Ubisoft's backend uses this ID to validate DLC entitlements. If the patch unlock
 
 The patch solves this by snapshotting the original bitfields before overwriting them, running the region detection on the unmodified values to determine the true SKU, and replacing `GetGameId` with a stub that always returns the pre-computed correct ID.
 
-### Viewport and FOV
+### Viewport and FOV (Rogue)
 
 The game is built around a fixed 16:9 (1280x720 base) viewport. The rendering pipeline uses hardcoded values of 16/9 (~1.778) and its reciprocal 9/16 (0.5625) when fitting the 3D scene into the window. Any non-16:9 display gets black bars.
 
@@ -146,19 +215,20 @@ The Hor+ correction uses `atan(0.768 * (16/9) / current_aspect) / atan(0.768)`, 
 
 ## Known Limitations
 
-- **Menus, cutscenes, and loading screens stay at 16:9** — engine limitation; stretching these breaks mouse input
+- **Rogue: menus, cutscenes, and loading screens stay at 16:9** — engine limitation; stretching these breaks mouse input
+- **Syndicate: London Drift perk bug at high FPS** — the perk doesn't count drifts reliably above ~60 FPS; cap FPS to 60 as a workaround
 
 ## Building from Source
 
 ### Prerequisites
 
-- CMake 3.21+
-- **Windows**: Visual Studio 2026 with C++23 support
-- **Linux** (cross-compile): Clang with `clang-cl`, [msvc-wine](https://github.com/mstorsjo/msvc-wine), Ninja
+- CMake 3.28+
+- **Windows**: Visual Studio 2026 with ClangCL toolset and C++23 support
+- **Linux** (cross-compile): LLVM 21 (clang-cl, lld-link, llvm-lib, llvm-rc, llvm-mt), Ninja, [msvc-wine](https://github.com/mstorsjo/msvc-wine) installed to `~/.msvc`
 
 All dependencies are fetched automatically by CMake:
 
-- [injector](https://github.com/ThirteenAG/injector)
+- [safetyhook](https://github.com/cursey/safetyhook)
 - [Hooking.Patterns](https://github.com/ThirteenAG/Hooking.Patterns)
 - [mINI](https://github.com/metayeti/mINI)
 - [spdlog](https://github.com/gabime/spdlog)
@@ -170,18 +240,19 @@ cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 ```
 
-### Linux (cross-compile)
+### Linux (cross-compile via msvc-wine)
 
 ```sh
-cmake --preset linux-x64-release
-cmake --build --preset linux-x64-release
+cmake --preset wine-x64-release
+cmake --build --preset wine-x64-release
 ```
 
-Output: `build/AC.Rogue.PatchFix.asi`
+Output: `build/AC.Rogue.PatchFix.asi`, `build/AC.Syndicate.PatchFix.asi`
 
 ## Credits
 
-- [**@ThirteenAG**](https://github.com/ThirteenAG) — [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader), [injector](https://github.com/ThirteenAG/injector), [Hooking.Patterns](https://github.com/ThirteenAG/Hooking.Patterns)
+- [**@ThirteenAG**](https://github.com/ThirteenAG) — [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader), [Hooking.Patterns](https://github.com/ThirteenAG/Hooking.Patterns)
+- [**@cursey**](https://github.com/cursey) — [safetyhook](https://github.com/cursey/safetyhook)
 - [**@metayeti**](https://github.com/metayeti) — [mINI](https://github.com/metayeti/mINI)
 - [**@gabime**](https://github.com/gabime) — [spdlog](https://github.com/gabime/spdlog)
 - [**@WerWolv**](https://github.com/WerWolv) — [ImHex](https://github.com/WerWolv/ImHex)
