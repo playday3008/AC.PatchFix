@@ -78,10 +78,10 @@ jobs:
           /tmp/msvc-wine/install.sh ~/.msvc
 
       - name: Configure CMake
-        run: cmake --preset wine-x64-release
+        run: cmake --preset wine-x64
 
       - name: Build PCH
-        run: ninja -C build CMakeFiles/patchfix_core.dir/cmake_pch.cxx.pch
+        run: cmake --build --preset wine-x64-release --target CMakeFiles/patchfix_core.dir/cmake_pch.cxx.pch
 
       - name: clang-tidy check
         run: |
@@ -154,33 +154,21 @@ jobs:
           /tmp/msvc-wine/vsdownload.py --accept-license --dest ~/.msvc
           /tmp/msvc-wine/install.sh ~/.msvc
 
-      - name: Build Release
-        run: |
-          cmake --preset wine-x64-release
-          cmake --build --preset wine-x64-release
+      - name: Configure
+        run: cmake --preset wine-x64
 
-      - name: Stage Release artifacts
-        run: |
-          mkdir -p artifacts/Release
-          cp build/*.asi artifacts/Release/
+      - name: Build Release
+        run: cmake --build --preset wine-x64-release
 
       - name: Build Debug
-        run: |
-          rm -rf build
-          cmake --preset wine-x64-debug
-          cmake --build --preset wine-x64-debug
-
-      - name: Stage Debug artifacts
-        run: |
-          mkdir -p artifacts/Debug
-          cp build/*.asi artifacts/Debug/
+        run: cmake --build --preset wine-x64-debug
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: AC.PatchFix-wine-${{ github.sha }}
           path: |
-            artifacts/Release/*.asi
-            artifacts/Debug/*.asi
+            build/Release/*.asi
+            build/Debug/*.asi
             config/*.ini
           if-no-files-found: error
