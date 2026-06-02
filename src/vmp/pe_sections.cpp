@@ -1,10 +1,10 @@
-#include "vmp/detail/pe_sections.hpp"
+#include "core/vmp/detail/pe_sections.hpp"
 
 #include <utility>
 
 #include <Windows.h>
 
-#include "win32/pe.hpp"
+#include "core/win32/pe.hpp"
 
 namespace vmp::detail {
     auto find_vmp_sections(HMODULE hModule) -> VmpSections {

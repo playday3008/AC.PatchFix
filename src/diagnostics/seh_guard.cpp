@@ -1,12 +1,12 @@
-#include "diagnostics/seh_guard.hpp"
+#include "core/diagnostics/seh_guard.hpp"
 
 #include <string_view>
 
 #include <Windows.h>
 
-#include "diagnostics/crash_report.hpp"
-#include "diagnostics/hook_context.hpp"
-#include "logger.hpp"
+#include "core/diagnostics/crash_report.hpp"
+#include "core/diagnostics/hook_context.hpp"
+#include "core/logger.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"

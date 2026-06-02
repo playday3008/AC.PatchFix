@@ -1,4 +1,4 @@
-#include "diagnostics/hook_context.hpp"
+#include "core/diagnostics/hook_context.hpp"
 
 #include <string_view>
 

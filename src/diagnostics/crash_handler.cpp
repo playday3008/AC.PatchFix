@@ -1,12 +1,12 @@
-#include "diagnostics/crash_handler.hpp"
+#include "core/diagnostics/crash_handler.hpp"
 
 #include <cstdint>
 
 #include <Windows.h>
 
-#include "diagnostics/address_registry.hpp"
-#include "diagnostics/crash_report.hpp"
-#include "diagnostics/patch_registry.hpp"
+#include "core/diagnostics/address_registry.hpp"
+#include "core/diagnostics/crash_report.hpp"
+#include "core/diagnostics/patch_registry.hpp"
 
 namespace diagnostics {
     namespace {

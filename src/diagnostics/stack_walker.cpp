@@ -1,4 +1,4 @@
-#include "diagnostics/stack_walker.hpp"
+#include "core/diagnostics/stack_walker.hpp"
 
 #include <cstring>
 

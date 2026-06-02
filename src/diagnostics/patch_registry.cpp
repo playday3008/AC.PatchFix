@@ -1,4 +1,4 @@
-#include "diagnostics/patch_registry.hpp"
+#include "core/diagnostics/patch_registry.hpp"
 
 #include <algorithm>
 #include <shared_mutex>

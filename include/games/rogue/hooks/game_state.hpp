@@ -9,10 +9,11 @@
 
 #include <mini/ini.h>
 
+#include "core/hooks/registry/config_base.hpp"
+#include "core/hooks/registry/dep_list.hpp"
+#include "core/hooks/registry/hook_traits.hpp"
+
 #include "games/rogue/game_data.hpp"
-#include "hooks/registry/config_base.hpp"
-#include "hooks/registry/dep_list.hpp"
-#include "hooks/registry/hook_traits.hpp"
 
 namespace games::rogue {
     struct GameState;

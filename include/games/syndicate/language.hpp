@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "util/bitfield.hpp"
+#include "core/util/bitfield.hpp"
 
 namespace games::syndicate {
     enum class Language : std::uint8_t {

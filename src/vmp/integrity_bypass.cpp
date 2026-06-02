@@ -1,4 +1,4 @@
-#include "vmp/integrity_bypass.hpp"
+#include "core/vmp/integrity_bypass.hpp"
 
 #include <cstdint>
 
@@ -13,10 +13,10 @@
 
 #include <safetyhook/inline_hook.hpp>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include "core/logger.hpp" // IWYU pragma: keep
 
-#include "vmp/detail/pe_sections.hpp"
-#include "vmp/detail/thread_intercept.hpp"
+#include "core/vmp/detail/pe_sections.hpp"
+#include "core/vmp/detail/thread_intercept.hpp"
 
 namespace vmp {
 #pragma clang diagnostic push

@@ -1,4 +1,4 @@
-#include "diagnostics/minidump.hpp"
+#include "core/diagnostics/minidump.hpp"
 
 #include <array>
 #include <format>
@@ -10,7 +10,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "diagnostics/crash_logger.hpp"
+#include "core/diagnostics/crash_logger.hpp"
 
 namespace diagnostics {
     namespace {

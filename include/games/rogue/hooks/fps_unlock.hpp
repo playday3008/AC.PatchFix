@@ -9,12 +9,13 @@
 
 #include <mini/ini.h>
 
+#include "core/hooks/registry/config_base.hpp"
+#include "core/hooks/registry/dep_list.hpp"
+#include "core/hooks/registry/hook_traits.hpp"
+#include "core/hooks/registry/ini_field.hpp"
+
 #include "games/rogue/game_data.hpp"
 #include "games/rogue/hooks/game_state.hpp"
-#include "hooks/registry/config_base.hpp"
-#include "hooks/registry/dep_list.hpp"
-#include "hooks/registry/hook_traits.hpp"
-#include "hooks/registry/ini_field.hpp"
 
 namespace games::rogue {
     struct FPSUnlockHook {};

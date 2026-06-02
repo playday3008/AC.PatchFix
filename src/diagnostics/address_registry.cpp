@@ -1,4 +1,4 @@
-#include "diagnostics/address_registry.hpp"
+#include "core/diagnostics/address_registry.hpp"
 
 #include <cstdint>
 

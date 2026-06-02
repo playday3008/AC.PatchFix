@@ -1,11 +1,11 @@
-#include "diagnostics/crash_logger.hpp"
+#include "core/diagnostics/crash_logger.hpp"
 
 #include <atomic>
 #include <memory>
 
 #include <spdlog/spdlog.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include "core/logger.hpp" // IWYU pragma: keep
 
 namespace diagnostics {
     namespace {

@@ -8,8 +8,8 @@ project(AC.PatchFix
 )
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp"
     @ONLY
 )
 
@@ -95,7 +95,7 @@ set_target_properties(patchfix_core PROPERTIES
 
 function(add_game GAME_TAG)
     string(TOLOWER "${GAME_TAG}" GAME_TAG_LOWER)
-    set(GAME_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/games/${GAME_TAG_LOWER}")
+    set(GAME_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games/${GAME_TAG_LOWER}")
     file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS "${GAME_SRC_DIR}/*.cpp")
 
     set(TARGET_NAME "AC.${GAME_TAG}.PatchFix")

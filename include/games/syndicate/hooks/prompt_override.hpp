@@ -9,12 +9,13 @@
 #include <tuple>
 #include <utility>
 
+#include "core/hooks/registry/config_base.hpp"
+#include "core/hooks/registry/dep_list.hpp"
+#include "core/hooks/registry/hook_traits.hpp"
+#include "core/hooks/registry/ini_field.hpp"
+#include "core/hooks/registry/parsers.hpp"
+
 #include "games/syndicate/game_data.hpp"
-#include "hooks/registry/config_base.hpp"
-#include "hooks/registry/dep_list.hpp"
-#include "hooks/registry/hook_traits.hpp"
-#include "hooks/registry/ini_field.hpp"
-#include "hooks/registry/parsers.hpp"
 
 namespace games::syndicate {
     enum class PromptType : std::uint8_t {

@@ -1,4 +1,4 @@
-#include "diagnostics/crash_report.hpp"
+#include "core/diagnostics/crash_report.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,10 +12,10 @@
 
 #include <spdlog/spdlog.h>
 
-#include "diagnostics/crash_logger.hpp"
-#include "diagnostics/minidump.hpp"
-#include "diagnostics/patch_registry.hpp"
-#include "diagnostics/stack_walker.hpp"
+#include "core/diagnostics/crash_logger.hpp"
+#include "core/diagnostics/minidump.hpp"
+#include "core/diagnostics/patch_registry.hpp"
+#include "core/diagnostics/stack_walker.hpp"
 
 namespace diagnostics {
     namespace {

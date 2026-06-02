@@ -1,4 +1,4 @@
-#include "patterns/signatures.hpp"
+#include "core/patterns/signatures.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,7 +12,7 @@
 
 #include <Hooking.Patterns.h>
 
-#include "win32/pe.hpp"
+#include "core/win32/pe.hpp"
 
 namespace {
     struct ScanRange {

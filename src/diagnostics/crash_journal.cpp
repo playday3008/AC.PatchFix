@@ -1,4 +1,4 @@
-#include "diagnostics/crash_journal.hpp"
+#include "core/diagnostics/crash_journal.hpp"
 
 #include <cstddef>
 
@@ -10,7 +10,7 @@
 
 #include <Windows.h>
 
-#include "win32/unique_handle.hpp"
+#include "core/win32/unique_handle.hpp"
 
 namespace diagnostics::crash_journal {
     namespace {

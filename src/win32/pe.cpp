@@ -1,4 +1,4 @@
-#include "win32/pe.hpp"
+#include "core/win32/pe.hpp"
 
 #include <array>
 #include <filesystem>
@@ -7,7 +7,7 @@
 
 #include <Windows.h>
 
-#include "win32/string.hpp"
+#include "core/win32/string.hpp"
 
 namespace win32 {
     auto enumerate_sections(HMODULE hModule) -> std::vector<SectionInfo> {

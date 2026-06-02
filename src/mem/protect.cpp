@@ -1,4 +1,4 @@
-#include "mem/protect.hpp"
+#include "core/mem/protect.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -10,7 +10,7 @@
 #include <Windows.h>
 #include <winternl.h>
 
-#include "win32/unique_handle.hpp"
+#include "core/win32/unique_handle.hpp"
 
 namespace mem {
     namespace {

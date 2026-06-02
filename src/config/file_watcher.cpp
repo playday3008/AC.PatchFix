@@ -1,4 +1,4 @@
-#include "config/file_watcher.hpp"
+#include "core/config/file_watcher.hpp"
 
 #include <array>
 #include <filesystem>
@@ -14,10 +14,10 @@
 
 #include <Windows.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include "core/logger.hpp" // IWYU pragma: keep
 
-#include "win32/string.hpp"
-#include "win32/unique_handle.hpp"
+#include "core/win32/string.hpp"
+#include "core/win32/unique_handle.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)

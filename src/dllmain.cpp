@@ -4,13 +4,14 @@
 
 #include <Windows.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include "core/logger.hpp" // IWYU pragma: keep
 
-#include "diagnostics/address_registry.hpp"
-#include "diagnostics/crash_handler.hpp"
-#include "diagnostics/crash_journal.hpp"
+#include "core/diagnostics/address_registry.hpp"
+#include "core/diagnostics/crash_handler.hpp"
+#include "core/diagnostics/crash_journal.hpp"
+#include "core/vmp/integrity_bypass.hpp"
+
 #include "games/game_init.hpp"
-#include "vmp/integrity_bypass.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"

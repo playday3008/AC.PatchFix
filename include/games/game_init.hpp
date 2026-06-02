@@ -10,17 +10,18 @@
 
 #include <mini/ini.h>
 
-#include "logger.hpp" // IWYU pragma: keep
+#include "core/logger.hpp" // IWYU pragma: keep
 
-#include "config/file_watcher.hpp"
-#include "diagnostics/crash_journal.hpp"
-#include "diagnostics/crash_logger.hpp"
+#include "core/config/file_watcher.hpp"
+#include "core/diagnostics/crash_journal.hpp"
+#include "core/diagnostics/crash_logger.hpp"
+#include "core/mem/protect.hpp"
+#include "core/patterns/signatures.hpp"
+#include "core/version.hpp"
+#include "core/vmp/integrity_bypass.hpp"
+#include "core/win32/pe.hpp"
+
 #include "games/game_data.hpp"
-#include "mem/protect.hpp"
-#include "patterns/signatures.hpp"
-#include "version.hpp"
-#include "vmp/integrity_bypass.hpp"
-#include "win32/pe.hpp"
 
 auto watcher() -> std::unique_ptr<FileWatcher> &;
 

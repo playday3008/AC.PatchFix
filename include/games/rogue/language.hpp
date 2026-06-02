@@ -7,8 +7,8 @@
 #include <string_view>
 #include <utility>
 
-#include "hooks/registry/parsers.hpp"
-#include "util/bitfield.hpp"
+#include "core/hooks/registry/parsers.hpp"
+#include "core/util/bitfield.hpp"
 
 namespace games::rogue {
     enum class Language : std::uint8_t {
