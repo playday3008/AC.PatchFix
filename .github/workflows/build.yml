@@ -80,6 +80,9 @@ jobs:
       - name: Configure CMake
         run: cmake --preset wine-x64-release
 
+      - name: Build PCH
+        run: ninja -C build CMakeFiles/patchfix_core.dir/cmake_pch.cxx.pch
+
       - name: clang-tidy check
         run: |
           find src -type f -name '*.cpp' \
