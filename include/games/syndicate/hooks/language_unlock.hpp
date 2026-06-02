@@ -39,7 +39,8 @@ namespace hooks {
         struct Config : config_base<Config> {
             ini_field<bool> unlock_all {"Language", "UnlockAll", false};
 
-            static constexpr auto field_ptrs = std::tuple {&Config::unlock_all};
+            static constexpr std::size_t field_count = 1;
+            static constexpr auto        field_ptrs = std::tuple {&Config::unlock_all};
         };
 
         static auto install(const Addrs &addrs) -> bool;

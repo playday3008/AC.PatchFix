@@ -68,7 +68,8 @@ namespace hooks {
             ini_field<games::rogue::FovMode> mode {"FOV", "Mode", games::rogue::FovMode::Auto};
             ini_field<float>                 multiplier {"FOV", "Multiplier", 1.0F};
 
-            static constexpr auto field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
+            static constexpr std::size_t field_count = 2;
+            static constexpr auto        field_ptrs = std::tuple {&Config::mode, &Config::multiplier};
         };
 
         static auto install(const Addrs &addrs) -> bool;

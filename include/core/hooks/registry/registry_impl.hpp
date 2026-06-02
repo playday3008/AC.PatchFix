@@ -224,6 +224,22 @@ namespace hooks {
                 return {make_ops<Tags, Addrs>()...};
             }
 
+            static void apply_enabled_flags(Registry<HookList>           &reg,
+                                            const std::array<HookOps, N> &ops,
+                                            mINI::INIStructure           &ini) {
+                for (const auto &op : ops) {
+                    op.load_enabled(reg, ini);
+                }
+                std::array<bool, N> enabled_flags {};
+                for (std::size_t i = 0; i < N; ++i) {
+                    enabled_flags.at(i) = ops.at(i).is_enabled(reg);
+                }
+                cascade_disable(ops, enabled_flags);
+                for (std::size_t i = 0; i < N; ++i) {
+                    ops.at(i).set_enabled(reg, enabled_flags.at(i));
+                }
+            }
+
             static void
                 cascade_disable(const std::array<HookOps, N> &ops, std::array<bool, N> &enabled) {
                 bool changed = true;
@@ -263,18 +279,7 @@ namespace hooks {
         }
 
         log::get()->trace("install_all: loading enabled flags");
-        for (const auto &op : ops) {
-            op.load_enabled(*this, ini);
-        }
-
-        std::array<bool, Ops::N> enabled_flags {};
-        for (std::size_t i = 0; i < Ops::N; ++i) {
-            enabled_flags.at(i) = ops.at(i).is_enabled(*this);
-        }
-        Ops::cascade_disable(ops, enabled_flags);
-        for (std::size_t i = 0; i < Ops::N; ++i) {
-            ops.at(i).set_enabled(*this, enabled_flags.at(i));
-        }
+        Ops::apply_enabled_flags(*this, ops, ini);
 
         log::get()->trace("install_all: installing in dependency order");
 
@@ -320,18 +325,7 @@ namespace hooks {
         }
         log::get()->trace("reload: configs loaded");
 
-        for (const auto &op : ops) {
-            op.load_enabled(*this, ini);
-        }
-
-        std::array<bool, Ops::N> enabled_flags {};
-        for (std::size_t i = 0; i < Ops::N; ++i) {
-            enabled_flags.at(i) = ops.at(i).is_enabled(*this);
-        }
-        Ops::cascade_disable(ops, enabled_flags);
-        for (std::size_t i = 0; i < Ops::N; ++i) {
-            ops.at(i).set_enabled(*this, enabled_flags.at(i));
-        }
+        Ops::apply_enabled_flags(*this, ops, ini);
 
         for (const auto &op : ops) {
             if (op.is_installed(*this) && op.is_enabled(*this)) {

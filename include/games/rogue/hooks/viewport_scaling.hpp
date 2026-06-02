@@ -44,7 +44,8 @@ namespace hooks {
             ini_field<float, clamped_unit_parser> ui_stretch_h {"UI", "StretchHorizontal", 0.0F};
             ini_field<float, clamped_unit_parser> ui_stretch_v {"UI", "StretchVertical", 0.0F};
 
-            static constexpr auto field_ptrs =
+            static constexpr std::size_t field_count = 2;
+            static constexpr auto        field_ptrs =
                 std::tuple {&Config::ui_stretch_h, &Config::ui_stretch_v};
         };
 

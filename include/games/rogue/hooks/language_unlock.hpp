@@ -47,7 +47,8 @@ namespace hooks {
                                                            "UILanguage",
                                                            games::rogue::Language::None};
 
-            static constexpr auto field_ptrs =
+            static constexpr std::size_t field_count = 2;
+            static constexpr auto        field_ptrs =
                 std::tuple {&Config::unlock_all, &Config::ui_language};
         };
 

@@ -68,7 +68,8 @@ namespace hooks {
                                                                  "MultiMonitor",
                                                                  games::rogue::MultiMonitor::Auto};
 
-            static constexpr auto field_ptrs = std::tuple {&Config::multi_monitor};
+            static constexpr std::size_t field_count = 1;
+            static constexpr auto        field_ptrs = std::tuple {&Config::multi_monitor};
         };
 
         static void on_reload(const Config &cfg);
