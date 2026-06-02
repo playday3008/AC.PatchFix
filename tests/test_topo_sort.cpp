@@ -51,7 +51,7 @@ namespace {
     constexpr auto hook_idx(hooks::hook_list<Tags...> /*unused*/) -> std::size_t {
         constexpr std::array matches = {std::is_same_v<Tag, Tags>...};
         for (std::size_t i = 0; i < sizeof...(Tags); ++i) {
-            if (matches[i]) {
+            if (matches.at(i)) {
                 return i;
             }
         }
@@ -85,35 +85,36 @@ namespace {
         std::array<std::size_t, N>                adj_count {};
 
         for (std::size_t i = 0; i < N; ++i) {
-            for (std::size_t j = 0; j < hard_counts[i]; ++j) {
-                auto dep                   = hard_deps[i][j];
-                adj[dep][adj_count[dep]++] = i;
-                in_degree[i]++;
+            for (std::size_t j = 0; j < hard_counts.at(i); ++j) {
+                auto dep                            = hard_deps.at(i).at(j);
+                adj.at(dep).at(adj_count.at(dep)++) = i;
+                in_degree.at(i)++;
             }
-            for (std::size_t j = 0; j < soft_counts[i]; ++j) {
-                auto dep                   = soft_deps[i][j];
-                adj[dep][adj_count[dep]++] = i;
-                in_degree[i]++;
+            for (std::size_t j = 0; j < soft_counts.at(i); ++j) {
+                auto dep                            = soft_deps.at(i).at(j);
+                adj.at(dep).at(adj_count.at(dep)++) = i;
+                in_degree.at(i)++;
             }
         }
 
         std::array<std::size_t, N> queue {};
-        std::size_t                front = 0, back = 0;
+        std::size_t                front = 0;
+        std::size_t                back  = 0;
         for (std::size_t i = 0; i < N; ++i) {
-            if (in_degree[i] == 0) {
-                queue[back++] = i;
+            if (in_degree.at(i) == 0) {
+                queue.at(back++) = i;
             }
         }
 
         std::array<std::size_t, N> order {};
         std::size_t                count = 0;
         while (front < back) {
-            auto u         = queue[front++];
-            order[count++] = u;
-            for (std::size_t i = 0; i < adj_count[u]; ++i) {
-                auto v = adj[u][i];
-                if (--in_degree[v] == 0) {
-                    queue[back++] = v;
+            auto u            = queue.at(front++);
+            order.at(count++) = u;
+            for (std::size_t i = 0; i < adj_count.at(u); ++i) {
+                auto v = adj.at(u).at(i);
+                if (--in_degree.at(v) == 0) {
+                    queue.at(back++) = v;
                 }
             }
         }

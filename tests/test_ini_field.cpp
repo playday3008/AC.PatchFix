@@ -1,3 +1,4 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <mini/ini.h>
@@ -8,7 +9,7 @@ using namespace hooks;
 
 TEST_CASE("ini_field default value", "[ini_field]") {
     ini_field<float> field("Section", "Key", 3.14F);
-    CHECK(field.get() == 3.14F);
+    CHECK(field.get() == Catch::Approx(3.14F));
 }
 
 TEST_CASE("ini_field store and get round-trip", "[ini_field]") {
@@ -23,7 +24,7 @@ TEST_CASE("ini_field load_from existing key", "[ini_field]") {
 
     ini_field<float> field("Graphics", "FOV", 90.0F);
     field.load_from(ini);
-    CHECK(field.get() == 110.0F);
+    CHECK(field.get() == Catch::Approx(110.0F));
 }
 
 TEST_CASE("ini_field load_from missing section keeps default", "[ini_field]") {
@@ -31,7 +32,7 @@ TEST_CASE("ini_field load_from missing section keeps default", "[ini_field]") {
 
     ini_field<float> field("Missing", "Key", 42.0F);
     field.load_from(ini);
-    CHECK(field.get() == 42.0F);
+    CHECK(field.get() == Catch::Approx(42.0F));
 }
 
 TEST_CASE("ini_field load_from missing key keeps default", "[ini_field]") {

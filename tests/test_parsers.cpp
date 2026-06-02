@@ -1,3 +1,4 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include "core/hooks/registry/parsers.hpp"
@@ -33,40 +34,40 @@ TEST_CASE("default_parser<bool> empty/invalid returns false", "[parsers][bool]")
 }
 
 TEST_CASE("default_parser<float> valid values", "[parsers][float]") {
-    CHECK(default_parser<float> {}("1.5") == 1.5F);
-    CHECK(default_parser<float> {}("0") == 0.0F);
-    CHECK(default_parser<float> {}("-3.14") == -3.14F);
+    CHECK(default_parser<float> {}("1.5") == Catch::Approx(1.5F));
+    CHECK(default_parser<float> {}("0") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("-3.14") == Catch::Approx(-3.14F));
 }
 
 TEST_CASE("default_parser<float> empty/invalid returns 0", "[parsers][float]") {
-    CHECK(default_parser<float> {}("") == 0.0F);
-    CHECK(default_parser<float> {}("abc") == 0.0F);
+    CHECK(default_parser<float> {}("") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("abc") == Catch::Approx(0.0F));
 }
 
 TEST_CASE("ratio_parser colon format", "[parsers][ratio]") {
     float result = ratio_parser {}("16:9");
-    CHECK(result == 16.0F / 9.0F);
+    CHECK(result == Catch::Approx(16.0F / 9.0F));
 }
 
 TEST_CASE("ratio_parser zero denominator", "[parsers][ratio]") {
-    CHECK(ratio_parser {}("16:0") == 0.0F);
+    CHECK(ratio_parser {}("16:0") == Catch::Approx(0.0F));
 }
 
 TEST_CASE("ratio_parser plain float", "[parsers][ratio]") {
-    CHECK(ratio_parser {}("1.777") == 1.777F);
+    CHECK(ratio_parser {}("1.777") == Catch::Approx(1.777F));
 }
 
 TEST_CASE("ratio_parser empty and zero", "[parsers][ratio]") {
-    CHECK(ratio_parser {}("") == 0.0F);
-    CHECK(ratio_parser {}("0") == 0.0F);
+    CHECK(ratio_parser {}("") == Catch::Approx(0.0F));
+    CHECK(ratio_parser {}("0") == Catch::Approx(0.0F));
 }
 
 TEST_CASE("clamped_unit_parser clamps to [0, 1]", "[parsers][clamped]") {
-    CHECK(clamped_unit_parser {}("0.5") == 0.5F);
-    CHECK(clamped_unit_parser {}("-1.0") == 0.0F);
-    CHECK(clamped_unit_parser {}("2.0") == 1.0F);
-    CHECK(clamped_unit_parser {}("0.0") == 0.0F);
-    CHECK(clamped_unit_parser {}("1.0") == 1.0F);
+    CHECK(clamped_unit_parser {}("0.5") == Catch::Approx(0.5F));
+    CHECK(clamped_unit_parser {}("-1.0") == Catch::Approx(0.0F));
+    CHECK(clamped_unit_parser {}("2.0") == Catch::Approx(1.0F));
+    CHECK(clamped_unit_parser {}("0.0") == Catch::Approx(0.0F));
+    CHECK(clamped_unit_parser {}("1.0") == Catch::Approx(1.0F));
 }
 
 namespace {
