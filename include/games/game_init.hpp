@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <memory>
 #include <stop_token>
+#include <string>
 
 #include <Windows.h>
 
@@ -13,10 +14,13 @@
 
 #include "config/file_watcher.hpp"
 #include "diagnostics/crash_journal.hpp"
+#include "diagnostics/crash_logger.hpp"
 #include "games/game_data.hpp"
 #include "mem/protect.hpp"
 #include "patterns/signatures.hpp"
+#include "version.hpp"
 #include "vmp/integrity_bypass.hpp"
+#include "win32/pe.hpp"
 
 auto watcher() -> std::unique_ptr<FileWatcher> &;
 
@@ -103,4 +107,24 @@ void init_game(Registry &registry, const std::filesystem::path &ini_path, std::s
         }
     });
     log::get()->info("File watcher started for {}", ini_path.string());
+}
+
+template<typename G, typename Registry>
+void game_init_impl(HMODULE hModule, std::stop_token stop, Registry &registry) {
+    auto dll_dir  = win32::get_module_path(hModule).parent_path();
+    auto exe_name = win32::get_module_path(nullptr).filename().string();
+
+    if (exe_name != games::game_data<G>::exe_name) {
+        return;
+    }
+
+    auto name     = games::game_data<G>::name;
+    auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
+
+    log::init((dll_dir / (log_name + ".log")).string());
+    diagnostics::init_log();
+    log::get()->info("{} v{} initializing for {}", log_name, version::string, exe_name);
+
+    auto ini_path = dll_dir / (log_name + ".ini");
+    init_game<G>(registry, ini_path, stop);
 }
