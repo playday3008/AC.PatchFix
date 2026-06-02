@@ -113,16 +113,17 @@ jobs:
           /tmp/msvc-wine/vsdownload.py --accept-license --dest ~/.msvc
           /tmp/msvc-wine/install.sh ~/.msvc
 
+      - name: Configure
+        run: cmake --preset wine-x64
+
       - name: Build Release
-        run: |
-          cmake --preset wine-x64-release
-          cmake --build --preset wine-x64-release
+        run: cmake --build --preset wine-x64-release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: AC.PatchFix-wine
-          path: build/*.asi
+          path: build/Release/*.asi
           if-no-files-found: error
 
   release:
