@@ -1,9 +1,21 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
 #include <concepts>
+#include <optional>
 #include <string_view>
 
 namespace games {
+    template<typename Addrs>
+    struct ScanEntry {
+        std::string_view              name;
+        std::optional<std::uintptr_t> Addrs::*field;
+        std::ptrdiff_t                        offset;
+        std::string_view                      bytes;
+    };
+
     template<typename GameTag>
     struct game_data;
 

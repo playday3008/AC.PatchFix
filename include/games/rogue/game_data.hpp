@@ -49,15 +49,8 @@ namespace games {
             std::optional<std::uintptr_t> game_state_global;
         };
 
-        struct ScanEntry {
-            std::string_view              name;
-            std::optional<std::uintptr_t> ResolvedAddresses::*field;
-            std::ptrdiff_t                                    offset;
-            std::string_view                                  bytes;
-        };
-
         // clang-format off
-        static constexpr auto scan_entries = std::to_array<ScanEntry>({
+        static constexpr auto scan_entries = std::to_array<ScanEntry<ResolvedAddresses>>({
             {.name="VIEWPORT_RATIO_LOAD", .field=&ResolvedAddresses::viewport_ratio_load,  .offset=0x05, .bytes="0F 28 E8 EB ? F3 0F 10 05 ? ? ? ? F3 0F 5E C1 F3 0F 59 C4"},
             {.name="VIEWPORT_RATIO_MUL",  .field=&ResolvedAddresses::viewport_ratio_mul,   .offset=0x00, .bytes="F3 0F 59 25 ? ? ? ? EB ? 0F 28 E5"},
             {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_start, .offset=0x00, .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},

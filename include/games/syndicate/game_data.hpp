@@ -30,15 +30,8 @@ namespace games {
             std::optional<std::uintptr_t> fps_frame_time;
         };
 
-        struct ScanEntry {
-            std::string_view              name;
-            std::optional<std::uintptr_t> ResolvedAddresses::*field;
-            std::ptrdiff_t                                    offset;
-            std::string_view                                  bytes;
-        };
-
         // clang-format off
-        static constexpr auto scan_entries = std::to_array<ScanEntry>({
+        static constexpr auto scan_entries = std::to_array<ScanEntry<ResolvedAddresses>>({
             {.name="LANG_SETUP",             .field=&ResolvedAddresses::lang_setup,             .offset=0x00, .bytes="40 55 53 48 8B EC 48 83 EC 48 45 33 C9 48 89 74 24 40 48 8D 15"},
             {.name="LANG_BF_WRITE",          .field=&ResolvedAddresses::lang_bf_write,          .offset=0x00, .bytes="89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
             {.name="MODE_INSERT",            .field=&ResolvedAddresses::mode_insert,            .offset=0x00, .bytes="4C 8B DC 49 89 5B ? 57 48 83 EC ? 4C 8B 41 ? 48 8B 41 ? 48 8B DA 48 8B F9 4C 3B C0 0F 82 ? ? ? ? 4D 85 C0 0F 84 ? ? ? ? 48 8B 49 ? 48 3B D1 0F 82 ? ? ? ? 48 8D 04 40"},
