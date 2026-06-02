@@ -6,6 +6,7 @@ FetchContent_Declare(mINI
     GIT_TAG        0.9.18
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(mINI)
 

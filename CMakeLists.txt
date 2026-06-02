@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.28)
 
+# spdlog's cmake_minimum_required(VERSION 3.10) is the binding constraint
 set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
 project(AC.PatchFix
@@ -91,6 +92,12 @@ set_target_properties(patchfix_core PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
+)
+
+target_precompile_headers(patchfix_core PUBLIC
+    <Windows.h>
+    <mini/ini.h>
+    <spdlog/spdlog.h>
 )
 
 function(add_game GAME_TAG)

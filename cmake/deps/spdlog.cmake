@@ -9,5 +9,6 @@ FetchContent_Declare(spdlog
     GIT_TAG        v1.17.0
     GIT_SHALLOW    TRUE
     GIT_PROGRESS   TRUE
+    EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(spdlog)
