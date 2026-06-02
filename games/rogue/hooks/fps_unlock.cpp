@@ -27,10 +27,10 @@ namespace hooks {
         void prime_timestamps() {
             LARGE_INTEGER qpc;
             QueryPerformanceCounter(&qpc);
-            auto now                        = static_cast<std::uint64_t>(qpc.QuadPart);
-            g_frame_timing->current_time    = now;
-            g_frame_timing->previous_time   = now;
-            g_frame_timing->target_time     = 0;
+            auto now                      = static_cast<std::uint64_t>(qpc.QuadPart);
+            g_frame_timing->current_time  = now;
+            g_frame_timing->previous_time = now;
+            g_frame_timing->target_time   = 0;
         }
 
         void apply_fps_patch(float target) {
