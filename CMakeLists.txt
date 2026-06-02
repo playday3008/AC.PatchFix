@@ -75,6 +75,14 @@ target_link_libraries(patchfix_core PUBLIC
 )
 target_compile_definitions(patchfix_core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
 target_compile_options(patchfix_core PUBLIC ${SHARED_COMPILE_OPTIONS})
+target_compile_options(patchfix_core PUBLIC
+    $<$<CXX_COMPILER_ID:Clang>:/GS>
+    $<$<CXX_COMPILER_ID:MSVC>:/GS>
+)
+target_link_options(patchfix_core PUBLIC
+    $<$<CXX_COMPILER_ID:Clang>:/DYNAMICBASE /NXCOMPAT>
+    $<$<CXX_COMPILER_ID:MSVC>:/DYNAMICBASE /NXCOMPAT>
+)
 set_target_properties(patchfix_core PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED ON
