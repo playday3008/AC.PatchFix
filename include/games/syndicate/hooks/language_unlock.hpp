@@ -38,9 +38,11 @@ namespace hooks {
 
         struct Config : config_base<Config> {
             ini_field<bool> unlock_all {"Language", "UnlockAll", false};
+            ini_field<bool> include_loctest {"Language", "IncludeLocTest", false};
 
-            static constexpr std::size_t field_count = 1;
-            static constexpr auto        field_ptrs  = std::tuple {&Config::unlock_all};
+            static constexpr std::size_t field_count = 2;
+            static constexpr auto        field_ptrs =
+                std::tuple {&Config::unlock_all, &Config::include_loctest};
         };
 
         static auto install(const Addrs &addrs) -> bool;

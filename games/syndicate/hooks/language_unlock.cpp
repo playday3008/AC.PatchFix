@@ -14,18 +14,25 @@
 #include "games/syndicate/registry.hpp"
 
 namespace hooks {
+    using games::syndicate::bf;
+    using games::syndicate::k_all_audio;
     using games::syndicate::k_all_menu;
     using games::syndicate::k_all_subtitle;
-    using games::syndicate::k_all_audio;
+    using games::syndicate::Language;
 
     namespace {
         using Tag = games::syndicate::LanguageUnlockHook;
 
         constexpr std::uintptr_t k_bf_write_fallback_offset = 0x121;
+        constexpr bf             k_loctest_bit              = bitfield::bit(Language::LocTest);
 
         std::uint32_t *s_menu_bf_global     = nullptr;
         std::uint32_t *s_subtitle_bf_global = nullptr;
         std::uint32_t *s_audio_bf_global    = nullptr;
+
+        bf s_eff_menu     = 0;
+        bf s_eff_subtitle = 0;
+        bf s_eff_audio    = 0;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
@@ -37,9 +44,9 @@ namespace hooks {
             [[maybe_unused]] static constexpr std::string_view name = "LanguageUnlock/Bitfield";
 
             [[maybe_unused]] static void operator()(mem::Registers &regs) {
-                regs.rdi = k_all_menu;
-                regs.rsi = k_all_subtitle;
-                regs.rbx = k_all_audio;
+                regs.rdi = s_eff_menu;
+                regs.rsi = s_eff_subtitle;
+                regs.rbx = s_eff_audio;
             }
         };
     } // namespace
@@ -48,12 +55,22 @@ namespace hooks {
         // on_reload intentionally absent: one-time binary patches applied at install time.
         log::get()->trace("Syndicate LanguageUnlockHook: installing");
 
-        const auto &cfg        = games::syndicate::registry().config<Tag>();
-        const bool  unlock_all = cfg.unlock_all.get();
+        const auto &cfg             = games::syndicate::registry().config<Tag>();
+        const bool  unlock_all      = cfg.unlock_all.get();
+        const bool  include_loctest = cfg.include_loctest.get();
 
         if (!unlock_all) {
             log::get()->info("Syndicate LanguageUnlockHook: UnlockAll=false, skipping");
             return true;
+        }
+
+        const bf loctest = include_loctest ? k_loctest_bit : 0;
+        s_eff_menu       = k_all_menu | loctest;
+        s_eff_subtitle   = k_all_subtitle | loctest;
+        s_eff_audio      = k_all_audio | loctest;
+
+        if (include_loctest) {
+            log::get()->info("Syndicate LanguageUnlockHook: LocTest language included");
         }
 
         auto lang_setup    = addrs.lang_setup.value();
@@ -75,9 +92,9 @@ namespace hooks {
             reinterpret_cast<std::uintptr_t>(s_subtitle_bf_global),
             reinterpret_cast<std::uintptr_t>(s_audio_bf_global));
 
-        *s_menu_bf_global     = k_all_menu;
-        *s_subtitle_bf_global = k_all_subtitle;
-        *s_audio_bf_global    = k_all_audio;
+        *s_menu_bf_global     = s_eff_menu;
+        *s_subtitle_bf_global = s_eff_subtitle;
+        *s_audio_bf_global    = s_eff_audio;
 
         auto hook_result = mem::make_hook<LangBitfieldPatch>(lang_bf_write);
         if (!hook_result) {
