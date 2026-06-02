@@ -36,7 +36,7 @@ jobs:
 
       - name: clang-format check
         run: |
-          find src include -type f \( -name '*.cpp' -o -name '*.hpp' \) \
+          find src include games -type f \( -name '*.cpp' -o -name '*.hpp' \) \
             | xargs clang-format --dry-run --Werror
 
   tidy:
@@ -81,11 +81,11 @@ jobs:
         run: cmake --preset wine-x64
 
       - name: Build PCH
-        run: cmake --build --preset wine-x64-release --target CMakeFiles/patchfix_core.dir/cmake_pch.cxx.pch
+        run: cmake --build --preset wine-x64-release --target CMakeFiles/patchfix_core.dir/Release/cmake_pch.cxx.pch
 
       - name: clang-tidy check
         run: |
-          find src -type f -name '*.cpp' \
+          find src games -type f -name '*.cpp' \
             | xargs clang-tidy -p build
 
   build-windows:
@@ -171,6 +171,12 @@ jobs:
 
       - name: Build tests
         run: cmake --build --preset wine-x64-release --target patchfix_tests
+
+      - name: Install Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine
 
       - name: Run tests
         run: wine build/tests/Release/patchfix_tests.exe
