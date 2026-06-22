@@ -42,7 +42,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Validate version matches CMakeLists.txt
         env:
@@ -60,7 +60,7 @@ jobs:
     timeout-minutes: 15
     needs: [validate]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Configure Release
         run: cmake --preset windows-x64-release
@@ -84,7 +84,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-llvm
         with:
@@ -137,7 +137,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
