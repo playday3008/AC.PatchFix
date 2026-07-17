@@ -122,6 +122,7 @@ endfunction()
 
 add_game(Rogue)
 add_game(Syndicate)
+add_game(Unity)
 
 option(PATCHFIX_BUILD_TESTS "Build unit tests" OFF)
 if(PATCHFIX_BUILD_TESTS)
