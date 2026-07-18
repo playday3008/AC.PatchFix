@@ -23,14 +23,20 @@ namespace games {
             std::optional<std::uintptr_t> crouch_toggle_site;
             std::optional<std::uintptr_t> swing_turn_movss;
             std::optional<std::uintptr_t> customize_equip_navcheck;
+            std::optional<std::uintptr_t> aim_peak_empty_cb;
+            std::optional<std::uintptr_t> aim_peak_working_cb;
+            std::optional<std::uintptr_t> aim_peak_sentinel;
         };
 
         // clang-format off
         static constexpr auto scan_entries = std::to_array<ScanEntry<ResolvedAddresses>>({
-            {.name="EJECT_WAIT",       .field=&ResolvedAddresses::eject_wait_site,          .offset=0x10, .bytes="C7 81 B8 03 00 00 00 00 80 3E C7 81 E8 03 00 00 ? ? ? ? C3"},
-            {.name="CROUCH_TOGGLE",    .field=&ResolvedAddresses::crouch_toggle_site,       .offset=0x13, .bytes="80 7C 24 40 00 75 4C B2 01 48 8B CE E8 ? ? ? ? 84 C0 74 3E"},
-            {.name="SWING_TURN_MOVSS", .field=&ResolvedAddresses::swing_turn_movss,         .offset=0x00, .bytes="F3 0F 10 35 6A 9B D2 02 0F 28 C6"},
-            {.name="CUSTOMIZE_NAVCHK", .field=&ResolvedAddresses::customize_equip_navcheck, .offset=0x00, .bytes="85 D2 75 04 41 C6 00 01 48 8B 49 28 48 8B 49 18"},
+            {.name="EJECT_WAIT",        .field=&ResolvedAddresses::eject_wait_site,          .offset=0x10, .bytes="C7 81 B8 03 00 00 00 00 80 3E C7 81 E8 03 00 00 ? ? ? ? C3"},
+            {.name="CROUCH_TOGGLE",     .field=&ResolvedAddresses::crouch_toggle_site,       .offset=0x13, .bytes="80 7C 24 40 00 75 4C B2 01 48 8B CE E8 ? ? ? ? 84 C0 74 3E"},
+            {.name="SWING_TURN_MOVSS",  .field=&ResolvedAddresses::swing_turn_movss,         .offset=0x00, .bytes="F3 0F 10 35 6A 9B D2 02 0F 28 C6"},
+            {.name="CUSTOMIZE_NAVCHK",  .field=&ResolvedAddresses::customize_equip_navcheck, .offset=0x00, .bytes="85 D2 75 04 41 C6 00 01 48 8B 49 28 48 8B 49 18"},
+            {.name="AIM_PEAK_EMPTY_CB", .field=&ResolvedAddresses::aim_peak_empty_cb,        .offset=0x00, .bytes="41 C6 01 00 C3 CC CC CC"},
+            {.name="AIM_PEAK_WORK_CB",  .field=&ResolvedAddresses::aim_peak_working_cb,      .offset=0x00, .bytes="40 53 48 83 EC 20 49 8B D9 E8 A2 4F 03 00 88 03"},
+            {.name="AIM_PEAK_SENTINEL", .field=&ResolvedAddresses::aim_peak_sentinel,        .offset=0x00, .bytes="48 89 5C 24 10 57 48 83 EC 70 48 8B 79 28 48 8B D9 48 8B 47 20"},
         });
         // clang-format on
     };
