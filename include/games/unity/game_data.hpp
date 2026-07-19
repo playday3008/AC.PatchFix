@@ -26,6 +26,7 @@ namespace games {
             std::optional<std::uintptr_t> aim_peak_empty_cb;
             std::optional<std::uintptr_t> aim_peak_working_cb;
             std::optional<std::uintptr_t> aim_peak_sentinel;
+            std::optional<std::uintptr_t> freeze_fov_site;
         };
 
         // clang-format off
@@ -37,6 +38,7 @@ namespace games {
             {.name="AIM_PEAK_EMPTY_CB", .field=&ResolvedAddresses::aim_peak_empty_cb,        .offset=0x00, .bytes="41 C6 01 00 C3 CC CC CC"},
             {.name="AIM_PEAK_WORK_CB",  .field=&ResolvedAddresses::aim_peak_working_cb,      .offset=0x00, .bytes="40 53 48 83 EC 20 49 8B D9 E8 A2 4F 03 00 88 03"},
             {.name="AIM_PEAK_SENTINEL", .field=&ResolvedAddresses::aim_peak_sentinel,        .offset=0x00, .bytes="48 89 5C 24 10 57 48 83 EC 70 48 8B 79 28 48 8B D9 48 8B 47 20"},
+            {.name="FREEZE_FOV",        .field=&ResolvedAddresses::freeze_fov_site,          .offset=0x00, .bytes="F3 41 0F 11 4E 70 E8 ? ? ? ? 0F 28 00 41 0F 29 86 A0 0A 00 00"},
         });
         // clang-format on
     };
