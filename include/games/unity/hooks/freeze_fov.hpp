@@ -12,7 +12,6 @@
 #include "core/hooks/registry/dep_list.hpp"
 #include "core/hooks/registry/hook_traits.hpp"
 #include "core/hooks/registry/ini_field.hpp"
-#include "core/hooks/registry/parsers.hpp"
 
 #include "games/unity/game_data.hpp"
 
