@@ -7,6 +7,7 @@
 #include "games/unity/hooks/crouch_fix.hpp"
 #include "games/unity/hooks/easier_turn_when_swinging.hpp"
 #include "games/unity/hooks/freeze_fov.hpp"
+#include "games/unity/hooks/no_more_failed_bomb_throws.hpp"
 #include "games/unity/hooks/no_wait_unsafe_eject.hpp"
 
 namespace games::unity {
@@ -15,7 +16,8 @@ namespace games::unity {
                                       EasierTurnWhenSwingingHook,
                                       AllowCustomizeEquipmentHook,
                                       AimFromPeaksHook,
-                                      FreezeFOVHook>;
+                                      FreezeFOVHook,
+                                      NoMoreFailedBombThrowsHook>;
 
     using UnityRegistry = hooks::Registry<AllHooks>;
 

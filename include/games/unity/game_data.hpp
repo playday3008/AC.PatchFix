@@ -27,6 +27,8 @@ namespace games {
             std::optional<std::uintptr_t> aim_peak_working_cb;
             std::optional<std::uintptr_t> aim_peak_sentinel;
             std::optional<std::uintptr_t> freeze_fov_site;
+            std::optional<std::uintptr_t> bomb_exit_site;
+            std::optional<std::uintptr_t> bomb_onthrow_fn;
         };
 
         // clang-format off
@@ -39,6 +41,8 @@ namespace games {
             {.name="AIM_PEAK_WORK_CB",  .field=&ResolvedAddresses::aim_peak_working_cb,      .offset=0x00, .bytes="40 53 48 83 EC 20 49 8B D9 E8 A2 4F 03 00 88 03"},
             {.name="AIM_PEAK_SENTINEL", .field=&ResolvedAddresses::aim_peak_sentinel,        .offset=0x00, .bytes="48 89 5C 24 10 57 48 83 EC 70 48 8B 79 28 48 8B D9 48 8B 47 20"},
             {.name="FREEZE_FOV",        .field=&ResolvedAddresses::freeze_fov_site,          .offset=0x00, .bytes="F3 41 0F 11 4E 70 E8 ? ? ? ? 0F 28 00 41 0F 29 86 A0 0A 00 00"},
+            {.name="BOMB_EXIT",         .field=&ResolvedAddresses::bomb_exit_site,           .offset=0x00, .bytes="40 53 48 83 EC 40 48 8B 81 88 1C 00 00 48 8B D9 C6 81 79 1B 00 00 00"},
+            {.name="BOMB_ONTHROW",      .field=&ResolvedAddresses::bomb_onthrow_fn,          .offset=0x00, .bytes="40 57 48 83 EC 60 48 89 5C 24 78 48 89 6C 24 58 48 8B EA"},
         });
         // clang-format on
     };
