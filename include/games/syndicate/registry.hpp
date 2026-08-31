@@ -2,6 +2,7 @@
 
 #include "core/hooks/registry/registry.hpp"
 
+#include "games/syndicate/hooks/camera_smoothing.hpp"
 #include "games/syndicate/hooks/ds4v2_fix.hpp"
 #include "games/syndicate/hooks/fps_unlock.hpp"
 #include "games/syndicate/hooks/language_unlock.hpp"
@@ -14,6 +15,7 @@ namespace games::syndicate {
                                       ResolutionFixHook,
                                       DS4v2FixHook,
                                       PromptOverrideHook,
+                                      CameraSmoothingHook,
                                       FPSUnlockHook,
                                       LanguageUnlockHook>;
 
