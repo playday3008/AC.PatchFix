@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include <Windows.h>
-
 #include "core/logger.hpp" // IWYU pragma: keep
 
 #include "core/mem/write.hpp"
@@ -21,23 +19,12 @@ namespace hooks {
 
         games::rogue::FrameTiming *g_frame_timing = nullptr;
 
-        // The vsync-mode deadline period in milliseconds, read by the mulss inside
+        // The frame deadline period in milliseconds, read by the mulss inside
         // UpdateFrameTiming. Sole reference in the binary, so it is ours to retune.
-        std::uintptr_t g_cap_period      = 0;
-        float          g_cap_period_orig = 0.0F;
+        std::uintptr_t g_cap_period = 0;
 
         constexpr float         k_min_fps    = 1.0F;
-        constexpr std::uint32_t k_mode_fixed = 0;
         constexpr std::uint32_t k_mode_vsync = 2;
-
-        void prime_timestamps() {
-            LARGE_INTEGER qpc;
-            QueryPerformanceCounter(&qpc);
-            auto now                      = static_cast<std::uint64_t>(qpc.QuadPart);
-            g_frame_timing->current_time  = now;
-            g_frame_timing->previous_time = now;
-            g_frame_timing->target_time   = 0;
-        }
 
         void apply_fps_patch(float target) {
             if (g_frame_timing == nullptr || g_cap_period == 0) {
@@ -46,29 +33,27 @@ namespace hooks {
 
             target = std::max(target, 0.0F);
 
-            if (target < k_min_fps) {
-                // Vsync mode measures each frame individually and keeps the engine's
-                // own 1/15 s clamp on the delta. Zeroing its period leaves the frame
-                // deadline at "now", so the wait loop never runs.
-                if (!mem::write<float>(g_cap_period, 0.0F)) {
-                    log::get()->error("FPSUnlockHook: failed to zero cap period");
-                    return;
-                }
-                g_frame_timing->timing_mode = k_mode_vsync;
-                prime_timestamps();
-                log::get()->trace("FPSUnlockHook: uncapped (mode=vsync, period=0.0)");
+            // In vsync mode the deadline is current_time + trunc(ticks_per_ms *
+            // period), so the period alone paces the game and the engine keeps its
+            // own measured delta. A period of zero leaves the deadline at "now",
+            // which the wait loop never has to wait for.
+            float period = target < k_min_fps ? 0.0F : 1000.0F / target;
+
+            if (!mem::write<float>(g_cap_period, period)) {
+                log::get()->error("FPSUnlockHook: failed to write cap period");
+                return;
+            }
+
+            // The pending deadline was computed from the previous period and would
+            // stall the wait loop once before the next frame recomputes it.
+            g_frame_timing->target_time = 0;
+
+            if (period == 0.0F) {
+                log::get()->trace("FPSUnlockHook: uncapped (period=0.0)");
             } else {
-                if (!mem::write<float>(g_cap_period, g_cap_period_orig)) {
-                    log::get()->error("FPSUnlockHook: failed to restore cap period");
-                    return;
-                }
-                g_frame_timing->timing_mode = k_mode_fixed;
-                g_frame_timing->fixed_rate  = target;
-                prime_timestamps();
-                log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS (mode=fixed, "
-                                  "fixed_rate={:.4f})",
+                log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS (period={:.4f} ms)",
                                   target,
-                                  target);
+                                  period);
             }
         }
     } // namespace
@@ -97,11 +82,18 @@ namespace hooks {
                           g_frame_timing->timing_mode,
                           g_frame_timing->fixed_rate);
 
-        g_cap_period      = mem::x64::read_rel(addrs.fps_cap_mulss.value() + 4);
-        g_cap_period_orig = mem::read<float>(g_cap_period);
+        // The constructor sets vsync mode and nothing in the game writes the field
+        // afterwards. Any other value means the period below paces nothing.
+        if (g_frame_timing->timing_mode != k_mode_vsync) {
+            log::get()->warn("FPSUnlockHook: unexpected timing_mode={}, expected {}",
+                             g_frame_timing->timing_mode,
+                             k_mode_vsync);
+        }
+
+        g_cap_period = mem::x64::read_rel(addrs.fps_cap_mulss.value() + 4);
         log::get()->trace("FPSUnlockHook: cap period at 0x{:X} ({:.6f} ms)",
                           g_cap_period,
-                          g_cap_period_orig);
+                          mem::read<float>(g_cap_period));
 
         // The game never raises the timer resolution, so its Sleep(1) frame wait
         // runs at the ~15.6 ms default quantum and cannot pace anything faster
