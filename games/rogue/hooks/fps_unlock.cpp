@@ -39,6 +39,17 @@ namespace hooks {
             // which the wait loop never has to wait for.
             float period = target < k_min_fps ? 0.0F : 1000.0F / target;
 
+            // Only the capped path sleeps. Raising the process timer resolution
+            // while uncapped changes Sleep() granularity for every other thread
+            // in the game and paces nothing.
+            if (period == 0.0F) {
+                win32::restore_timer_resolution();
+            } else if (win32::raise_timer_resolution()) {
+                log::get()->trace("FPSUnlockHook: timer resolution raised to 1 ms");
+            } else {
+                log::get()->warn("FPSUnlockHook: failed to raise timer resolution");
+            }
+
             if (!mem::write<float>(g_cap_period, period)) {
                 log::get()->error("FPSUnlockHook: failed to write cap period");
                 return;
@@ -94,15 +105,6 @@ namespace hooks {
         log::get()->trace("FPSUnlockHook: cap period at 0x{:X} ({:.6f} ms)",
                           g_cap_period,
                           mem::read<float>(g_cap_period));
-
-        // The game never raises the timer resolution, so its Sleep(1) frame wait
-        // runs at the ~15.6 ms default quantum and cannot pace anything faster
-        // than ~64 FPS.
-        if (win32::raise_timer_resolution()) {
-            log::get()->trace("FPSUnlockHook: timer resolution raised to 1 ms");
-        } else {
-            log::get()->warn("FPSUnlockHook: failed to raise timer resolution");
-        }
 
         apply_fps_patch(games::rogue::registry().config<Tag>().target.get());
 
