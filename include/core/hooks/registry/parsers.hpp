@@ -29,6 +29,15 @@ namespace hooks {
             });
         }
 
+        inline auto sv_from_chars_base(std::string_view sv, int &value, int base)
+            -> std::from_chars_result {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            return std::from_chars(sv.data(), sv.data() + sv.size(), value, base);
+#pragma clang diagnostic pop
+        }
+
         template<typename E, std::size_t N>
         auto parse_enum(const std::string                                   &s,
                         const std::array<std::pair<std::string_view, E>, N> &table,
@@ -61,6 +70,29 @@ namespace hooks {
             float val = 0.0F;
             detail::sv_from_chars(s, val);
             return val;
+        }
+    };
+
+    template<>
+    struct default_parser<int> {
+        [[maybe_unused]] static auto operator()(const std::string &s) -> int {
+            std::string_view sv(s);
+            bool             neg = false;
+            if (!sv.empty() && (sv.front() == '-' || sv.front() == '+')) {
+                neg = sv.front() == '-';
+                sv.remove_prefix(1);
+            }
+            int val  = 0;
+            int base = 10;
+            if (sv.size() > 2 && sv[0] == '0' && (sv[1] == 'x' || sv[1] == 'X')) {
+                sv.remove_prefix(2);
+                base = 16;
+            }
+            auto [ptr, ec] = detail::sv_from_chars_base(sv, val, base);
+            if (ec != std::errc {}) {
+                return 0;
+            }
+            return neg ? -val : val;
         }
     };
 

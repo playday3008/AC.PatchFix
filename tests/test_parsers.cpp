@@ -44,6 +44,26 @@ TEST_CASE("default_parser<float> empty/invalid returns 0", "[parsers][float]") {
     CHECK(default_parser<float> {}("abc") == Catch::Approx(0.0F));
 }
 
+TEST_CASE("default_parser<int> decimal values", "[parsers][int]") {
+    CHECK(default_parser<int> {}("0") == 0);
+    CHECK(default_parser<int> {}("42") == 42);
+    CHECK(default_parser<int> {}("-1") == -1);
+    CHECK(default_parser<int> {}("+7") == 7);
+}
+
+TEST_CASE("default_parser<int> hex values", "[parsers][int]") {
+    CHECK(default_parser<int> {}("0x10") == 16);
+    CHECK(default_parser<int> {}("0X10") == 16);
+    CHECK(default_parser<int> {}("-0x20") == -32);
+}
+
+TEST_CASE("default_parser<int> empty/invalid returns 0", "[parsers][int]") {
+    CHECK(default_parser<int> {}("") == 0);
+    CHECK(default_parser<int> {}("garbage") == 0);
+    CHECK(default_parser<int> {}("0x") == 0);
+    CHECK(default_parser<int> {}("-") == 0);
+}
+
 TEST_CASE("ratio_parser colon format", "[parsers][ratio]") {
     float result = ratio_parser {}("16:9");
     CHECK(result == Catch::Approx(16.0F / 9.0F));

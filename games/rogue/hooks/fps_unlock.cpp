@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include <Windows.h>
+
 #include "core/logger.hpp" // IWYU pragma: keep
 
 #include "core/mem/write.hpp"
@@ -23,8 +25,60 @@ namespace hooks {
         // UpdateFrameTiming. Sole reference in the binary, so it is ours to retune.
         std::uintptr_t g_cap_period = 0;
 
-        constexpr float         k_min_fps    = 1.0F;
-        constexpr std::uint32_t k_mode_vsync = 2;
+        constexpr float         k_min_fps      = 1.0F;
+        constexpr std::uint32_t k_mode_vsync   = 2;
+        constexpr int           k_mode_default = -1;
+        constexpr int           k_mode_max     = 3;
+
+        // Modes 0, 1 and 3 derive the next deadline from the measured frame delta.
+        // A stale previous_time makes that delta enormous and parks the deadline
+        // hours ahead, which the wait loop never reaches.
+        void prime_timestamps() {
+            LARGE_INTEGER now {};
+            QueryPerformanceCounter(&now);
+            auto ticks                    = static_cast<std::uint64_t>(now.QuadPart);
+            g_frame_timing->current_time  = ticks;
+            g_frame_timing->previous_time = ticks;
+            g_frame_timing->target_time   = 0;
+        }
+
+        // Diagnostic only. Forcing a mode lets the engine run on a frame delta the
+        // hardware cannot actually produce: mode 0 takes dt straight from
+        // fixed_rate, mode 1 quantises it to the 15..120 ladder, mode 3 averages
+        // the last 15 frames.
+        void apply_timing_override(int mode, float rate) {
+            if (g_frame_timing == nullptr) {
+                return;
+            }
+
+            if (rate > 0.0F) {
+                g_frame_timing->fixed_rate = rate;
+                log::get()->warn("FPSUnlockHook: DIAGNOSTIC fixed_rate={:.1f} (dt={:.4f} ms)",
+                                 rate,
+                                 1000.0F / rate);
+            }
+
+            if (mode == k_mode_default) {
+                return;
+            }
+
+            if (mode < 0 || mode > k_mode_max) {
+                log::get()->error("FPSUnlockHook: TimingMode={} out of range, ignored", mode);
+                return;
+            }
+
+            auto forced                 = static_cast<std::uint32_t>(mode);
+            g_frame_timing->timing_mode = forced;
+            prime_timestamps();
+
+            // Every forced mode paces itself through the wait loop, and that loop
+            // sleeps in 1 ms steps.
+            if (forced != k_mode_vsync) {
+                win32::raise_timer_resolution();
+            }
+
+            log::get()->warn("FPSUnlockHook: DIAGNOSTIC timing_mode={}", mode);
+        }
 
         void apply_fps_patch(float target) {
             if (g_frame_timing == nullptr || g_cap_period == 0) {
@@ -73,6 +127,7 @@ namespace hooks {
         float target = cfg.target.get();
         log::get()->trace("FPSUnlockHook: on_reload target={}", target);
         apply_fps_patch(target);
+        apply_timing_override(cfg.timing_mode.get(), cfg.fixed_rate.get());
     }
 
     auto HookTraits<games::rogue::FPSUnlockHook>::install(const Addrs &addrs) -> bool {
@@ -106,7 +161,9 @@ namespace hooks {
                           g_cap_period,
                           mem::read<float>(g_cap_period));
 
-        apply_fps_patch(games::rogue::registry().config<Tag>().target.get());
+        const auto &cfg = games::rogue::registry().config<Tag>();
+        apply_fps_patch(cfg.target.get());
+        apply_timing_override(cfg.timing_mode.get(), cfg.fixed_rate.get());
 
         log::get()->trace("FPSUnlockHook: installed");
         return true;
