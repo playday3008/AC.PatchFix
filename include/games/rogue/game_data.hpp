@@ -45,6 +45,7 @@ namespace games {
             std::optional<std::uintptr_t> fps_timing_ptr;
             std::optional<std::uintptr_t> game_state_global;
             std::optional<std::uintptr_t> loc_init;
+            std::optional<std::uintptr_t> mode_get_by_index;
         };
 
         // clang-format off
@@ -67,6 +68,7 @@ namespace games {
             {.name="FPS_TIMING_PTR",      .field=&ResolvedAddresses::fps_timing_ptr,       .offset=0x0C, .bytes="C3 CC CC CC CC CC CC CC CC CC CC CC 48 8B 0D ? ? ? ? E9"},
             {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,    .offset=0x00, .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
             {.name="LOC_INIT",            .field=&ResolvedAddresses::loc_init,             .offset=0x00, .bytes="40 53 48 83 EC ? 48 8B D9 48 89 0D"},
+            {.name="MODE_GET_BY_INDEX",   .field=&ResolvedAddresses::mode_get_by_index,    .offset=0x00, .bytes="4C 8B 91 08 0A 00 00 6B D2 1C 66 0F EF C9 66 0F EF C0 49 8B 82 A8 01 00 00"},
         });
         // clang-format on
     };
