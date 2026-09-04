@@ -5,6 +5,7 @@
 #include "games/rogue/hooks/display_detection.hpp"
 #include "games/rogue/hooks/fov_correction.hpp"
 #include "games/rogue/hooks/fps_unlock.hpp"
+#include "games/rogue/hooks/full_mode_list.hpp"
 #include "games/rogue/hooks/game_state.hpp"
 #include "games/rogue/hooks/language_unlock.hpp"
 #include "games/rogue/hooks/mode_index_guard.hpp"
@@ -19,7 +20,8 @@ namespace games::rogue {
                                       FOVCorrectionHook,
                                       FPSUnlockHook,
                                       LanguageUnlockHook,
-                                      ModeIndexGuardHook>;
+                                      ModeIndexGuardHook,
+                                      FullModeListHook>;
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 

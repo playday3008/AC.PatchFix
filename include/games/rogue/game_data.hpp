@@ -46,29 +46,39 @@ namespace games {
             std::optional<std::uintptr_t> game_state_global;
             std::optional<std::uintptr_t> loc_init;
             std::optional<std::uintptr_t> mode_get_by_index;
+            std::optional<std::uintptr_t> mode_list_build;
+            std::optional<std::uintptr_t> mode_list_reserve_site;
         };
+
+        // Builder that fills the display mode list. The reserve site inside it hands
+        // over the vector growth helper and the allocator it is called with.
+        static constexpr std::string_view k_mode_list_build_sig =
+            "48 89 4C 24 08 55 56 57 41 54 48 8D 6C 24 ? 48 81 EC 88 00 00 00 48 8B F1 45 33 "
+            "E4 4C 8D 45 ? 66 44 89 A1 B2 01 00 00";
 
         // clang-format off
         static constexpr auto scan_entries = std::to_array<ScanEntry<ResolvedAddresses>>({
-            {.name="VIEWPORT_RATIO_LOAD", .field=&ResolvedAddresses::viewport_ratio_load,  .offset=0x05, .bytes="0F 28 E8 EB ? F3 0F 10 05 ? ? ? ? F3 0F 5E C1 F3 0F 59 C4"},
-            {.name="VIEWPORT_RATIO_MUL",  .field=&ResolvedAddresses::viewport_ratio_mul,   .offset=0x00, .bytes="F3 0F 59 25 ? ? ? ? EB ? 0F 28 E5"},
-            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_start, .offset=0x00, .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
-            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_end,   .offset=0x52, .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
-            {.name="DISPLAY_FLAG",        .field=&ResolvedAddresses::display_flag,         .offset=0x00, .bytes="0F 2F C8 73 ? 8B D6 F3 0F 59 15"},
-            {.name="FOV_STORE",           .field=&ResolvedAddresses::fov_store,            .offset=0x05, .bytes="89 43 40 EB 05 F3 0F 11 73 40 48 8D 54 24 40"},
-            {.name="COORD_TRANSFORM",     .field=&ResolvedAddresses::coord_transform,      .offset=0x00, .bytes="0F 28 D0 F3 0F 59 15 ? ? ? ? 0F 2F CA 77"},
-            {.name="SCALING_OFFSETS",     .field=&ResolvedAddresses::scaling_offsets,      .offset=0x00, .bytes="F3 0F 11 4C 24 30 F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 34"},
-            {.name="GAME_UNPAUSE",        .field=&ResolvedAddresses::game_unpause,         .offset=0x00, .bytes="C6 81 C0 02 00 00 00 48 8B 91 90 02 00 00 48 8B D9"},
-            {.name="GAME_PAUSE",          .field=&ResolvedAddresses::game_pause,           .offset=0x11, .bytes="48 C1 E1 20 48 C1 F9 3F 48 23 08 48 39 4A 18 75 08 41 C6 80 C0 02 00 00 01"},
-            {.name="GAME_PAUSE2",         .field=&ResolvedAddresses::game_pause2,          .offset=0x06, .bytes="48 39 46 18 75 ? C6 87 C0 02 00 00 01 48 8B 74 24"},
-            {.name="GET_GAME_ID",         .field=&ResolvedAddresses::get_game_id,          .offset=0x00, .bytes="48 83 EC 28 B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 33 C9 84 C0 0F 95 C1 8D 81 ? ? ? ?"},
-            {.name="LANG_BF_WRITE",       .field=&ResolvedAddresses::lang_bf_write,        .offset=0x05, .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
-            {.name="LANG_SETUP",          .field=&ResolvedAddresses::lang_setup,           .offset=0x00, .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?"},
-            {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,         .offset=0x00, .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
-            {.name="FPS_TIMING_PTR",      .field=&ResolvedAddresses::fps_timing_ptr,       .offset=0x0C, .bytes="C3 CC CC CC CC CC CC CC CC CC CC CC 48 8B 0D ? ? ? ? E9"},
-            {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,    .offset=0x00, .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
-            {.name="LOC_INIT",            .field=&ResolvedAddresses::loc_init,             .offset=0x00, .bytes="40 53 48 83 EC ? 48 8B D9 48 89 0D"},
-            {.name="MODE_GET_BY_INDEX",   .field=&ResolvedAddresses::mode_get_by_index,    .offset=0x00, .bytes="4C 8B 91 08 0A 00 00 6B D2 1C 66 0F EF C9 66 0F EF C0 49 8B 82 A8 01 00 00"},
+            {.name="VIEWPORT_RATIO_LOAD", .field=&ResolvedAddresses::viewport_ratio_load,    .offset=0x05,  .bytes="0F 28 E8 EB ? F3 0F 10 05 ? ? ? ? F3 0F 5E C1 F3 0F 59 C4"},
+            {.name="VIEWPORT_RATIO_MUL",  .field=&ResolvedAddresses::viewport_ratio_mul,     .offset=0x00,  .bytes="F3 0F 59 25 ? ? ? ? EB ? 0F 28 E5"},
+            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_start,   .offset=0x00,  .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
+            {.name="SCALING_BRANCH",      .field=&ResolvedAddresses::scaling_branch_end,     .offset=0x52,  .bytes="45 0F 2F C1 41 0F 28 F0 41 0F 28 F9 76 ? 41 0F 28 F8 F3 0F 59 3D"},
+            {.name="DISPLAY_FLAG",        .field=&ResolvedAddresses::display_flag,           .offset=0x00,  .bytes="0F 2F C8 73 ? 8B D6 F3 0F 59 15"},
+            {.name="FOV_STORE",           .field=&ResolvedAddresses::fov_store,              .offset=0x05,  .bytes="89 43 40 EB 05 F3 0F 11 73 40 48 8D 54 24 40"},
+            {.name="COORD_TRANSFORM",     .field=&ResolvedAddresses::coord_transform,        .offset=0x00,  .bytes="0F 28 D0 F3 0F 59 15 ? ? ? ? 0F 2F CA 77"},
+            {.name="SCALING_OFFSETS",     .field=&ResolvedAddresses::scaling_offsets,        .offset=0x00,  .bytes="F3 0F 11 4C 24 30 F3 0F 59 05 ? ? ? ? F3 0F 11 44 24 34"},
+            {.name="GAME_UNPAUSE",        .field=&ResolvedAddresses::game_unpause,           .offset=0x00,  .bytes="C6 81 C0 02 00 00 00 48 8B 91 90 02 00 00 48 8B D9"},
+            {.name="GAME_PAUSE",          .field=&ResolvedAddresses::game_pause,             .offset=0x11,  .bytes="48 C1 E1 20 48 C1 F9 3F 48 23 08 48 39 4A 18 75 08 41 C6 80 C0 02 00 00 01"},
+            {.name="GAME_PAUSE2",         .field=&ResolvedAddresses::game_pause2,            .offset=0x06,  .bytes="48 39 46 18 75 ? C6 87 C0 02 00 00 01 48 8B 74 24"},
+            {.name="GET_GAME_ID",         .field=&ResolvedAddresses::get_game_id,            .offset=0x00,  .bytes="48 83 EC 28 B9 ? ? ? ? E8 ? ? ? ? 84 C0 74 ? E8 ? ? ? ? 33 C9 84 C0 0F 95 C1 8D 81 ? ? ? ?"},
+            {.name="LANG_BF_WRITE",       .field=&ResolvedAddresses::lang_bf_write,          .offset=0x05,  .bytes="0F B6 44 24 ? 89 3D ? ? ? ? 89 1D ? ? ? ? 89 05"},
+            {.name="LANG_SETUP",          .field=&ResolvedAddresses::lang_setup,             .offset=0x00,  .bytes="8B CB E8 ? ? ? ? E8 ? ? ? ? 8B C8 E8 ? ? ? ?"},
+            {.name="GET_LANGUAGE",        .field=&ResolvedAddresses::get_language,           .offset=0x00,  .bytes="48 83 EC 28 8B 05 ? ? ? ? 83 F8 17 7C"},
+            {.name="FPS_TIMING_PTR",      .field=&ResolvedAddresses::fps_timing_ptr,         .offset=0x0C,  .bytes="C3 CC CC CC CC CC CC CC CC CC CC CC 48 8B 0D ? ? ? ? E9"},
+            {.name="GAME_STATE_GLOBAL",   .field=&ResolvedAddresses::game_state_global,      .offset=0x00,  .bytes="48 8B 05 ? ? ? ? C6 80 C8 02 00 00 00 C3"},
+            {.name="LOC_INIT",            .field=&ResolvedAddresses::loc_init,               .offset=0x00,  .bytes="40 53 48 83 EC ? 48 8B D9 48 89 0D"},
+            {.name="MODE_GET_BY_INDEX",   .field=&ResolvedAddresses::mode_get_by_index,      .offset=0x00,  .bytes="4C 8B 91 08 0A 00 00 6B D2 1C 66 0F EF C9 66 0F EF C0 49 8B 82 A8 01 00 00"},
+            {.name="MODE_LIST_BUILD",     .field=&ResolvedAddresses::mode_list_build,        .offset=0x000, .bytes=k_mode_list_build_sig},
+            {.name="MODE_LIST_RESERVE",   .field=&ResolvedAddresses::mode_list_reserve_site, .offset=0x304, .bytes=k_mode_list_build_sig},
         });
         // clang-format on
     };
