@@ -93,7 +93,7 @@ jobs:
       - name: clang-tidy check
         run: |
           find src games -type f -name '*.cpp' -print0 \
-            | xargs -0 -P "$(nproc)" -n 1 clang-tidy -p build --quiet --warnings-as-errors='*'
+            | xargs -0 -P "$(nproc)" -n 1 clang-tidy -p build --warnings-as-errors='*'
 
   build-windows:
     name: Build (Windows)
