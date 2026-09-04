@@ -67,7 +67,7 @@ IncludeCategories:
     Priority: 30
     SortPriority: 30
   # Other Windows / system headers
-  - Regex: '^<(winternl|DbgHelp|guiddef)\.h>'
+  - Regex: '^<(winternl|DbgHelp|guiddef|dxgi)\.h>'
     Priority: 30
     SortPriority: 31
   # Test frameworks

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include <atomic>
+
 #include <Windows.h>
 
 #include "core/diagnostics/address_registry.hpp"
@@ -10,6 +12,8 @@
 
 namespace diagnostics {
     namespace {
+        constexpr unsigned k_max_foreign_faults = 8;
+
         void *g_veh_handle = nullptr;
 
         auto NTAPI veh_handler(EXCEPTION_POINTERS *ep) -> LONG {
@@ -33,6 +37,14 @@ namespace diagnostics {
                 log_crash_report_lightweight(ep);
                 log_patch_attribution(ep);
                 return EXCEPTION_CONTINUE_SEARCH;
+            }
+
+            // Faults elsewhere in the process are not ours, but they are the only
+            // record of a crash the game itself leaves behind. Log a bounded number
+            // of them so an unattributed crash still names a module and offset.
+            static std::atomic<unsigned> foreign_faults {0};
+            if (foreign_faults.fetch_add(1, std::memory_order_relaxed) < k_max_foreign_faults) {
+                log_crash_report_lightweight(ep);
             }
 
             return EXCEPTION_CONTINUE_SEARCH;
