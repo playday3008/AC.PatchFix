@@ -313,7 +313,7 @@ Unlike Rogue, Syndicate does not require a Game ID fixup — DLC entitlements ar
 
 - CMake 3.28+
 - **Windows**: Visual Studio 2026 with ClangCL toolset and C++23 support
-- **Linux** (cross-compile): LLVM 21 (clang-cl, lld-link, llvm-lib, llvm-rc, llvm-mt), Ninja, [msvc-wine](https://github.com/mstorsjo/msvc-wine) installed to `~/.msvc`
+- **Linux** (cross-compile): LLVM 22 (clang-cl, lld-link, llvm-lib, llvm-rc, llvm-mt), Ninja, [msvc-wine](https://github.com/mstorsjo/msvc-wine) installed to `~/.msvc`
 
 All dependencies are fetched automatically by CMake:
 

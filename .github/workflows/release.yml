@@ -17,7 +17,7 @@ on:
         type: boolean
 
 env:
-  LLVM_VERSION: '21'
+  LLVM_VERSION: '22'
   MSVC_WINE_COMMIT: '514f8ea34842cd6d831804d0e9658d3a32870ae1'
 
 concurrency:
