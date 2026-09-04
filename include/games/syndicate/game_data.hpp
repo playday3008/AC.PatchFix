@@ -25,6 +25,7 @@ namespace games {
             std::optional<std::uintptr_t> ds4_type_classify;
             std::optional<std::uintptr_t> specs_enumerate_modes;
             std::optional<std::uintptr_t> get_active_device_type;
+            std::optional<std::uintptr_t> camera_smoothing_jnz;
             std::optional<std::uintptr_t> fps_sleep_branch;
             std::optional<std::uintptr_t> fps_frame_time;
         };
@@ -37,6 +38,7 @@ namespace games {
             {.name="DS4_TYPE_CLASSIFY",      .field=&ResolvedAddresses::ds4_type_classify,      .offset=0x00, .bytes="B9 C4 05 00 00 66 3B C1 75 ? C7 83 90 07 00 00 0B 00 00 00"},
             {.name="SPECS_ENUM_MODES",       .field=&ResolvedAddresses::specs_enumerate_modes,  .offset=0x00, .bytes="48 8B C4 55 48 8D 68 ? 48 81 EC ? ? ? ? 48 89 58 ? 48 89 70 ? 48 89 78 ? 4C 89 60 ? 45 33 E4"},
             {.name="GET_ACTIVE_DEVICE_TYPE", .field=&ResolvedAddresses::get_active_device_type, .offset=0x00, .bytes="48 8B 41 ? 48 8B 50 ? 8B 8A ? ? ? ? 48 8B 82"},
+            {.name="CAMERA_SMOOTHING_JNZ",   .field=&ResolvedAddresses::camera_smoothing_jnz,   .offset=0x00, .bytes="75 ? 80 7D ? ? 75 ? 48 8B D9"},
             {.name="FPS_SLEEP_BRANCH",       .field=&ResolvedAddresses::fps_sleep_branch,       .offset=0x0E, .bytes="48 89 43 78 0F 84 ? ? ? ? 48 3B 43 70 73"},
             {.name="FPS_FRAME_TIME",         .field=&ResolvedAddresses::fps_frame_time,         .offset=0x1C, .bytes="48 03 F8 48 8B 05 ? ? ? ? F3 48 0F 2A C0 48 85 C0 79 08 F3 0F 58 05 ? ? ? ? F3 0F 59 05"},
         });

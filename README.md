@@ -29,6 +29,7 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 
 - **Controller prompt override** — force PlayStation or Xbox button prompts regardless of connected controller
 - **DualShock 4 v2 fix** — recognize DS4v2 (PID 0x09CC) for correct PlayStation prompts
+- **Camera smoothing toggle** — disable the smoothing applied to look input so the camera tracks the mouse directly
 - **Platform specs fix** — stub DxDiag COM initialization to prevent a startup freeze/deadlock
 - **FPS unlock** — remove or adjust the built-in frame rate cap
 - **Resolution fix** — filter non-standard aspect ratio resolutions (e.g., 4096x2160 / 17:9) from the display mode list
@@ -138,6 +139,7 @@ All settings are in `AC.Syndicate.PatchFix.ini`. Changes are picked up automatic
 | Key          | Default       | Values                  | Description |
 |--------------|---------------|-------------------------| ----------- |
 | `PromptType` | `PlayStation` | `Xbox`, `PlayStation`   | Force controller button prompt type. Useful when Steam Input remapping causes wrong prompts. |
+| `DisableCameraSmoothing` | `true` | `true`, `false` | Disable the camera smoothing applied to look input, so the camera follows the mouse directly instead of lerping toward it. |
 
 #### \[FPS\]
 
@@ -161,6 +163,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `PlatformSpecsFix` | `true`  | Stub DxDiag COM init to prevent startup freeze |
 | `DS4v2Fix`         | `true`  | DualShock 4 v2 controller recognition |
 | `PromptOverride`   | `true`  | Force controller prompt type |
+| `CameraSmoothing`  | `true`  | Camera smoothing disable |
 | `ResolutionFix`    | `true`  | Filter non-standard aspect ratio resolutions |
 | `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
 | `LanguageUnlock`   | `true`  | Language unlock |
@@ -246,6 +249,24 @@ The engine determines button prompt style through `get_active_device_type`, whic
 
 The patch hooks `get_active_device_type` at its entry point. When a controller is active and the hook is enabled, it replaces the return value with the configured prompt type (2 for Xbox, 5 for PlayStation) and skips the rest of the function. This is hot-reloadable and respects the per-hook toggle.
 
+#### Camera Smoothing
+
+The engine lerps the camera toward its target orientation instead of snapping to it, which reads as mouse smoothing. It already has a flag that bypasses this, checked immediately before the interpolation:
+
+```
+mov  rcx, [r13+0xA20]
+cmp  byte [rcx+0x104], 0
+jnz  skip_smoothing        ; patched to jmp
+...
+movss xmm0, [rbx+0xA0]
+call  <lerp>
+movss [rax+0xA0], xmm0
+```
+
+The patch rewrites the `jnz` opcode (`0x75`) to `jmp` (`0xEB`), keeping the same displacement, so the interpolation is always skipped and the camera target is written straight through. Restoring `0x75` re-enables smoothing, which makes the setting hot-reloadable.
+
+The branch was identified by [@lnx00](https://github.com/lnx00) in [game-patches](https://github.com/lnx00/game-patches/blob/master/x64/acs-patches/src/patches/disable_camera_smoothing.rs).
+
 #### Resolution Fix
 
 The game populates its display mode list by calling `ModeList_InsertSorted` for each resolution the display driver reports. Some monitors report non-standard aspect ratios (e.g., 4096x2160 which reduces to 256:135) that the engine doesn't handle correctly, causing rendering artifacts or broken UI.
@@ -306,6 +327,7 @@ Output: `build/bin/AC.Rogue.PatchFix.asi`, `build/bin/AC.Syndicate.PatchFix.asi`
 
 ## Credits
 
+- [**@lnx00**](https://github.com/lnx00) — [game-patches](https://github.com/lnx00/game-patches), source of the Syndicate camera smoothing branch
 - [**@ThirteenAG**](https://github.com/ThirteenAG) — [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader), [Hooking.Patterns](https://github.com/ThirteenAG/Hooking.Patterns)
 - [**@cursey**](https://github.com/cursey) — [safetyhook](https://github.com/cursey/safetyhook)
 - [**@metayeti**](https://github.com/metayeti) — [mINI](https://github.com/metayeti/mINI)
