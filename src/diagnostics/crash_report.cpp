@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <array>
+#include <ranges>
 #include <span>
 #include <string_view>
 
@@ -66,8 +67,7 @@ namespace diagnostics {
 
         void log_stack_trace(std::span<const StackFrame> frames) {
             log().critical("  Stack trace ({} frames):", frames.size());
-            for (std::size_t i = 0; i < frames.size(); ++i) {
-                const auto &frame = frames[i];
+            for (const auto [i, frame] : std::views::enumerate(frames)) {
                 if (frame.module_base != 0) {
                     if (frame.has_symbol) {
                         log().critical("    #{:02d}  {}+0x{:X} ({} +0x{:X})",
@@ -93,11 +93,11 @@ namespace diagnostics {
             auto  format_hex = [](std::span<const std::uint8_t> data) -> std::string {
                 std::string result;
                 result.reserve(data.size() * 3);
-                for (std::size_t i = 0; i < data.size(); ++i) {
+                for (const auto [i, value] : std::views::enumerate(data)) {
                     if (i > 0) {
                         result += ' ';
                     }
-                    auto byte = static_cast<unsigned>(data[i]);
+                    auto byte = static_cast<unsigned>(value);
                     auto hi   = byte >> 4U;
                     auto lo   = byte & 0x0FU;
                     result += static_cast<char>(hi < 10 ? '0' + hi : 'A' + hi - 10);

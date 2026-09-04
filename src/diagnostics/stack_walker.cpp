@@ -1,5 +1,6 @@
 #include "core/diagnostics/stack_walker.hpp"
 
+#include <cstddef>
 #include <cstring>
 
 #include <algorithm>
@@ -10,20 +11,20 @@
 
 namespace diagnostics {
     auto capture_stack(const CONTEXT *ctx, std::span<StackFrame> buf) -> std::span<StackFrame> {
-        CONTEXT     local_ctx {};
-        std::size_t count = 0;
+        CONTEXT local_ctx {};
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
         std::memcpy(&local_ctx, ctx, sizeof(CONTEXT));
 #pragma clang diagnostic pop
 
-        while (count < buf.size()) {
+        auto out = buf.begin();
+        while (out != buf.end()) {
             if (local_ctx.Rip == 0) {
                 break;
             }
 
-            buf[count].address = local_ctx.Rip;
-            count++;
+            out->address = local_ctx.Rip;
+            ++out;
 
             DWORD64 image_base = 0;
             auto   *fn_entry   = RtlLookupFunctionEntry(local_ctx.Rip, &image_base, nullptr);
@@ -42,7 +43,7 @@ namespace diagnostics {
                              &establisher_frame,
                              nullptr);
         }
-        return buf.first(count);
+        return buf.first(static_cast<std::size_t>(out - buf.begin()));
     }
 
     void resolve_modules(std::span<StackFrame> frames) {
@@ -112,11 +113,10 @@ namespace diagnostics {
             if (pSymFromAddr(GetCurrentProcess(), frame.address, &displacement, symbol) != FALSE) {
                 auto name_len = std::char_traits<char>::length(symbol->Name);
                 auto copy_len = std::min(name_len, k_max_sym_len - 1);
-                std::copy_n(symbol->Name, copy_len, frame.symbol_name.data());
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                frame.symbol_name[copy_len] = '\0';
-                frame.symbol_offset         = displacement;
-                frame.has_symbol            = true;
+                auto name_end = std::copy_n(symbol->Name, copy_len, frame.symbol_name.begin());
+                *name_end     = '\0';
+                frame.symbol_offset = displacement;
+                frame.has_symbol    = true;
             }
         }
     }
