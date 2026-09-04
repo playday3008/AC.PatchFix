@@ -5,7 +5,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
 project(AC.PatchFix
     LANGUAGES CXX
-    VERSION 3.1.0
+    VERSION 3.2.0
 )
 
 configure_file(
