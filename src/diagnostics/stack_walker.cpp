@@ -111,12 +111,15 @@ namespace diagnostics {
         for (auto &frame : frames) {
             DWORD64 displacement = 0;
             if (pSymFromAddr(GetCurrentProcess(), frame.address, &displacement, symbol) != FALSE) {
-                auto name_len = std::char_traits<char>::length(symbol->Name);
-                auto copy_len = std::min(name_len, k_max_sym_len - 1);
-                auto name_end = std::copy_n(symbol->Name, copy_len, frame.symbol_name.begin());
-                *name_end     = '\0';
-                frame.symbol_offset = displacement;
-                frame.has_symbol    = true;
+                // SYMBOL_INFO::Name is declared CHAR[1] but is a flexible array member; the
+                // real storage is the k_max_sym_len tail of buf. Decay it explicitly.
+                const auto *name     = static_cast<const char *>(symbol->Name);
+                auto        name_len = std::char_traits<char>::length(name);
+                auto        copy_len = std::min(name_len, k_max_sym_len - 1);
+                auto        name_end = std::copy_n(name, copy_len, frame.symbol_name.begin());
+                *name_end            = '\0';
+                frame.symbol_offset  = displacement;
+                frame.has_symbol     = true;
             }
         }
     }
