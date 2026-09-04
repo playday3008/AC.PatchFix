@@ -19,6 +19,8 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 - **FOV correction** — Vert+ and Hor+ modes with adjustable multiplier
 - **Multi-monitor / triple-screen detection** — configurable threshold and manual override
 - **FPS unlock** — remove the ~64 FPS cap entirely or set a custom target (e.g., 120, 144)
+- **Full display mode list** — every refresh rate the monitor reports is selectable, instead of one entry per resolution collapsed to 60 Hz
+- **Settings menu crash fix** — the display mode lookup is bounds checked, so a saved mode that is no longer in the list no longer faults
 - **UI scaling** — configurable horizontal and vertical stretch to fill pillarbox/letterbox areas
 - **Language unlock** — all languages available regardless of purchase region
 - **UI language override** — force any language independent of system/registry settings
@@ -129,6 +131,8 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `FOVCorrection`    | `true`  | FOV adjustment |
 | `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
 | `LanguageUnlock`   | `true`  | Language unlock and override |
+| `ModeIndexGuard`   | `true`  | Bounds check the display mode index the settings menu reads |
+| `FullModeList`     | `true`  | List every mode the monitor reports instead of one per resolution at 60 Hz |
 
 ### Syndicate
 
@@ -162,7 +166,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 |--------------------|---------| ----------- |
 | `PlatformSpecsFix` | `true`  | Stub DxDiag COM init to prevent startup freeze |
 | `DS4v2Fix`         | `true`  | DualShock 4 v2 controller recognition |
-| `PromptOverride`   | `true`  | Force controller prompt type |
+| `PromptOverride`   | `false` | Force controller prompt type. Off by default because `DS4v2Fix` already handles DS4 detection; enable it when Steam Input remapping interferes. |
 | `CameraSmoothing`  | `true`  | Camera smoothing disable |
 | `ResolutionFix`    | `true`  | Filter non-standard aspect ratio resolutions |
 | `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
@@ -230,6 +234,15 @@ The Hor+ correction uses `atan(0.768 * (16/9) / current_aspect) / atan(0.768)`, 
 The game's frame pacing is controlled by a `FrameTiming` struct that selects between several timing modes: fixed (mode 0), adaptive (1), vsync (2), and averaged (3). The stock game runs in fixed mode, capping at roughly 64 FPS.
 
 To uncap: the patch switches to averaged mode (3) and primes the QPC timestamps so the first frame doesn't compute a nonsensical delta. To set a custom cap: it switches to fixed mode (0) and writes the target FPS directly into the `fixed_rate` field. Both paths are hot-reloadable — changing the INI value re-applies the patch without restarting.
+
+#### Display Mode List
+
+The renderer builds its display mode list by keeping one entry per resolution, preferring whichever mode sits within 1 Hz of 60. On a high refresh rate panel that discards every native refresh entry, and a saved mode whose refresh rate is gone no longer resolves to an index. The settings code stores `-1` for that miss, and the mode getter indexes its array with no bounds check, so the read lands roughly 4 GB past the array and faults.
+
+Two hooks address this:
+
+- **FullModeList** replaces the list builder. It re-enumerates through `IDXGIOutput::GetDisplayModeList` with `DXGI_ENUM_MODES_SCALING`, drops anything below the engine's own 800x600 floor, sorts by width, height and refresh rate so the engine's binary search still works, grows the vector through the game's own reserve routine when needed, and publishes the full set.
+- **ModeIndexGuard** clamps the index passed to the mode getter to the last valid entry, mirroring the clamp the mode setter already performs on the same value. When the list is empty it zeroes the out parameters and returns instead.
 
 ### Syndicate
 
