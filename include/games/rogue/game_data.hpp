@@ -52,6 +52,7 @@ namespace games {
             std::optional<std::uintptr_t> camera_manager_load;
             std::optional<std::uintptr_t> track_weight_site;
             std::optional<std::uintptr_t> camera_interpolate;
+            std::optional<std::uintptr_t> mouse_state_update;
         };
 
         // Builder that fills the display mode list. The reserve site inside it hands
@@ -87,6 +88,7 @@ namespace games {
             {.name="CAMERA_MANAGER_LOAD", .field=&ResolvedAddresses::camera_manager_load,    .offset=0x00,  .bytes="48 8B 05 ? ? ? ? 49 8B F9 49 8B F0 48 8B 58 38"},
             {.name="TRACK_WEIGHT_SITE",   .field=&ResolvedAddresses::track_weight_site,      .offset=0x05,  .bytes="E8 ? ? ? ? 48 8B 43 08 8B 08 0F 28 D0 83 E1 07"},
             {.name="CAMERA_INTERPOLATE",  .field=&ResolvedAddresses::camera_interpolate,     .offset=0x00,  .bytes="44 0F 29 84 24 ? ? ? ? 44 0F 28 C0 E8"},
+            {.name="MOUSE_STATE_UPDATE",  .field=&ResolvedAddresses::mouse_state_update,     .offset=0x01E, .bytes="4C 8D 87 80 21 02 00 48 8D 97 A8 23 02 00 48 8B CF E8 ? ? ? ? 48 8B CF E8 ? ? ? ? 48 8B 5C 24 40 0F 57 F6 48 85 F6"},
         });
         // clang-format on
     };

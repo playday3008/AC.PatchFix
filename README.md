@@ -111,6 +111,12 @@ All settings are in `AC.Rogue.PatchFix.ini`. Changes are picked up automatically
 |----------|---------| ------ | ----------- |
 | `Target` | `0`     | `0` = uncapped, any positive value (e.g., `60`, `120`, `144`) | FPS cap. `0` removes the frame limiter entirely. |
 
+#### \[Input\]
+
+| Key               | Default | Range          | Description |
+|-------------------|---------|----------------| ----------- |
+| `SmoothingFactor` | `0.1`   | `0.02` - `1.0` | Blend coefficient of the engine's look-input lag, cancelled by pre-emphasising the mouse delta. `1.0` = no compensation. Lower until the camera stops when the mouse stops; too low overshoots. Below `0.02` is treated as off. Per-frame value, so retune if the feel changes with `[FPS] Target`. |
+
 #### \[Language\]
 
 | Key          | Default | Values | Description |
@@ -133,6 +139,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `LanguageUnlock`   | `true`  | Language unlock and override |
 | `ModeIndexGuard`   | `true`  | Bounds check the display mode index the settings menu reads |
 | `FullModeList`     | `true`  | List every mode the monitor reports instead of one per resolution at 60 Hz |
+| `MouseSmoothing`   | `true`  | Cancel the look-input lag that keeps the camera drifting after the mouse stops (needs `GameState`) |
 
 ### Syndicate
 
@@ -243,6 +250,14 @@ Two hooks address this:
 
 - **FullModeList** replaces the list builder. It re-enumerates through `IDXGIOutput::GetDisplayModeList` with `DXGI_ENUM_MODES_SCALING`, drops anything below the engine's own 800x600 floor, sorts by width, height and refresh rate so the engine's binary search still works, grows the vector through the game's own reserve routine when needed, and publishes the full set.
 - **ModeIndexGuard** clamps the index passed to the mode getter to the last valid entry, mirroring the clamp the mode setter already performs on the same value. When the list is empty it zeroes the out parameters and returns instead.
+
+#### Mouse Smoothing
+
+Unlike Syndicate, Rogue has no smoothing flag to flip. The mouse delta leaves DirectInput unfiltered, is written raw into the virtual right stick, and reaches the player controller unfiltered; the lag is applied further downstream by the camera's data-driven damping, so there is no constant in the executable to change.
+
+**MouseSmoothing** hooks the input update where the delta is live, after the cursor-mode filter and before the consumers, and pre-emphasises it to invert a first-order lag: feeding `estimate + (raw - estimate) / factor` makes a downstream `state += factor * (input - state)` land on `raw`. When the output has to be clamped, the shortfall is carried into the next frame so the integrated motion still matches the mouse. The hook only runs while `GameState` reports in-game, because menus drive the hardware cursor from the same buffer.
+
+Two caveats. Every consumer of the right stick sees the pre-emphasised delta, not only the camera, so anything without a lag of its own (gesture recognition, the flick detector) receives amplified counts. And `SmoothingFactor` is a per-frame coefficient; if the engine's blend scales with frame time, the value that cancels it changes with frame rate.
 
 ### Syndicate
 
