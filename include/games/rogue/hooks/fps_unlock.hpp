@@ -32,16 +32,20 @@ namespace hooks {
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<games::rogue::GameStateHook>;
 
-        static constexpr auto required_patterns = std::array<PatternField, 1> {
+        static constexpr auto required_patterns = std::array<PatternField, 2> {
             &Addrs::fps_timing_ptr,
+            &Addrs::fps_cap_mulss,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 
         struct Config : config_base<Config> {
             ini_field<float> target {"FPS", "Target", 0.0F};
+            ini_field<int>   timing_mode {"FPS", "TimingMode", -1};
+            ini_field<float> fixed_rate {"FPS", "FixedRate", 0.0F};
 
-            static constexpr std::size_t field_count = 1;
-            static constexpr auto        field_ptrs  = std::tuple {&Config::target};
+            static constexpr std::size_t field_count = 3;
+            static constexpr auto        field_ptrs =
+                std::tuple {&Config::target, &Config::timing_mode, &Config::fixed_rate};
         };
 
         static void on_reload(const Config &cfg);
