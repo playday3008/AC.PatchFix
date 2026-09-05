@@ -48,6 +48,7 @@ namespace games {
             std::optional<std::uintptr_t> mode_get_by_index;
             std::optional<std::uintptr_t> mode_list_build;
             std::optional<std::uintptr_t> mode_list_reserve_site;
+            std::optional<std::uintptr_t> mouse_state_update;
         };
 
         // Builder that fills the display mode list. The reserve site inside it hands
@@ -79,6 +80,7 @@ namespace games {
             {.name="MODE_GET_BY_INDEX",   .field=&ResolvedAddresses::mode_get_by_index,      .offset=0x00,  .bytes="4C 8B 91 08 0A 00 00 6B D2 1C 66 0F EF C9 66 0F EF C0 49 8B 82 A8 01 00 00"},
             {.name="MODE_LIST_BUILD",     .field=&ResolvedAddresses::mode_list_build,        .offset=0x000, .bytes=k_mode_list_build_sig},
             {.name="MODE_LIST_RESERVE",   .field=&ResolvedAddresses::mode_list_reserve_site, .offset=0x304, .bytes=k_mode_list_build_sig},
+            {.name="MOUSE_STATE_UPDATE",  .field=&ResolvedAddresses::mouse_state_update,     .offset=0x01E, .bytes="4C 8D 87 80 21 02 00 48 8D 97 A8 23 02 00 48 8B CF E8 ? ? ? ? 48 8B CF E8 ? ? ? ? 48 8B 5C 24 40 0F 57 F6 48 85 F6"},
         });
         // clang-format on
     };

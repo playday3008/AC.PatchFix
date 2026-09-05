@@ -9,6 +9,7 @@
 #include "games/rogue/hooks/game_state.hpp"
 #include "games/rogue/hooks/language_unlock.hpp"
 #include "games/rogue/hooks/mode_index_guard.hpp"
+#include "games/rogue/hooks/mouse_smoothing.hpp"
 #include "games/rogue/hooks/viewport_fitting.hpp"
 #include "games/rogue/hooks/viewport_scaling.hpp"
 
@@ -21,7 +22,8 @@ namespace games::rogue {
                                       FPSUnlockHook,
                                       LanguageUnlockHook,
                                       ModeIndexGuardHook,
-                                      FullModeListHook>;
+                                      FullModeListHook,
+                                      MouseSmoothingHook>;
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 
