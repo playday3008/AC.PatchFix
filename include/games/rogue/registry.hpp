@@ -2,6 +2,7 @@
 
 #include "core/hooks/registry/registry.hpp"
 
+#include "games/rogue/hooks/camera_lean.hpp"
 #include "games/rogue/hooks/display_detection.hpp"
 #include "games/rogue/hooks/fov_correction.hpp"
 #include "games/rogue/hooks/fps_unlock.hpp"
@@ -21,7 +22,8 @@ namespace games::rogue {
                                       FPSUnlockHook,
                                       LanguageUnlockHook,
                                       ModeIndexGuardHook,
-                                      FullModeListHook>;
+                                      FullModeListHook,
+                                      CameraLeanHook>;
 
     using RogueRegistry = hooks::Registry<AllHooks>;
 
