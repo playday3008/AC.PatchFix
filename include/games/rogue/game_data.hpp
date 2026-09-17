@@ -48,6 +48,9 @@ namespace games {
             std::optional<std::uintptr_t> mode_get_by_index;
             std::optional<std::uintptr_t> mode_list_build;
             std::optional<std::uintptr_t> mode_list_reserve_site;
+            std::optional<std::uintptr_t> camera_manager_load;
+            std::optional<std::uintptr_t> track_weight_site;
+            std::optional<std::uintptr_t> camera_interpolate;
         };
 
         // Builder that fills the display mode list. The reserve site inside it hands
@@ -79,6 +82,9 @@ namespace games {
             {.name="MODE_GET_BY_INDEX",   .field=&ResolvedAddresses::mode_get_by_index,      .offset=0x00,  .bytes="4C 8B 91 08 0A 00 00 6B D2 1C 66 0F EF C9 66 0F EF C0 49 8B 82 A8 01 00 00"},
             {.name="MODE_LIST_BUILD",     .field=&ResolvedAddresses::mode_list_build,        .offset=0x000, .bytes=k_mode_list_build_sig},
             {.name="MODE_LIST_RESERVE",   .field=&ResolvedAddresses::mode_list_reserve_site, .offset=0x304, .bytes=k_mode_list_build_sig},
+            {.name="CAMERA_MANAGER_LOAD", .field=&ResolvedAddresses::camera_manager_load,    .offset=0x00,  .bytes="48 8B 05 ? ? ? ? 49 8B F9 49 8B F0 48 8B 58 38"},
+            {.name="TRACK_WEIGHT_SITE",   .field=&ResolvedAddresses::track_weight_site,      .offset=0x05,  .bytes="E8 ? ? ? ? 48 8B 43 08 8B 08 0F 28 D0 83 E1 07"},
+            {.name="CAMERA_INTERPOLATE",  .field=&ResolvedAddresses::camera_interpolate,     .offset=0x00,  .bytes="44 0F 29 84 24 ? ? ? ? 44 0F 28 C0 E8"},
         });
         // clang-format on
     };
