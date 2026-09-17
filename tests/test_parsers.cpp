@@ -70,6 +70,12 @@ TEST_CASE("clamped_unit_parser clamps to [0, 1]", "[parsers][clamped]") {
     CHECK(clamped_unit_parser {}("1.0") == Catch::Approx(1.0F));
 }
 
+TEST_CASE("clamped_unit_parser rejects non-finite input", "[parsers][clamped]") {
+    CHECK(clamped_unit_parser {}("nan") == Catch::Approx(0.0F));
+    CHECK(clamped_unit_parser {}("inf") == Catch::Approx(0.0F));
+    CHECK(clamped_unit_parser {}("-inf") == Catch::Approx(0.0F));
+}
+
 namespace {
     // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class Color : std::uint8_t {
