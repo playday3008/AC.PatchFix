@@ -32,8 +32,9 @@ namespace hooks {
         using hard_deps = dep_list<>;
         using soft_deps = dep_list<games::rogue::GameStateHook>;
 
-        static constexpr auto required_patterns = std::array<PatternField, 1> {
+        static constexpr auto required_patterns = std::array<PatternField, 2> {
             &Addrs::fps_timing_ptr,
+            &Addrs::fps_cap_mulss,
         };
         static constexpr auto optional_patterns = std::array<PatternField, 0> {};
 

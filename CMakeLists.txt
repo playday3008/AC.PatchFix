@@ -61,6 +61,7 @@ add_library(AC.PatchFix.Core OBJECT
     src/vmp/integrity_bypass.cpp
     src/vmp/pe_sections.cpp
     src/win32/pe.cpp
+    src/win32/timer_resolution.cpp
     src/diagnostics/stack_walker.cpp
     src/diagnostics/crash_report.cpp
     src/diagnostics/minidump.cpp
@@ -79,6 +80,7 @@ target_link_libraries(AC.PatchFix.Core PUBLIC
     HookingPatterns
     mINI
     spdlog::spdlog_header_only
+    winmm
 )
 target_compile_definitions(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
 target_compile_options(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_OPTIONS})

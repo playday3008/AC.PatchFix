@@ -10,6 +10,7 @@
 #include "core/diagnostics/crash_handler.hpp"
 #include "core/diagnostics/crash_journal.hpp"
 #include "core/vmp/integrity_bypass.hpp"
+#include "core/win32/timer_resolution.hpp"
 
 #include "games/game_init.hpp"
 
@@ -43,6 +44,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*unused*/) {
         watcher().reset();
         g_init_thread.reset();
         vmp::uninstall();
+        win32::restore_timer_resolution();
         diagnostics::crash_journal::write_session_clean();
         diagnostics::crash_journal::close();
         diagnostics::uninstall_veh();
