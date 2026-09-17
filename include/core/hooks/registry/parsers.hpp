@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cctype>
+#include <cmath>
 #include <cstddef>
 
 #include <algorithm>
@@ -116,7 +117,9 @@ namespace hooks {
 
     struct clamped_unit_parser {
         [[maybe_unused]] static auto operator()(const std::string &s) -> float {
-            return std::clamp(default_parser<float> {}(s), 0.0F, 1.0F);
+            // from_chars accepts "nan" and "inf"; clamp would pass NaN through.
+            const float v = default_parser<float> {}(s);
+            return std::isfinite(v) ? std::clamp(v, 0.0F, 1.0F) : 0.0F;
         }
     };
 } // namespace hooks
