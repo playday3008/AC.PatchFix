@@ -162,15 +162,16 @@ namespace hooks {
                     .load_config = [](Registry<HookList> &r, mINI::INIStructure &ini) -> void {
                         r.template config<Tag>().load_all(ini);
                     },
+                    // Hooks default to enabled, so an absent [Hooks] section or a
+                    // deleted key restores that rather than freezing the value the
+                    // key had before it was removed.
                     .load_enabled = [](Registry<HookList> &r, mINI::INIStructure &ini) -> void {
-                        if (!ini.has("Hooks")) {
+                        std::string key(HookTraits<Tag>::name);
+                        if (ini.has("Hooks") && ini["Hooks"].has(key)) {
+                            r.template set_enabled<Tag>(default_parser<bool> {}(ini["Hooks"][key]));
                             return;
                         }
-                        auto       &sec = ini["Hooks"];
-                        std::string key(HookTraits<Tag>::name);
-                        if (sec.has(key)) {
-                            r.template set_enabled<Tag>(default_parser<bool> {}(sec[key]));
-                        }
+                        r.template set_enabled<Tag>(true);
                     },
 
                     .check_required_fn = []() -> bool (*)(const void *) {
@@ -240,6 +241,19 @@ namespace hooks {
                 }
             }
 
+            // The first hard dependency of `op` that did not end up installed, or
+            // null when every one of them did.
+            static auto first_unmet_hard_dep(const Registry<HookList>     &reg,
+                                             const std::array<HookOps, N> &ops,
+                                             const HookOps                &op) -> const HookOps                *{
+                for (auto dep : op.hard_deps) {
+                    if (!ops.at(dep).is_installed(reg)) {
+                        return &ops.at(dep);
+                    }
+                }
+                return nullptr;
+            }
+
             static void
                 cascade_disable(const std::array<HookOps, N> &ops, std::array<bool, N> &enabled) {
                 bool changed = true;
@@ -284,6 +298,7 @@ namespace hooks {
         log::get()->trace("install_all: installing in dependency order");
 
         int installed_count = 0;
+        int enabled_count   = 0;
         for (auto idx : Ops::install_order) {
             const auto &op = ops.at(idx);
 
@@ -291,9 +306,23 @@ namespace hooks {
                 log::get()->info("Hook '{}': disabled", op.name);
                 continue;
             }
+            ++enabled_count;
+
+            // The install order is topological, so a hard dependency has already
+            // had its turn by now. cascade_disable only propagates config-driven
+            // disables; a dependency whose patterns were missing or whose install
+            // failed leaves dependents to run against state nothing maintains.
+            if (const auto *unmet = Ops::first_unmet_hard_dep(*this, ops, op)) {
+                log::get()->warn("Hook '{}': skipped (hard dependency '{}' is not installed)",
+                                 op.name,
+                                 unmet->name);
+                op.set_enabled(*this, false);
+                continue;
+            }
 
             if (!op.check_required_fn(&addrs)) {
                 log::get()->warn("Hook '{}': missing required patterns, skipping", op.name);
+                op.set_enabled(*this, false);
                 continue;
             }
 
@@ -305,11 +334,15 @@ namespace hooks {
                 ++installed_count;
             } else {
                 log::get()->warn("Hook '{}': install failed", op.name);
+                op.set_enabled(*this, false);
             }
             diagnostics::set_current_hook_name({});
         }
 
-        log::get()->info("Initialization complete: {}/{} hooks installed", installed_count, Ops::N);
+        log::get()->info("Initialization complete: {}/{} enabled hooks installed ({} total)",
+                         installed_count,
+                         enabled_count,
+                         Ops::N);
     }
 
     template<typename HookList>

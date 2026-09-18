@@ -15,7 +15,8 @@ namespace hooks {
         struct HookState {
             HookTraits<Tag>::Config config;
             std::atomic<bool>       enabled {true};
-            bool                    installed {false};
+            // Written on the init thread, read on the watcher thread during reload.
+            std::atomic<bool> installed {false};
         };
 
         template<typename List>
@@ -58,12 +59,14 @@ namespace hooks {
 
         template<typename Tag>
         void set_installed(bool val) {
-            std::get<detail::HookState<Tag>>(states_).installed = val;
+            std::get<detail::HookState<Tag>>(states_).installed.store(val,
+                                                                      std::memory_order_relaxed);
         }
 
         template<typename Tag>
         [[nodiscard]] auto installed() const -> bool {
-            return std::get<detail::HookState<Tag>>(states_).installed;
+            return std::get<detail::HookState<Tag>>(states_).installed.load(
+                std::memory_order_relaxed);
         }
     };
 } // namespace hooks
