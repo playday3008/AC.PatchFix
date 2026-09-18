@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 #include <Windows.h>
@@ -25,5 +26,5 @@ namespace vmp::detail {
         }
     };
 
-    auto find_vmp_sections(HMODULE hModule) -> VmpSections;
+    auto find_vmp_sections(HMODULE hModule, std::string_view vmp_prefix) -> VmpSections;
 } // namespace vmp::detail

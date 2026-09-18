@@ -1,11 +1,12 @@
 #pragma once
 
 #include <stop_token>
+#include <string_view>
 
 #include <Windows.h>
 
 namespace vmp {
-    [[nodiscard]] auto install(HMODULE game_module) -> bool;
+    [[nodiscard]] auto install(HMODULE game_module, std::string_view vmp_section_prefix) -> bool;
 
     [[nodiscard]] auto active() -> bool;
 

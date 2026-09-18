@@ -27,14 +27,14 @@ namespace games {
         typename game_data<G>::ResolvedAddresses;
     };
 
+    // A packed game must declare the section-name prefix its packer emits, so
+    // the bypass never has to guess which sections belong to the packer. A
+    // `vmprotect` declared without it reads as not-packed here, which the
+    // static_assert beside the game's own declaration turns into a hard error.
     template<typename G>
     concept HasVmprotect = requires {
         { game_data<G>::vmprotect } -> std::convertible_to<bool>;
-    };
-
-    template<typename G>
-    concept HasIntegritySection = requires {
-        { game_data<G>::integrity_section } -> std::convertible_to<std::string_view>;
+        { game_data<G>::vmp_section_prefix } -> std::convertible_to<std::string_view>;
     };
 
     template<typename G>
@@ -43,15 +43,6 @@ namespace games {
             return game_data<G>::vmprotect;
         } else {
             return false;
-        }
-    }();
-
-    template<typename G>
-    inline constexpr std::string_view game_integrity_section = [] -> std::string_view {
-        if constexpr (HasIntegritySection<G>) {
-            return game_data<G>::integrity_section;
-        } else {
-            return {};
         }
     }();
 } // namespace games

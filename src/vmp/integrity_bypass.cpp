@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <stop_token>
+#include <string_view>
 #include <thread>
 #include <utility>
 
@@ -59,8 +60,8 @@ namespace vmp {
         return g_active.load(std::memory_order_acquire);
     }
 
-    auto install(HMODULE game_module) -> bool {
-        g_sections = detail::find_vmp_sections(game_module);
+    auto install(HMODULE game_module, std::string_view vmp_section_prefix) -> bool {
+        g_sections = detail::find_vmp_sections(game_module, vmp_section_prefix);
 
         if (!g_sections.has_vmp()) {
             return false;

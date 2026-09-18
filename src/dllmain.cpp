@@ -39,11 +39,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
         DisableThreadLibraryCalls(hModule);
         diagnostics::register_plugin_module(hModule);
         diagnostics::install_veh();
-        g_init_thread =
-            std::make_unique<std::jthread>([hModule](const std::stop_token &stop) -> void {
-                (void)vmp::install(GetModuleHandleW(nullptr));
-                game_init(hModule, stop);
-            });
+        g_init_thread = std::make_unique<std::jthread>(
+            [hModule](const std::stop_token &stop) -> void { game_init(hModule, stop); });
     } else if (reason == DLL_PROCESS_DETACH) {
         // Neither thread may be joined here. DllMain runs under the loader lock,
         // and both the init thread (LoadLibraryA for dbghelp) and the watcher
