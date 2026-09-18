@@ -22,6 +22,7 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 - **Full display mode list** — every refresh rate the monitor reports is selectable, instead of one entry per resolution collapsed to 60 Hz
 - **Settings menu crash fix** — the display mode lookup is bounds checked, so a saved mode that is no longer in the list no longer faults
 - **UI scaling** — configurable horizontal and vertical stretch to fill pillarbox/letterbox areas
+- **Sprint camera lean fix** — the lean is scaled by frame time, so it no longer over-rolls at high frame rates
 - **Language unlock** — all languages available regardless of purchase region
 - **UI language override** — force any language independent of system/registry settings
 - **Hot-reload** — edit the INI file while the game is running, changes apply immediately
@@ -34,7 +35,7 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 - **Camera smoothing toggle** — disable the smoothing applied to look input so the camera tracks the mouse directly
 - **Platform specs fix** — stub DxDiag COM initialization to prevent a startup freeze/deadlock
 - **FPS unlock** — remove or adjust the built-in frame rate cap
-- **Resolution fix** — filter non-standard aspect ratio resolutions (e.g., 4096x2160 / 17:9) from the display mode list
+- **Resolution fix** — filter non-standard aspect ratio resolutions (e.g., 4096x2160 / 256:135) from the display mode list
 - **Language unlock** — all languages available regardless of purchase region
 - **Hot-reload** — edit the INI file while the game is running, changes apply immediately
 - **Per-hook toggles** — enable or disable individual fixes at runtime
@@ -59,7 +60,7 @@ An ASI loader is required. Install one of the following into the game directory:
 
 ### Steps
 
-1. Download the [latest release](https://github.com/playday3008/AC.Rogue-PatchFix/releases)
+1. Download the [latest release](https://github.com/playday3008/AC.PatchFix/releases)
 2. Place the `.asi` and `.ini` files for your game into `<path-to-game>/plugins/`
    - Rogue: `AC.Rogue.PatchFix.asi` + `AC.Rogue.PatchFix.ini`
    - Syndicate: `AC.Syndicate.PatchFix.asi` + `AC.Syndicate.PatchFix.ini`
@@ -111,6 +112,12 @@ All settings are in `AC.Rogue.PatchFix.ini`. Changes are picked up automatically
 |----------|---------| ------ | ----------- |
 | `Target` | `0`     | `0` = uncapped, any positive value (e.g., `60`, `120`, `144`) | FPS cap. `0` removes the frame limiter entirely. |
 
+#### \[CameraLean\]
+
+| Key            | Default | Values | Description |
+|----------------|---------| ------ | ----------- |
+| `ReferenceFPS` | `30`    | `0` = no lean, any positive value | Frame rate the sprint camera lean was tuned for. The game adds the lean once per frame with no time step, so above this rate the camera over-rolls before snapping back. At this value the fix changes nothing; the game shipped capped at 30. |
+
 #### \[Input\]
 
 | Key               | Default | Range          | Description |
@@ -121,7 +128,7 @@ All settings are in `AC.Rogue.PatchFix.ini`. Changes are picked up automatically
 
 | Key          | Default | Values | Description |
 |--------------|---------| ------ | ----------- |
-| `UnlockAll`  | `false` | `true`, `false` | Make all languages available regardless of purchase region. Requires language data files to be present. |
+| `UnlockAll`  | `false` (shipped INI sets `true`) | `true`, `false` | Make all languages available regardless of purchase region. Requires language data files to be present. |
 | `UILanguage` | `None`  | `None`, `English`, `French`, `Spanish`, `Polish`, `German`, `ChineseTrad`, `Hungarian`, `Italian`, `Japanese`, `Czech`, `Korean`, `Russian`, `Dutch`, `Danish`, `Norwegian`, `Swedish`, `Portuguese`, `Brazil`, `Finnish`, `Arabic`, `Mexican`, or index `1`-`21` | Override UI language. |
 
 #### \[Hooks\]
@@ -139,6 +146,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `LanguageUnlock`   | `true`  | Language unlock and override |
 | `ModeIndexGuard`   | `true`  | Bounds check the display mode index the settings menu reads |
 | `FullModeList`     | `true`  | List every mode the monitor reports instead of one per resolution at 60 Hz |
+| `CameraLean`       | `true`  | Scale the sprint camera lean by frame time so it does not over-roll at high frame rates |
 | `MouseSmoothing`   | `true`  | Cancel the look-input lag that keeps the camera drifting after the mouse stops (needs `GameState`) |
 
 ### Syndicate
@@ -162,7 +170,7 @@ All settings are in `AC.Syndicate.PatchFix.ini`. Changes are picked up automatic
 
 | Key          | Default | Values | Description |
 |--------------|---------| ------ | ----------- |
-| `UnlockAll`  | `false` | `true`, `false` | Make all languages available regardless of purchase region. Requires language data files to be present. |
+| `UnlockAll`  | `false` (shipped INI sets `true`) | `true`, `false` | Make all languages available regardless of purchase region. Requires language data files to be present. |
 | `IncludeLocTest` | `false` | `true`, `false` | Include the internal LocTest language in the unlock list. Only useful for development/testing. |
 
 #### \[Hooks\]
@@ -238,9 +246,11 @@ The Hor+ correction uses `atan(0.768 * (16/9) / current_aspect) / atan(0.768)`, 
 
 #### FPS Unlock
 
-The game's frame pacing is controlled by a `FrameTiming` struct that selects between several timing modes: fixed (mode 0), adaptive (1), vsync (2), and averaged (3). The stock game runs in fixed mode, capping at roughly 64 FPS.
+The game's frame pacing is controlled by a `FrameTiming` struct that selects between several timing modes: fixed (mode 0), adaptive (1), vsync (2), and averaged (3). The engine's constructor selects vsync mode and nothing writes the field afterwards.
 
-To uncap: the patch switches to averaged mode (3) and primes the QPC timestamps so the first frame doesn't compute a nonsensical delta. To set a custom cap: it switches to fixed mode (0) and writes the target FPS directly into the `fixed_rate` field. Both paths are hot-reloadable — changing the INI value re-applies the patch without restarting.
+In vsync mode the frame deadline is `current_time + trunc(ticks_per_ms * period)`, where `period` is a millisecond constant read by a `mulss` inside `UpdateFrameTiming`. That constant has a single reference in the binary, so the patch retunes it rather than changing the timing mode: `1000 / target` for a custom cap, or zero to uncap, which leaves the deadline at "now" so the wait loop never waits. The pending deadline is cleared alongside it, since it was computed from the previous period and would otherwise stall the loop once.
+
+Capping also raises the process timer resolution to 1 ms so the engine's own frame wait can pace accurately; the game never does this itself. Uncapped there is no wait at all, so the resolution is left alone. Both paths are hot-reloadable — changing the INI value re-applies the patch without restarting.
 
 #### Display Mode List
 
@@ -351,7 +361,7 @@ cmake --preset wine-x64
 cmake --build --preset wine-x64-release
 ```
 
-Output: `build/bin/AC.Rogue.PatchFix.asi`, `build/bin/AC.Syndicate.PatchFix.asi`
+Output: `build/bin/Release/AC.Rogue.PatchFix.asi`, `build/bin/Release/AC.Syndicate.PatchFix.asi`
 
 ## Credits
 
