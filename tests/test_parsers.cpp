@@ -44,6 +44,30 @@ TEST_CASE("default_parser<float> empty/invalid returns 0", "[parsers][float]") {
     CHECK(default_parser<float> {}("abc") == Catch::Approx(0.0F));
 }
 
+// from_chars accepts "nan" and "inf". Both reach the FOV multiplier and the frame
+// pacer unfiltered, where NaN survives std::max and every ordered comparison.
+TEST_CASE("default_parser<float> rejects non-finite input", "[parsers][float]") {
+    CHECK(default_parser<float> {}("nan") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("NaN") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("inf") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("-inf") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("infinity") == Catch::Approx(0.0F));
+}
+
+// A partial parse silently drops the rest: "1,5" became 1 and "60fps" became 60,
+// so a typo changed the setting instead of falling back.
+TEST_CASE("default_parser<float> rejects trailing garbage", "[parsers][float]") {
+    CHECK(default_parser<float> {}("1,5") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("60fps") == Catch::Approx(0.0F));
+    CHECK(default_parser<float> {}("1.5x") == Catch::Approx(0.0F));
+}
+
+TEST_CASE("default_parser<float> tolerates surrounding whitespace", "[parsers][float]") {
+    CHECK(default_parser<float> {}(" 1.5") == Catch::Approx(1.5F));
+    CHECK(default_parser<float> {}("1.5 ") == Catch::Approx(1.5F));
+    CHECK(default_parser<float> {}("  -2.5\t") == Catch::Approx(-2.5F));
+}
+
 TEST_CASE("ratio_parser colon format", "[parsers][ratio]") {
     float result = ratio_parser {}("16:9");
     CHECK(result == Catch::Approx(16.0F / 9.0F));
@@ -74,6 +98,17 @@ TEST_CASE("clamped_unit_parser rejects non-finite input", "[parsers][clamped]") 
     CHECK(clamped_unit_parser {}("nan") == Catch::Approx(0.0F));
     CHECK(clamped_unit_parser {}("inf") == Catch::Approx(0.0F));
     CHECK(clamped_unit_parser {}("-inf") == Catch::Approx(0.0F));
+}
+
+TEST_CASE("ratio_parser rejects malformed components", "[parsers][ratio]") {
+    CHECK(ratio_parser {}("16:9x") == Catch::Approx(0.0F));
+    CHECK(ratio_parser {}("abc:9") == Catch::Approx(0.0F));
+    CHECK(ratio_parser {}("nan") == Catch::Approx(0.0F));
+    CHECK(ratio_parser {}("2.333junk") == Catch::Approx(0.0F));
+}
+
+TEST_CASE("ratio_parser tolerates spaces around the colon", "[parsers][ratio]") {
+    CHECK(ratio_parser {}("21 : 9") == Catch::Approx(21.0F / 9.0F));
 }
 
 namespace {
@@ -107,6 +142,17 @@ TEST_CASE("parse_enum integer path with _count bounds", "[parsers][enum]") {
     CHECK(detail::parse_enum<Color>(std::string("2"), table, Color::Red) == Color::Blue);
     CHECK(detail::parse_enum<Color>(std::string("99"), table, Color::Red) == Color::Red);
     CHECK(detail::parse_enum<Color>(std::string("-1"), table, Color::Red) == Color::Red);
+}
+
+// "1abc" parsed as enumerator 1 because only the error code was consulted.
+TEST_CASE("parse_enum rejects trailing garbage on the integer path", "[parsers][enum]") {
+    constexpr auto table = std::to_array<std::pair<std::string_view, Color>>({
+        {"red", Color::Red},
+        {"green", Color::Green},
+        {"blue", Color::Blue},
+    });
+    CHECK(detail::parse_enum<Color>(std::string("1abc"), table, Color::Blue) == Color::Blue);
+    CHECK(detail::parse_enum<Color>(std::string("2 3"), table, Color::Blue) == Color::Blue);
 }
 
 TEST_CASE("parse_enum invalid string returns fallback", "[parsers][enum]") {

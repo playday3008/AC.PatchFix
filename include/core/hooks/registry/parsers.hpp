@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <charconv>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -21,7 +22,42 @@ namespace hooks {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
             return std::from_chars(sv.data(), sv.data() + sv.size(), value);
         }
+
+        // True when from_chars consumed the whole view, not just a valid prefix.
+        inline auto consumed_all(std::string_view sv, const char *end) -> bool {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            return end == sv.data() + sv.size();
+        }
 #pragma clang diagnostic pop
+
+        inline auto trim(std::string_view sv) -> std::string_view {
+            const auto is_space = [](char c) -> bool {
+                return std::isspace(static_cast<unsigned char>(c)) != 0;
+            };
+            while (!sv.empty() && is_space(sv.front())) {
+                sv.remove_prefix(1);
+            }
+            while (!sv.empty() && is_space(sv.back())) {
+                sv.remove_suffix(1);
+            }
+            return sv;
+        }
+
+        // from_chars reports success on a partial parse and happily yields nan/inf,
+        // both of which propagate into the camera and the frame pacer. Require the
+        // whole (trimmed) string to be consumed and the result to be finite.
+        inline auto parse_finite(std::string_view sv) -> std::optional<float> {
+            sv = trim(sv);
+            if (sv.empty()) {
+                return std::nullopt;
+            }
+            float val      = 0.0F;
+            auto [ptr, ec] = sv_from_chars(sv, val);
+            if (ec != std::errc {} || !consumed_all(sv, ptr) || !std::isfinite(val)) {
+                return std::nullopt;
+            }
+            return val;
+        }
 
         inline auto ascii_iequal(std::string_view a, std::string_view b) -> bool {
             return std::ranges::equal(a, b, [](char x, char y) -> bool {
@@ -39,9 +75,10 @@ namespace hooks {
                     return val;
                 }
             }
-            int raw        = 0;
-            auto [ptr, ec] = sv_from_chars(s, raw);
-            if (ec == std::errc {}) {
+            const std::string_view num = trim(s);
+            int                    raw = 0;
+            auto [ptr, ec]             = sv_from_chars(num, raw);
+            if (ec == std::errc {} && consumed_all(num, ptr)) {
                 if constexpr (requires { E::_count; }) {
                     if (raw < 0 || raw >= static_cast<int>(std::to_underlying(E::_count))) {
                         return fallback;
@@ -59,9 +96,7 @@ namespace hooks {
     template<>
     struct default_parser<float> {
         [[maybe_unused]] static auto operator()(const std::string &s) -> float {
-            float val = 0.0F;
-            detail::sv_from_chars(s, val);
-            return val;
+            return detail::parse_finite(s).value_or(0.0F);
         }
     };
 
@@ -103,23 +138,20 @@ namespace hooks {
             }
             auto colon = str.find(':');
             if (colon != std::string_view::npos) {
-                float w = 0.0F;
-                float h = 0.0F;
-                detail::sv_from_chars(str.substr(0, colon), w);
-                detail::sv_from_chars(str.substr(colon + 1), h);
-                return (h > 0.0F) ? w / h : 0.0F;
+                const auto w = detail::parse_finite(str.substr(0, colon));
+                const auto h = detail::parse_finite(str.substr(colon + 1));
+                if (!w || !h || *h <= 0.0F) {
+                    return 0.0F;
+                }
+                return *w / *h;
             }
-            float val = 0.0F;
-            detail::sv_from_chars(str, val);
-            return val;
+            return detail::parse_finite(str).value_or(0.0F);
         }
     };
 
     struct clamped_unit_parser {
         [[maybe_unused]] static auto operator()(const std::string &s) -> float {
-            // from_chars accepts "nan" and "inf"; clamp would pass NaN through.
-            const float v = default_parser<float> {}(s);
-            return std::isfinite(v) ? std::clamp(v, 0.0F, 1.0F) : 0.0F;
+            return std::clamp(default_parser<float> {}(s), 0.0F, 1.0F);
         }
     };
 } // namespace hooks
