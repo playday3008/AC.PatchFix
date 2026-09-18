@@ -327,10 +327,15 @@ namespace hooks {
 
         Ops::apply_enabled_flags(*this, ops, ini);
 
+        // on_reload runs on the watcher thread, where the hook-name context is
+        // unset, so any byte it patches would go unrecorded in the patch registry
+        // and a later fault there would be reported as unattributed.
         for (const auto &op : ops) {
             if (op.is_installed(*this) && op.is_enabled(*this)) {
                 log::get()->trace("reload: calling on_reload for '{}'", op.name);
+                diagnostics::set_current_hook_name(op.name);
                 op.call_on_reload(*this);
+                diagnostics::set_current_hook_name({});
             }
         }
 
