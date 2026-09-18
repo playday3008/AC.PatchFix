@@ -47,6 +47,7 @@ All games include a built-in diagnostics subsystem:
 - **Crash reports** with stack traces written to the game directory
 - **Minidump generation** for detailed post-mortem analysis
 - **Crash journal** tracking hook installation state at time of failure
+- **Debugger attach** — VMProtect's `ntdll!DbgUiRemoteBreakin` kill-stub is restored at startup, so debuggers attach normally instead of terminating the game
 
 If you experience a crash, check the game directory for `.log`, `.journal` and `.dmp` (if present) files and include them in bug reports.
 
