@@ -29,22 +29,36 @@ namespace hooks {
 
         std::array<std::uint8_t, k_flag_gate_len> g_original_flag_gate {};
 
+        // The three writes are independent patch sites. Short-circuiting on the
+        // first failure would leave a mix of the capped and uncapped states, which
+        // is a configuration neither path intends, so each is attempted regardless.
         void apply_fps_patch(float target) {
             target = std::max(target, 0.0F);
 
-            if (target < k_min_fps) {
-                if (!mem::write(g_flag_gate_addr, g_original_flag_gate.data(), k_flag_gate_len) ||
-                    !mem::write<std::uint8_t>(g_sleep_branch_addr, k_jmp_opcode) ||
-                    !mem::write<float>(g_frame_time_addr, g_original_frame_time)) {
-                    log::get()->error("FPSUnlockHook: failed to write uncap patch");
-                }
+            const bool uncap = target < k_min_fps;
+
+            const bool gate_ok =
+                uncap ? mem::write(g_flag_gate_addr, g_original_flag_gate.data(), k_flag_gate_len)
+                      : mem::nop(g_flag_gate_addr, k_flag_gate_len);
+            const bool branch_ok =
+                mem::write<std::uint8_t>(g_sleep_branch_addr, uncap ? k_jmp_opcode : k_jnb_opcode);
+            const bool time_ok =
+                mem::write<float>(g_frame_time_addr,
+                                  uncap ? g_original_frame_time : 1000.0F / target);
+
+            if (!gate_ok || !branch_ok || !time_ok) {
+                log::get()->error("FPSUnlockHook: failed to write {} patch "
+                                  "(flag gate {}, sleep branch {}, frame time {})",
+                                  uncap ? "uncap" : "cap",
+                                  gate_ok ? "ok" : "FAILED",
+                                  branch_ok ? "ok" : "FAILED",
+                                  time_ok ? "ok" : "FAILED");
+                return;
+            }
+
+            if (uncap) {
                 log::get()->trace("FPSUnlockHook: uncapped (restored flag gate)");
             } else {
-                if (!mem::nop(g_flag_gate_addr, k_flag_gate_len) ||
-                    !mem::write<std::uint8_t>(g_sleep_branch_addr, k_jnb_opcode) ||
-                    !mem::write<float>(g_frame_time_addr, 1000.0F / target)) {
-                    log::get()->error("FPSUnlockHook: failed to write cap patch");
-                }
                 log::get()->trace("FPSUnlockHook: capped to {:.1f} FPS ({:.4f} ms)",
                                   target,
                                   1000.0F / target);

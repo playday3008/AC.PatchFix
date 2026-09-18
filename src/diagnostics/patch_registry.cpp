@@ -1,6 +1,7 @@
 #include "core/diagnostics/patch_registry.hpp"
 
 #include <algorithm>
+#include <optional>
 #include <shared_mutex>
 #include <vector>
 
@@ -31,27 +32,35 @@ namespace diagnostics::patch_registry {
 
         const std::unique_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::lower_bound(g_patches, base, {}, &PatchEntry::base);
+
+        // Keep the first record for an address. A reload rewrites the same site
+        // repeatedly, and re-registering would both record the already-patched
+        // bytes as the "original" and grow the vector without bound.
+        if (it != g_patches.end() && it->base == base) {
+            return;
+        }
+
         g_patches.insert(it, entry);
     }
 
-    auto find_patch(std::uintptr_t addr) -> const PatchEntry * {
+    auto find_patch(std::uintptr_t addr) -> std::optional<PatchEntry> {
         const std::shared_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::upper_bound(g_patches, addr, {}, &PatchEntry::base);
         if (it != g_patches.begin()) {
             --it;
             if (addr >= it->base && addr < it->base + it->size) {
-                return &*it;
+                return *it;
             }
         }
-        return nullptr;
+        return std::nullopt;
     }
 
-    auto find_nearby(std::uintptr_t addr, std::size_t threshold) -> const PatchEntry * {
+    auto find_nearby(std::uintptr_t addr, std::size_t threshold) -> std::optional<PatchEntry> {
         const std::shared_lock<std::shared_mutex> lock(g_mutex);
         auto it = std::ranges::lower_bound(g_patches, addr, {}, &PatchEntry::base);
 
-        const PatchEntry *best      = nullptr;
-        std::size_t       best_dist = threshold + 1;
+        std::optional<PatchEntry> best;
+        std::size_t               best_dist = threshold + 1;
 
         if (it != g_patches.begin()) {
             auto prev     = std::prev(it);
@@ -60,17 +69,15 @@ namespace diagnostics::patch_registry {
                 auto dist = addr - past_end;
                 if (dist < best_dist) {
                     best_dist = dist;
-                    best      = &*prev;
+                    best      = *prev;
                 }
             }
         }
 
-        if (it != g_patches.end()) {
-            if (it->base > addr) {
-                auto dist = it->base - addr;
-                if (dist < best_dist) {
-                    best = &*it;
-                }
+        if (it != g_patches.end() && it->base > addr) {
+            auto dist = it->base - addr;
+            if (dist < best_dist) {
+                best = *it;
             }
         }
 

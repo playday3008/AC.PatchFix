@@ -15,7 +15,8 @@ namespace hooks {
         struct HookState {
             HookTraits<Tag>::Config config;
             std::atomic<bool>       enabled {true};
-            bool                    installed {false};
+            // Written on the init thread, read on the watcher thread during reload.
+            std::atomic<bool> installed {false};
         };
 
         template<typename List>
@@ -35,8 +36,11 @@ namespace hooks {
       public:
         using hook_list_type = HookList;
 
-        template<typename Addrs>
-        void install_all(const Addrs &addrs, mINI::INIStructure &ini);
+        // Takes the whole game_data rather than just ResolvedAddresses: the
+        // scan entries are what map a pattern member pointer back to the
+        // signature name, which is the only thing worth printing to a user.
+        template<typename Data>
+        void install_all(const typename Data::ResolvedAddresses &addrs, mINI::INIStructure &ini);
 
         void reload(mINI::INIStructure &ini);
 
@@ -58,12 +62,14 @@ namespace hooks {
 
         template<typename Tag>
         void set_installed(bool val) {
-            std::get<detail::HookState<Tag>>(states_).installed = val;
+            std::get<detail::HookState<Tag>>(states_).installed.store(val,
+                                                                      std::memory_order_relaxed);
         }
 
         template<typename Tag>
         [[nodiscard]] auto installed() const -> bool {
-            return std::get<detail::HookState<Tag>>(states_).installed;
+            return std::get<detail::HookState<Tag>>(states_).installed.load(
+                std::memory_order_relaxed);
         }
     };
 } // namespace hooks

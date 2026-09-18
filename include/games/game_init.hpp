@@ -35,6 +35,13 @@ void init_game(Registry                    &registry,
     using Addrs = Data::ResolvedAddresses;
 
     if constexpr (games::game_is_vmprotect<G>) {
+        // Arming happens here rather than in DllMain so it is scoped to the game
+        // this plugin actually matched. The packer needs seconds to unpack and
+        // spawn its integrity thread, so the few milliseconds spent reaching this
+        // point cost nothing against that window.
+        if (!vmp::install(GetModuleHandleW(nullptr), Data::vmp_section_prefix)) {
+            log::get()->warn("VMP bypass install failed, patches may not stick");
+        }
         mem::set_protect_method(mem::ProtectMethod::nt_protect);
         vmp::wait_for_unpack(stop);
         vmp::wait_for_integrity_blocked(stop);
@@ -83,7 +90,7 @@ void init_game(Registry                    &registry,
     log::get()->info("Pattern scan: {}", all_found ? "all found" : "some missing");
 
     try {
-        registry.install_all(addrs, ini);
+        registry.template install_all<Data>(addrs, ini);
     } catch (const std::exception &e) {
         log::get()->critical("install_all failed: {}", e.what());
         return;

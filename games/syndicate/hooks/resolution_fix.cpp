@@ -45,9 +45,10 @@ namespace hooks {
                     log::get()->trace("ResolutionFixHook: filtered {}x{}",
                                       entry->width,
                                       entry->height);
-                    auto ret_addr       = *reinterpret_cast<std::uintptr_t *>(regs.rsp);
-                    regs.rip            = ret_addr;
-                    regs.trampoline_rsp = regs.rsp + 8;
+                    // The mid hook stub resumes with `mov rsp, trampoline_rsp; ret`, so
+                    // pointing it at the entry rsp returns to the caller and pops the
+                    // return address exactly as the original epilogue would.
+                    regs.trampoline_rsp = regs.rsp;
                 }
             }
         };

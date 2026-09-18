@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <array>
+#include <optional>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -26,9 +27,12 @@ namespace diagnostics::patch_registry {
                         std::string_view              hook_name,
                         PatchType                     type);
 
-    auto find_patch(std::uintptr_t addr) -> const PatchEntry *;
+    // Returned by value: a pointer into the backing vector outlives the lock that
+    // guards it, and a concurrent register_patch can reallocate and invalidate it
+    // while the crash path is still reading through it.
+    auto find_patch(std::uintptr_t addr) -> std::optional<PatchEntry>;
 
-    auto find_nearby(std::uintptr_t addr, std::size_t threshold = 64) -> const PatchEntry *;
+    auto find_nearby(std::uintptr_t addr, std::size_t threshold = 64) -> std::optional<PatchEntry>;
 
     auto all_patches() -> std::vector<PatchEntry>;
 } // namespace diagnostics::patch_registry

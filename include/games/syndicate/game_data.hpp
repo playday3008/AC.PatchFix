@@ -15,8 +15,8 @@ namespace games {
         static constexpr std::string_view name     = "Syndicate";
         static constexpr std::string_view exe_name = "ACS.exe";
 
-        static constexpr bool             vmprotect         = true;
-        static constexpr std::string_view integrity_section = ".UBX0";
+        static constexpr bool             vmprotect          = true;
+        static constexpr std::string_view vmp_section_prefix = ".UBX";
 
         struct ResolvedAddresses {
             std::optional<std::uintptr_t> lang_setup;
@@ -46,4 +46,5 @@ namespace games {
     };
 
     static_assert(ValidGameData<Syndicate>);
+    static_assert(HasVmprotect<Syndicate>);
 } // namespace games

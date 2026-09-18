@@ -16,6 +16,19 @@ namespace diagnostics {
 
         void *g_veh_handle = nullptr;
 
+        // Reporting allocates and logs. A fault raised by that work would re-enter
+        // the handler on the same thread, so the second entry reports nothing.
+        thread_local bool tl_in_veh = false;
+
+        struct VehReentryGuard {
+            VehReentryGuard() { tl_in_veh = true; }
+            ~VehReentryGuard() { tl_in_veh = false; }
+            VehReentryGuard(const VehReentryGuard &)                     = delete;
+            VehReentryGuard(VehReentryGuard &&)                          = delete;
+            auto operator=(const VehReentryGuard &) -> VehReentryGuard & = delete;
+            auto operator=(VehReentryGuard &&) -> VehReentryGuard &      = delete;
+        };
+
         auto NTAPI veh_handler(EXCEPTION_POINTERS *ep) -> LONG {
             auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
             if (!is_hardware_exception(code)) {
@@ -24,6 +37,10 @@ namespace diagnostics {
             if (code == EXCEPTION_STACK_OVERFLOW) {
                 return EXCEPTION_CONTINUE_SEARCH;
             }
+            if (tl_in_veh) {
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
+            const VehReentryGuard guard;
 
             auto rip = static_cast<std::uintptr_t>(ep->ContextRecord->Rip);
 
@@ -32,8 +49,7 @@ namespace diagnostics {
                 return EXCEPTION_CONTINUE_SEARCH;
             }
 
-            if (patch_registry::find_patch(rip) != nullptr ||
-                patch_registry::find_nearby(rip, 64) != nullptr) {
+            if (patch_registry::find_patch(rip) || patch_registry::find_nearby(rip, 64)) {
                 log_crash_report_lightweight(ep);
                 log_patch_attribution(ep);
                 return EXCEPTION_CONTINUE_SEARCH;

@@ -62,8 +62,11 @@ namespace mem {
     template<typename Functor>
     [[nodiscard]] auto make_hook(std::uintptr_t addr, std::uintptr_t end)
         -> std::expected<MidHook, std::string> {
-        if (end > addr) {
-            (void)nop(addr, end - addr);
+        // Callers that pass an end emulate the instructions they erase. If the
+        // erase fails the originals still run and the functor's emulation runs on
+        // top, applying the transform twice, so refuse to install instead.
+        if (end > addr && !nop(addr, end - addr)) {
+            return std::unexpected("MidHook: failed to erase the replaced instructions");
         }
         auto result = MidHook::create(addr, diagnostics::guarded_callback<Functor>);
         if (result) {

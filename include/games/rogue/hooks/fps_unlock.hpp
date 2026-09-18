@@ -15,7 +15,6 @@
 #include "core/hooks/registry/ini_field.hpp"
 
 #include "games/rogue/game_data.hpp"
-#include "games/rogue/hooks/game_state.hpp"
 
 namespace games::rogue {
     struct FPSUnlockHook {};
@@ -30,7 +29,7 @@ namespace hooks {
         static constexpr std::string_view name = "FPSUnlock";
 
         using hard_deps = dep_list<>;
-        using soft_deps = dep_list<games::rogue::GameStateHook>;
+        using soft_deps = dep_list<>;
 
         static constexpr auto required_patterns = std::array<PatternField, 2> {
             &Addrs::fps_timing_ptr,

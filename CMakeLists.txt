@@ -127,6 +127,7 @@ add_game(Syndicate)
 
 option(PATCHFIX_BUILD_TESTS "Build unit tests" OFF)
 if(PATCHFIX_BUILD_TESTS)
+    enable_testing()
     include(cmake/deps/catch2.cmake)
     add_subdirectory(tests)
 endif()

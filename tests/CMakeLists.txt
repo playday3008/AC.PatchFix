@@ -3,6 +3,7 @@ add_executable(AC.PatchFix.Tests
     test_ini_field.cpp
     test_topo_sort.cpp
     test_mouse_filter.cpp
+    test_pattern_report.cpp
 )
 
 target_link_libraries(AC.PatchFix.Tests PRIVATE
@@ -23,3 +24,13 @@ set_target_properties(AC.PatchFix.Tests PROPERTIES
     CXX_EXTENSIONS OFF
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
 )
+
+# Register each TEST_CASE with CTest. Without this `ctest` reports success
+# having run nothing, since the executable alone is not a registered test.
+#
+# PRE_TEST defers enumeration to test time. The default runs the freshly linked
+# executable during the build, which a cross-compiled target cannot do until an
+# emulator is present.
+list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
+include(Catch)
+catch_discover_tests(AC.PatchFix.Tests DISCOVERY_MODE PRE_TEST)

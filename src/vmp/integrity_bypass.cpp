@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <stop_token>
+#include <string_view>
 #include <thread>
 #include <utility>
 
@@ -59,8 +60,8 @@ namespace vmp {
         return g_active.load(std::memory_order_acquire);
     }
 
-    auto install(HMODULE game_module) -> bool {
-        g_sections = detail::find_vmp_sections(game_module);
+    auto install(HMODULE game_module, std::string_view vmp_section_prefix) -> bool {
+        g_sections = detail::find_vmp_sections(game_module, vmp_section_prefix);
 
         if (!g_sections.has_vmp()) {
             return false;
@@ -78,14 +79,25 @@ namespace vmp {
             return false;
         }
 
-        auto result =
-            safetyhook::InlineHook::create(ct, reinterpret_cast<void *>(&hk_create_thread));
+        // Created disarmed: an armed hook would route CreateThread into
+        // hk_create_thread before the result is moved into g_create_thread_hook,
+        // and calling through a default-constructed hook returns a null HANDLE
+        // without ever reaching the real CreateThread. Publish first, arm second.
+        auto result = safetyhook::InlineHook::create(ct,
+                                                     reinterpret_cast<void *>(&hk_create_thread),
+                                                     safetyhook::InlineHook::StartDisabled);
 
         if (!result) {
             return false;
         }
 
         g_create_thread_hook = std::move(*result);
+
+        if (!g_create_thread_hook.enable()) {
+            g_create_thread_hook.reset();
+            return false;
+        }
+
         g_active.store(true, std::memory_order_release);
         return true;
     }
