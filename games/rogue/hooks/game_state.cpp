@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include <atomic>
+#include <string_view>
 #include <utility>
 
 #include "core/logger.hpp" // IWYU pragma: keep
@@ -37,72 +38,58 @@ namespace hooks {
 
         std::uintptr_t g_global_var_addr = 0;
 
-        auto resolve_state() -> games::rogue::GameState * {
-            auto *cached = game_state_ptr().load(std::memory_order_relaxed);
-            if (cached != nullptr) {
-                return cached;
+        // Each hook replaces a `mov byte [<base>+2C0h], imm` through a different
+        // base register, so the flag has to be written through that same register.
+        // Going via the g_pGameState global instead would drop the write entirely
+        // during the window where the global is still null, and the original
+        // instruction is gone, so nothing else would set it.
+        void write_pause_flag(std::uintptr_t base, std::uint8_t value, std::string_view site) {
+            if (base == 0) {
+                log::get()->warn("GameStateHook: {} with a null state pointer", site);
+                return;
             }
-            if (g_global_var_addr == 0) {
-                return nullptr;
+
+            auto *state       = reinterpret_cast<games::rogue::GameState *>(base);
+            state->pause_flag = value;
+
+            // The engine hands us a live instance here, so adopt it as the cached
+            // pointer the other hooks read.
+            if (game_state_ptr().load(std::memory_order_relaxed) == nullptr) {
+                game_state_ptr().store(state, std::memory_order_relaxed);
+                log::get()->info("GameStateHook: adopted GameState* at 0x{:X} from {}", base, site);
             }
-            auto raw = mem::read<std::uintptr_t>(g_global_var_addr);
-            if (raw == 0) {
-                return nullptr;
-            }
-            auto *state = reinterpret_cast<games::rogue::GameState *>(raw);
-            game_state_ptr().store(state, std::memory_order_relaxed);
-            log::get()->info("GameStateHook: late-resolved GameState* at 0x{:X}", raw);
-            return state;
+
+            log::get()->trace("GameStateHook: {} (pause_mode={}, is_ready={}, state_index={})",
+                              site,
+                              state->pause_mode,
+                              state->is_ready,
+                              state->state_index);
         }
 
         struct GameUnpause {
             [[maybe_unused]] static constexpr std::string_view name = "GameState/Unpause";
 
-            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(true, std::memory_order_relaxed);
-                auto *state = resolve_state();
-                if (state != nullptr) {
-                    state->pause_flag = 0;
-                    log::get()->trace("GameStateHook: unpause (pause_mode={}, is_ready={}, "
-                                      "state_index={})",
-                                      state->pause_mode,
-                                      state->is_ready,
-                                      state->state_index);
-                }
+                write_pause_flag(regs.rcx, 0, "unpause");
             }
         };
 
         struct GamePause {
             [[maybe_unused]] static constexpr std::string_view name = "GameState/Pause";
 
-            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                auto *state = resolve_state();
-                if (state != nullptr) {
-                    state->pause_flag = 1;
-                    log::get()->trace("GameStateHook: pause (pause_mode={}, is_ready={}, "
-                                      "state_index={})",
-                                      state->pause_mode,
-                                      state->is_ready,
-                                      state->state_index);
-                }
+                write_pause_flag(regs.r8, 1, "pause");
             }
         };
 
         struct GamePause2 {
             [[maybe_unused]] static constexpr std::string_view name = "GameState/Pause2";
 
-            [[maybe_unused]] static void operator()(mem::Registers & /*unused*/) {
+            [[maybe_unused]] static void operator()(mem::Registers &regs) {
                 is_in_game().store(false, std::memory_order_relaxed);
-                auto *state = resolve_state();
-                if (state != nullptr) {
-                    state->pause_flag = 1;
-                    log::get()->trace("GameStateHook: pause2 (pause_mode={}, is_ready={}, "
-                                      "state_index={})",
-                                      state->pause_mode,
-                                      state->is_ready,
-                                      state->state_index);
-                }
+                write_pause_flag(regs.rdi, 1, "pause2");
             }
         };
     } // namespace
