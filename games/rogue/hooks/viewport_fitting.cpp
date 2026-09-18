@@ -49,7 +49,7 @@ namespace hooks {
                     reinterpret_cast<const games::rogue::DisplaySettings *>(regs.rax);
                 const float w = display->width;
                 const float h = display->height;
-                if (w > 0.0F) {
+                if (w > 0.0F && h > 0.0F) {
                     regs.xmm0.f32[0] = h / w;
                     current_aspect().store(w / h, std::memory_order_relaxed);
                 }
