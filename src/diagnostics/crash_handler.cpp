@@ -32,8 +32,7 @@ namespace diagnostics {
                 return EXCEPTION_CONTINUE_SEARCH;
             }
 
-            if (patch_registry::find_patch(rip) != nullptr ||
-                patch_registry::find_nearby(rip, 64) != nullptr) {
+            if (patch_registry::find_patch(rip) || patch_registry::find_nearby(rip, 64)) {
                 log_crash_report_lightweight(ep);
                 log_patch_attribution(ep);
                 return EXCEPTION_CONTINUE_SEARCH;

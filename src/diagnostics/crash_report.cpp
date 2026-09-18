@@ -249,7 +249,7 @@ namespace diagnostics {
     void log_patch_attribution(EXCEPTION_POINTERS *ep) {
         auto rip = static_cast<std::uintptr_t>(ep->ContextRecord->Rip);
 
-        if (const auto *patch = patch_registry::find_patch(rip)) {
+        if (const auto patch = patch_registry::find_patch(rip)) {
             log().critical("VEH: >>> Address patched by hook '{}' ({}, {} bytes at 0x{:X})",
                            patch->hook_name,
                            patch->type == patch_registry::PatchType::mid_hook ? "mid_hook"
@@ -260,7 +260,7 @@ namespace diagnostics {
             return;
         }
 
-        if (const auto *patch = patch_registry::find_nearby(rip, 64)) {
+        if (const auto patch = patch_registry::find_nearby(rip, 64)) {
             auto past_end = patch->base + patch->size;
             auto distance = (rip >= past_end) ? rip - past_end : patch->base - rip;
             log().critical(
