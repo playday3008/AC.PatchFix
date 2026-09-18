@@ -4,12 +4,21 @@
 #include <cstring>
 
 #include <algorithm>
+#include <mutex>
 #include <string_view>
 
 #include <Windows.h>
 #include <DbgHelp.h>
 
 namespace diagnostics {
+    namespace {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+        std::mutex g_dbghelp_mutex;
+#pragma clang diagnostic pop
+    } // namespace
+
     auto capture_stack(const CONTEXT *ctx, std::span<StackFrame> buf) -> std::span<StackFrame> {
         CONTEXT local_ctx {};
 #pragma clang diagnostic push
@@ -107,7 +116,16 @@ namespace diagnostics {
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbol->MaxNameLen   = k_max_sym_len - 1;
 
-        // DbgHelp is not thread-safe, but this only runs during crash reporting.
+        // DbgHelp requires caller-side serialization. This is reachable from the
+        // per-hook callback filter, which runs on whatever game thread faulted, so
+        // two threads can arrive here at once. try_lock rather than lock: a thread
+        // already in DbgHelp may be the one that is stuck, and a crash report
+        // without symbols beats a crash reporter that hangs.
+        const std::unique_lock<std::mutex> sym_lock(g_dbghelp_mutex, std::try_to_lock);
+        if (!sym_lock.owns_lock()) {
+            return;
+        }
+
         for (auto &frame : frames) {
             DWORD64 displacement = 0;
             if (pSymFromAddr(GetCurrentProcess(), frame.address, &displacement, symbol) != FALSE) {
