@@ -78,14 +78,25 @@ namespace vmp {
             return false;
         }
 
-        auto result =
-            safetyhook::InlineHook::create(ct, reinterpret_cast<void *>(&hk_create_thread));
+        // Created disarmed: an armed hook would route CreateThread into
+        // hk_create_thread before the result is moved into g_create_thread_hook,
+        // and calling through a default-constructed hook returns a null HANDLE
+        // without ever reaching the real CreateThread. Publish first, arm second.
+        auto result = safetyhook::InlineHook::create(ct,
+                                                     reinterpret_cast<void *>(&hk_create_thread),
+                                                     safetyhook::InlineHook::StartDisabled);
 
         if (!result) {
             return false;
         }
 
         g_create_thread_hook = std::move(*result);
+
+        if (!g_create_thread_hook.enable()) {
+            g_create_thread_hook.reset();
+            return false;
+        }
+
         g_active.store(true, std::memory_order_release);
         return true;
     }
