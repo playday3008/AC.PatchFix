@@ -36,8 +36,11 @@ namespace hooks {
       public:
         using hook_list_type = HookList;
 
-        template<typename Addrs>
-        void install_all(const Addrs &addrs, mINI::INIStructure &ini);
+        // Takes the whole game_data rather than just ResolvedAddresses: the
+        // scan entries are what map a pattern member pointer back to the
+        // signature name, which is the only thing worth printing to a user.
+        template<typename Data>
+        void install_all(const typename Data::ResolvedAddresses &addrs, mINI::INIStructure &ini);
 
         void reload(mINI::INIStructure &ini);
 

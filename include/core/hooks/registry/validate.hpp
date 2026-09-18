@@ -17,6 +17,7 @@ namespace hooks {
         typename HookTraits<Tag>::hard_deps;
         typename HookTraits<Tag>::soft_deps;
         { HookTraits<Tag>::required_patterns };
+        { HookTraits<Tag>::optional_patterns };
         typename HookTraits<Tag>::Config;
         { std::declval<typename HookTraits<Tag>::Config &>().load_all(ini) } -> std::same_as<void>;
     };
@@ -29,6 +30,20 @@ namespace hooks {
 
     template<typename Tag, typename... Ts>
     constexpr bool is_in_list<Tag, dep_list<Ts...>> = (std::is_same_v<Tag, Ts> || ...);
+
+    // A field listed as both required and optional would be reported missing by
+    // the optional pass even though the hook could not have installed without it.
+    template<typename Tag>
+    constexpr auto patterns_are_disjoint() -> bool {
+        for (auto req : HookTraits<Tag>::required_patterns) {
+            for (auto opt : HookTraits<Tag>::optional_patterns) {
+                if (req == opt) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     template<typename Tag, typename All>
     struct validate_hook_deps {
@@ -51,5 +66,7 @@ namespace hooks {
                       "Hook cannot hard-depend on itself");
         static_assert(!is_in_list<Tag, typename HookTraits<Tag>::soft_deps>,
                       "Hook cannot soft-depend on itself");
+        static_assert(patterns_are_disjoint<Tag>(),
+                      "A pattern cannot be both required and optional");
     };
 } // namespace hooks
