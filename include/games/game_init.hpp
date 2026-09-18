@@ -18,6 +18,7 @@
 #include "core/mem/protect.hpp"
 #include "core/patterns/signatures.hpp"
 #include "core/version.hpp"
+#include "core/vmp/debug_breakin.hpp"
 #include "core/vmp/integrity_bypass.hpp"
 #include "core/win32/pe.hpp"
 
@@ -46,6 +47,11 @@ void init_game(Registry                    &registry,
         vmp::wait_for_unpack(stop);
         vmp::wait_for_integrity_blocked(stop);
         log::get()->info("VMP bypass active, .text writable via NtProtectVirtualMemory");
+
+        // After the packer has run: it installs the DbgUiRemoteBreakin hook
+        // during startup, so restoring earlier would simply be overwritten.
+        auto breakin = vmp::restore_debug_breakin();
+        log::get()->info("DbgUiRemoteBreakin: {}", vmp::breakin_state_name(breakin));
     }
 
     auto journal_path = ini_path.parent_path() /

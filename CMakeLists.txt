@@ -59,6 +59,7 @@ add_library(AC.PatchFix.Core OBJECT
     src/mem/protect.cpp
     src/mem/hook.cpp
     src/vmp/integrity_bypass.cpp
+    src/vmp/debug_breakin.cpp
     src/vmp/pe_sections.cpp
     src/win32/pe.cpp
     src/win32/timer_resolution.cpp

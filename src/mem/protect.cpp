@@ -38,6 +38,10 @@ namespace mem {
                 pNtProtectVirtualMemory = reinterpret_cast<NtProtectVirtualMemory_t *>(
                     GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtProtectVirtualMemory"));
 #pragma clang diagnostic pop
+                // A real handle, not the GetCurrentProcess() pseudo-handle:
+                // VMProtect's NtProtectVirtualMemory hook only inspects calls
+                // whose handle compares equal to the pseudo-handle, and denies
+                // those that overlap its CRC table. A real handle is forwarded.
                 g_self_process = win32::UniqueHandle<win32::NullInvalid>(
                     OpenProcess(PROCESS_VM_OPERATION, FALSE, GetCurrentProcessId()));
             });

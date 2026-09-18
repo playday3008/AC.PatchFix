@@ -4,6 +4,7 @@ add_executable(AC.PatchFix.Tests
     test_topo_sort.cpp
     test_mouse_filter.cpp
     test_pattern_report.cpp
+    test_pe_file.cpp
 )
 
 target_link_libraries(AC.PatchFix.Tests PRIVATE

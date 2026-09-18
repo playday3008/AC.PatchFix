@@ -46,7 +46,7 @@ namespace vmp {
                                      LPDWORD                thread_id) -> HANDLE {
             if (detail::is_vmp_thread(start, g_sections)) {
                 auto addr = reinterpret_cast<std::uintptr_t>(start);
-                log::get()->info("[VMP] Blocked integrity thread at 0x{:X}", addr);
+                log::get()->info("[VMP] Blocked VMProtect thread at 0x{:X}", addr);
                 start = &empty_thread;
                 g_blocked_count.fetch_add(1, std::memory_order_relaxed);
             }
