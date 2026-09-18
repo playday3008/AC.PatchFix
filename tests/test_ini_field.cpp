@@ -52,3 +52,31 @@ TEST_CASE("ini_field load_from bool", "[ini_field]") {
     field.load_from(ini);
     CHECK(field.get() == true);
 }
+
+// Deleting a key from the INI has to put the field back to its default. Leaving
+// the previous value in place made the deletion a silent no-op until restart.
+TEST_CASE("ini_field load_from restores the default when the key is removed", "[ini_field]") {
+    mINI::INIStructure ini;
+    ini["FOV"]["Multiplier"] = "2.0";
+
+    ini_field<float> field("FOV", "Multiplier", 1.0F);
+    field.load_from(ini);
+    REQUIRE(field.get() == Catch::Approx(2.0F));
+
+    ini["FOV"].remove("Multiplier");
+    field.load_from(ini);
+    CHECK(field.get() == Catch::Approx(1.0F));
+}
+
+TEST_CASE("ini_field load_from restores the default when the section is removed", "[ini_field]") {
+    mINI::INIStructure ini;
+    ini["Hooks"]["FPSUnlock"] = "false";
+
+    ini_field<bool> field("Hooks", "FPSUnlock", true);
+    field.load_from(ini);
+    REQUIRE(field.get() == false);
+
+    ini.remove("Hooks");
+    field.load_from(ini);
+    CHECK(field.get() == true);
+}
