@@ -167,6 +167,12 @@ jobs:
           /tmp/msvc-wine/vsdownload.py --accept-license --dest ~/.msvc
           /tmp/msvc-wine/install.sh ~/.msvc
 
+      - name: Install Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine
+
       - name: Configure
         run: cmake --preset wine-x64
 
@@ -178,12 +184,6 @@ jobs:
 
       - name: Build tests
         run: cmake --build --preset wine-x64-release --target AC.PatchFix.Tests
-
-      - name: Install Wine
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y wine
 
       - name: Run tests
         run: ctest --test-dir build -C Release --output-on-failure --no-tests=error

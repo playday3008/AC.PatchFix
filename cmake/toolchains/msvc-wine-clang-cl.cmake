@@ -70,11 +70,15 @@ set(CMAKE_MODULE_LINKER_FLAGS_INIT "${LINK_FLAGS}")
 
 # --- Running the cross-compiled test binary ---
 
-# Lets ctest execute the Windows test exe on the build host. Without this a
-# cross-compiled test is registered but cannot be launched.
+# Lets ctest execute the Windows test exe on the build host. Probed at configure
+# time, so wine has to be installed before the project is configured, not merely
+# before the tests run. Without an emulator ctest hands the PE binary to the
+# shell, which fails with a syntax error rather than anything mentioning wine.
 find_program(WINE_EXECUTABLE wine)
 if(WINE_EXECUTABLE)
     set(CMAKE_CROSSCOMPILING_EMULATOR "${WINE_EXECUTABLE}")
+else()
+    message(WARNING "wine not found: the cross-compiled tests will build but cannot be run")
 endif()
 
 # --- Don't search Linux system paths ---
