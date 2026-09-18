@@ -36,8 +36,8 @@ jobs:
 
       - name: clang-format check
         run: |
-          find src include games -type f \( -name '*.cpp' -o -name '*.hpp' \) \
-            | xargs clang-format --dry-run --Werror
+          find src include games tests -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 \
+            | xargs -0 clang-format --dry-run --Werror
 
   tidy:
     name: Clang-Tidy
@@ -88,7 +88,7 @@ jobs:
             CMakeFiles/AC.Syndicate.PatchFix.dir/Release/cmake_pch.cxx.pch
 
       - name: Filter compile DB to Release
-        run: python3 -c "import json,sys;j=json.load(sys.stdin);json.dump([e for e in j if '/Release/' in e.get('command','')],sys.stdout)" < build/compile_commands.json > build/cc_release.json && mv build/cc_release.json build/compile_commands.json
+        run: python3 -c "import json,sys;j=[e for e in json.load(sys.stdin) if '/Release/' in e.get('command','')];assert j,'empty compile db after Release filter';json.dump(j,sys.stdout)" < build/compile_commands.json > build/cc_release.json && mv build/cc_release.json build/compile_commands.json
 
       - name: clang-tidy check
         run: |
@@ -112,7 +112,7 @@ jobs:
         run: cmake --build --preset windows-x64-release --config Release --target AC.PatchFix.Tests
 
       - name: Run tests
-        run: build\tests\Release\AC.PatchFix.Tests.exe
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error
 
       - name: Configure Debug
         run: cmake --preset windows-x64-debug
@@ -186,7 +186,7 @@ jobs:
           sudo apt-get install -y wine
 
       - name: Run tests
-        run: wine build/tests/Release/AC.PatchFix.Tests.exe
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
