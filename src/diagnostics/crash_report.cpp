@@ -113,21 +113,45 @@ namespace diagnostics {
                 std::span<const std::uint8_t>(patch.original_bytes.data(), patch.original_size);
             logger.critical("VEH: >>> Original: {}", format_hex(orig_span));
 
+            // We are already handling a fault, and the patch site is a plausible
+            // candidate for the page that caused it, so read it the way that fails
+            // instead of faulting again inside the handler.
             std::array<std::uint8_t, 64> current {};
-            auto copy_size = std::min<std::size_t>(patch.original_size, current.size());
-            std::memcpy(current.data(), reinterpret_cast<const void *>(patch.base), copy_size);
+            auto   copy_size = std::min<std::size_t>(patch.original_size, current.size());
+            SIZE_T read      = 0;
+            if (ReadProcessMemory(GetCurrentProcess(),
+                                  reinterpret_cast<const void *>(patch.base),
+                                  current.data(),
+                                  copy_size,
+                                  &read) == FALSE) {
+                logger.critical("VEH: >>> Current:  <unreadable>");
+                return;
+            }
             logger.critical("VEH: >>> Current:  {}",
-                            format_hex(std::span<const std::uint8_t>(current.data(), copy_size)));
+                            format_hex(std::span<const std::uint8_t>(current.data(), read)));
 #pragma clang diagnostic pop
         }
+
+        // Reporting allocates, takes the logger mutex and loads dbghelp. If the
+        // original fault happened inside the allocator or under the loader lock,
+        // doing any of that again on the same thread deadlocks or double-faults,
+        // and the report that would have explained the crash never appears.
+        thread_local bool tl_in_fault_handler = false;
 
         auto fault_filter_impl(EXCEPTION_POINTERS *ep, std::string_view context) -> int {
             auto code = static_cast<std::uint32_t>(ep->ExceptionRecord->ExceptionCode);
             if (!is_hardware_exception(code) || code == EXCEPTION_STACK_OVERFLOW) {
                 return EXCEPTION_CONTINUE_SEARCH;
             }
+            if (tl_in_fault_handler) {
+                return EXCEPTION_CONTINUE_SEARCH;
+            }
+
+            tl_in_fault_handler = true;
             log_crash_report(ep, context);
             write_minidump(ep);
+            tl_in_fault_handler = false;
+
             return EXCEPTION_EXECUTE_HANDLER;
         }
     } // namespace
