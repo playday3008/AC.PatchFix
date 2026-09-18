@@ -23,9 +23,10 @@
 
 namespace vmp {
     namespace {
-        // The redirect observed in this game is a 5-byte jmp rel32 into an
-        // anonymous trampoline page. Comparing further than the one patched
-        // instruction risks calling a legitimate difference a patch.
+        // VMProtect's hook installer always overwrites exactly five bytes with
+        // a jmp rel32, however many instruction bytes it relocated into its
+        // trampoline first, so five is the full extent of the patch. Comparing
+        // further risks calling a legitimate difference a patch.
         constexpr std::size_t k_prologue_bytes = 5;
 
         auto read_file(const std::filesystem::path &path) -> std::vector<std::uint8_t> {
