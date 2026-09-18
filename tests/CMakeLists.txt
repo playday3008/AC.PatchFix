@@ -23,3 +23,9 @@ set_target_properties(AC.PatchFix.Tests PROPERTIES
     CXX_EXTENSIONS OFF
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
 )
+
+# Register each TEST_CASE with CTest. Without this `ctest` reports success
+# having run nothing, since the executable alone is not a registered test.
+list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
+include(Catch)
+catch_discover_tests(AC.PatchFix.Tests)

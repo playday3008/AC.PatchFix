@@ -68,6 +68,15 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT    "${LINK_FLAGS}")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "${LINK_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS_INIT "${LINK_FLAGS}")
 
+# --- Running the cross-compiled test binary ---
+
+# Lets ctest execute the Windows test exe on the build host. Without this a
+# cross-compiled test is registered but cannot be launched.
+find_program(WINE_EXECUTABLE wine)
+if(WINE_EXECUTABLE)
+    set(CMAKE_CROSSCOMPILING_EMULATOR "${WINE_EXECUTABLE}")
+endif()
+
 # --- Don't search Linux system paths ---
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
