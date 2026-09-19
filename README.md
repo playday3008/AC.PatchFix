@@ -36,6 +36,7 @@ ASI plugin framework for Assassin's Creed games that patches game binaries at ru
 - **Platform specs fix** — stub DxDiag COM initialization to prevent a startup freeze/deadlock
 - **FPS unlock** — remove or adjust the built-in frame rate cap
 - **Resolution fix** — filter non-standard aspect ratio resolutions (e.g., 4096x2160 / 256:135) from the display mode list
+- **Aspect ratio fix** — correct the stretched image at ultrawide resolutions in fullscreen and borderless
 - **Language unlock** — all languages available regardless of purchase region
 - **Hot-reload** — edit the INI file while the game is running, changes apply immediately
 - **Per-hook toggles** — enable or disable individual fixes at runtime
@@ -161,6 +162,12 @@ All settings are in `AC.Syndicate.PatchFix.ini`. Changes are picked up automatic
 | `PromptType` | `PlayStation` | `Xbox`, `PlayStation`   | Force controller button prompt type. Useful when Steam Input remapping causes wrong prompts. |
 | `DisableCameraSmoothing` | `true` | `true`, `false` | Disable the camera smoothing applied to look input, so the camera follows the mouse directly instead of lerping toward it. |
 
+#### \[Display\]
+
+| Key           | Default | Values | Description |
+|---------------|---------| ------ | ----------- |
+| `AspectRatio` | `0`     | `0` = auto, a ratio like `21:9` or `32:9`, or a decimal like `2.389` | Aspect ratio used for rendering. Auto derives it from the resolution the game applies, which is correct on every setup tested; override only if the detected value is wrong. |
+
 #### \[FPS\]
 
 | Key      | Default | Values | Description |
@@ -185,6 +192,7 @@ Toggle individual hooks. Accepts `true`/`false`, `yes`/`no`, `on`/`off`, `1`/`0`
 | `PromptOverride`   | `false` | Force controller prompt type. Off by default because `DS4v2Fix` already handles DS4 detection; enable it when Steam Input remapping interferes. |
 | `CameraSmoothing`  | `true`  | Camera smoothing disable |
 | `ResolutionFix`    | `true`  | Filter non-standard aspect ratio resolutions |
+| `AspectRatioFix`   | `true`  | Correct the render aspect ratio at ultrawide resolutions |
 | `FPSUnlock`        | `true`  | FPS cap removal / custom cap |
 | `LanguageUnlock`   | `true`  | Language unlock |
 
@@ -312,6 +320,14 @@ The game populates its display mode list by calling `ModeList_InsertSorted` for 
 
 The patch hooks the insert function and checks each mode's reduced aspect ratio against a whitelist of standard ratios: 16:9, 16:10, 8:5, 21:9, 64:27, 43:18, 32:9, 5:4, 4:3, and 3:2. Non-matching entries are silently dropped.
 
+#### Aspect Ratio Fix
+
+At an ultrawide resolution the game renders a stretched 16:9 image in fullscreen and borderless, while windowed mode looks correct.
+
+The renderer holds three aspect-ratio blocks, one per display topology. The mode-change handler computes the correct ratio and writes it to the block at `+0x958`, but the viewport code reads the one at `+0x928` — which only the AMD Eyefinity and NVIDIA Surround paths ever write, and both are gated off on a single monitor. It therefore keeps the hardcoded 16:9 value it was initialized with, so the viewport computes `1.7777778 / 1.7777778 = 1.0`, concludes no correction is needed, and stretches a 16:9 projection across the wider buffer.
+
+The patch hooks the tail of the recompute and mirrors the computed ratio, with its gate bytes, into the block the viewport actually reads; `AspectRatio` overrides the value instead. It runs before the Eyefinity and Surround paths, so a multi-monitor span still has the final say.
+
 #### FPS Unlock
 
 Syndicate's frame limiter works differently from Rogue — it uses inline code rather than a data-driven timing struct. Three locations are patched:
@@ -331,6 +347,7 @@ Unlike Rogue, Syndicate does not require a Game ID fixup — DLC entitlements ar
 ## Known Limitations
 
 - **Rogue: menus, cutscenes, and loading screens stay at 16:9** — engine limitation; stretching these breaks mouse input
+- **Syndicate: UI and HUD scale with the render aspect** — the engine stores a single aspect ratio that both the 3D world and the UI derive from, so the UI cannot be given an aspect of its own
 - **Syndicate: London Drift perk bug at high FPS** — the perk doesn't count drifts reliably above ~60 FPS; cap FPS to 60 as a workaround
 
 ## Building from Source
