@@ -25,6 +25,8 @@ jobs:
     name: Resolve and validate version
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
     defaults:
@@ -40,33 +42,45 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(grep -m1 -oP '^\s*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
-          if [ -z "$VERSION" ]; then
-            echo "::error::No project VERSION found in CMakeLists.txt"
-            exit 1
-          fi
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Malformed version '$VERSION' in CMakeLists.txt. Expected: X.Y.Z"
+          BASE=$(sed -n '/^project(AC\.PatchFix/,/^)/p' CMakeLists.txt \
+                 | grep -m1 -oP '^\s*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' || true)
+          if [ -z "$BASE" ]; then
+            echo "::error::No project() VERSION found in CMakeLists.txt. Expected: X.Y.Z"
             exit 1
           fi
 
-          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
-            echo "::error::Tag 'v$VERSION' already exists. Bump VERSION in CMakeLists.txt."
-            exit 1
-          fi
-          if gh release view "v$VERSION" >/dev/null 2>&1; then
-            echo "::error::Release 'v$VERSION' already exists (possibly a draft). Bump VERSION in CMakeLists.txt."
+          if git rev-parse -q --verify "refs/tags/v$BASE" >/dev/null; then
+            echo "::error::Tag 'v$BASE' already exists. Bump VERSION in CMakeLists.txt."
             exit 1
           fi
 
-          LATEST=$(git tag --list 'v*' --sort=-v:refname | head -1)
+          # Prereleases are excluded: v3.4.0-rc1 must not block v3.4.0.
+          LATEST=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
           LATEST=${LATEST#v}
-          if [ -n "$LATEST" ]; then
-            if [ "$VERSION" = "$LATEST" ] \
-               || [ "$(printf '%s\n%s\n' "$VERSION" "$LATEST" | sort -V | head -1)" != "$LATEST" ]; then
-              echo "::error::Version '$VERSION' is not greater than the latest release '$LATEST'"
-              exit 1
-            fi
+          if [ -n "$LATEST" ] \
+             && { [ "$BASE" = "$LATEST" ] \
+                  || [ "$(printf '%s\n%s\n' "$BASE" "$LATEST" | sort -V | head -1)" != "$LATEST" ]; }; then
+            echo "::error::Version '$BASE' is not greater than the latest release '$LATEST'"
+            exit 1
+          fi
+
+          # Needs contents:write, otherwise the API hides drafts. Unguarded on
+          # purpose: a transient failure must not read as "nothing exists".
+          RELEASES=$(gh release list --limit 200 --json tagName --jq '.[].tagName')
+
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            # Published tags plus every release, so a cancelled draft rc still
+            # advances the counter instead of colliding with itself.
+            LAST_RC=$( { git tag --list "v$BASE-rc*"; echo "$RELEASES"; } \
+                       | grep -oP "^v\Q$BASE\E-rc\K[0-9]+$" | sort -n | tail -1 || true)
+            VERSION="$BASE-rc$(( ${LAST_RC:-0} + 1 ))"
+          else
+            VERSION="$BASE"
+          fi
+
+          if echo "$RELEASES" | grep -qxF "v$VERSION"; then
+            echo "::error::Release 'v$VERSION' already exists (possibly a draft). Delete it or bump VERSION in CMakeLists.txt."
+            exit 1
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
