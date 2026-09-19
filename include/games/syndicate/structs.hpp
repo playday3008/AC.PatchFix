@@ -87,6 +87,46 @@ namespace games::syndicate {
     };
     static_assert(0x10 == offsetof(InputContext, state));
 
+    // Renderer aspect state, three parallel blocks in the renderer object reached
+    // through qword_147170F78. Block A is the one DisplayMode_ComputeViewport
+    // (sub_141D23260) reads; block C is the one the recompute (sub_141D235C0)
+    // writes. Only the AMD SLS paths ever populate A and B, so on a single
+    // monitor A keeps its 16:9 initialisation and the viewport is never corrected.
+    struct AspectBlock {
+        std::uint8_t  gate_primary;   // +0x00  selects ratio_primary over ratio_fallback
+        std::uint8_t  gate_odd;       // +0x01
+        std::uint8_t  gate_secondary; // +0x02  second half of the selector
+        std::uint8_t  _pad03;         // +0x03
+        float         ratio_primary;  // +0x04
+        float         ratio_fallback; // +0x08
+        float         tile_count;     // +0x0C  divided by in sub_141D23260
+        std::uint32_t tiles_x;        // +0x10
+        std::uint32_t tiles_y;        // +0x14
+    };
+    static_assert(0x04 == offsetof(AspectBlock, ratio_primary));
+    static_assert(0x08 == offsetof(AspectBlock, ratio_fallback));
+    static_assert(0x0C == offsetof(AspectBlock, tile_count));
+    static_assert(0x18 == sizeof(AspectBlock));
+
+    struct RendererAspectState {
+        float                    viewport_width;  // +0x914
+        float                    viewport_height; // +0x918
+        float                    offset_x;        // +0x91C  pillarbox
+        float                    offset_y;        // +0x920  letterbox
+        std::array<std::byte, 4> _pad924;         // +0x924
+        AspectBlock              active;          // +0x928  block A, read by the consumer
+        AspectBlock              sls;             // +0x940  block B, AMD SLS only
+        AspectBlock              computed;        // +0x958  block C, written by the recompute
+    };
+    static_assert(0x000 == offsetof(RendererAspectState, viewport_width));
+    static_assert(0x008 == offsetof(RendererAspectState, offset_x));
+    static_assert(0x014 == offsetof(RendererAspectState, active));
+    static_assert(0x02C == offsetof(RendererAspectState, sls));
+    static_assert(0x044 == offsetof(RendererAspectState, computed));
+
+    // Byte offset of RendererAspectState within the renderer object.
+    inline constexpr std::uintptr_t k_renderer_aspect_offset = 0x914;
+
     // Per-category language availability — three static instances:
     //   Menu:     0x146E150C0  (bitfield at 0x146E150D8)
     //   Subtitle: 0x146E16130  (bitfield at 0x146E16148)
