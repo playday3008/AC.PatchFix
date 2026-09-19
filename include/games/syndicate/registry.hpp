@@ -2,6 +2,7 @@
 
 #include "core/hooks/registry/registry.hpp"
 
+#include "games/syndicate/hooks/aspect_ratio_fix.hpp"
 #include "games/syndicate/hooks/camera_smoothing.hpp"
 #include "games/syndicate/hooks/ds4v2_fix.hpp"
 #include "games/syndicate/hooks/fps_unlock.hpp"
@@ -13,6 +14,7 @@
 namespace games::syndicate {
     using AllHooks = hooks::hook_list<PlatformSpecsFixHook,
                                       ResolutionFixHook,
+                                      AspectRatioFixHook,
                                       DS4v2FixHook,
                                       PromptOverrideHook,
                                       CameraSmoothingHook,

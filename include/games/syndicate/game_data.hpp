@@ -28,6 +28,7 @@ namespace games {
             std::optional<std::uintptr_t> camera_smoothing_jnz;
             std::optional<std::uintptr_t> fps_sleep_branch;
             std::optional<std::uintptr_t> fps_frame_time;
+            std::optional<std::uintptr_t> aspect_recompute;
         };
 
         // clang-format off
@@ -41,6 +42,7 @@ namespace games {
             {.name="CAMERA_SMOOTHING_JNZ",   .field=&ResolvedAddresses::camera_smoothing_jnz,   .offset=0x00, .bytes="75 ? 80 7D ? ? 75 ? 48 8B D9"},
             {.name="FPS_SLEEP_BRANCH",       .field=&ResolvedAddresses::fps_sleep_branch,       .offset=0x0E, .bytes="48 89 43 78 0F 84 ? ? ? ? 48 3B 43 70 73"},
             {.name="FPS_FRAME_TIME",         .field=&ResolvedAddresses::fps_frame_time,         .offset=0x1C, .bytes="48 03 F8 48 8B 05 ? ? ? ? F3 48 0F 2A C0 48 85 C0 79 08 F3 0F 58 05 ? ? ? ? F3 0F 59 05"},
+            {.name="ASPECT_RECOMPUTE",       .field=&ResolvedAddresses::aspect_recompute,       .offset=0x00, .bytes="48 8B 0D ? ? ? ? 48 8B 01 80 B8 ? ? ? ? ? 74 ? 44 8B C7 8B D6 48 8B CB E8 ? ? ? ? 48 8B 0D"},
         });
         // clang-format on
     };
