@@ -6,10 +6,6 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Semantic version (e.g. 1.2.0)"
-        required: true
-        type: string
       prerelease:
         description: "Mark as prerelease"
         required: false
@@ -26,33 +22,55 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate inputs
+    name: Resolve and validate version
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     defaults:
       run:
         shell: bash
     steps:
-      - name: Check version format
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
-            echo "::error::Invalid version format '$VERSION'. Expected: X.Y.Z or X.Y.Z-suffix"
-            exit 1
-          fi
-
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - name: Validate version matches CMakeLists.txt
+      - name: Resolve version from CMakeLists.txt
+        id: version
         env:
-          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          CMAKE_VER=$(grep -oP 'VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
-          if [ "$VERSION" != "$CMAKE_VER" ]; then
-            echo "::error::Release version '$VERSION' doesn't match CMakeLists.txt version '$CMAKE_VER'"
+          VERSION=$(grep -m1 -oP '^\s*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+          if [ -z "$VERSION" ]; then
+            echo "::error::No project VERSION found in CMakeLists.txt"
             exit 1
           fi
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Malformed version '$VERSION' in CMakeLists.txt. Expected: X.Y.Z"
+            exit 1
+          fi
+
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::Tag 'v$VERSION' already exists. Bump VERSION in CMakeLists.txt."
+            exit 1
+          fi
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "::error::Release 'v$VERSION' already exists (possibly a draft). Bump VERSION in CMakeLists.txt."
+            exit 1
+          fi
+
+          LATEST=$(git tag --list 'v*' --sort=-v:refname | head -1)
+          LATEST=${LATEST#v}
+          if [ -n "$LATEST" ]; then
+            if [ "$VERSION" = "$LATEST" ] \
+               || [ "$(printf '%s\n%s\n' "$VERSION" "$LATEST" | sort -V | head -1)" != "$LATEST" ]; then
+              echo "::error::Version '$VERSION' is not greater than the latest release '$LATEST'"
+              exit 1
+            fi
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$VERSION (previous: ${LATEST:-none})" >> "$GITHUB_STEP_SUMMARY"
 
   build-windows:
     name: Build (Windows)
@@ -130,7 +148,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [build-windows, build-wine]
+    needs: [validate, build-windows, build-wine]
     permissions:
       contents: write
     defaults:
@@ -165,8 +183,8 @@ jobs:
       - name: Create draft release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ inputs.version }}
-          name: v${{ inputs.version }}
+          tag_name: v${{ needs.validate.outputs.version }}
+          name: v${{ needs.validate.outputs.version }}
           draft: true
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: true
