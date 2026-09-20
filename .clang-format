@@ -6,6 +6,7 @@ Standard: Latest
 DisableFormat: false
 
 # Indentation
+AccessModifierOffset: -2
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
@@ -53,6 +54,7 @@ BreakStringLiterals: false
 BreakTemplateDeclarations: Yes
 PackConstructorInitializers: CurrentLine
 Cpp11BracedListStyle: true
+InsertNewlineAtEOF: true
 MaxEmptyLinesToKeep: 1
 KeepEmptyLines:
   AtStartOfBlock: false
