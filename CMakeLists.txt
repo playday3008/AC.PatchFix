@@ -30,19 +30,18 @@ set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 option(PATCHFIX_WERROR "Treat warnings as errors" OFF)
 
+# clang-cl reads "-Wall" as "-Weverything", and only the frontend variant tells the two clang drivers apart.
+set(PATCHFIX_MSVC_FRONTEND $<OR:$<CXX_COMPILER_ID:MSVC>,$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>>)
+
 set(SHARED_COMPILE_OPTIONS
-    $<$<CXX_COMPILER_ID:Clang,AppleClang>:
-        -Wall -Wextra -Wpedantic
-        -Wno-c++98-compat -Wno-c++98-compat-pedantic
-        -Wno-c++20-compat -Wno-c++20-compat-pedantic
-        -Wno-padded
-        -Wno-covered-switch-default
-        $<$<BOOL:${PATCHFIX_WERROR}>:-Werror>
-    >
-    $<$<CXX_COMPILER_ID:MSVC>:
+    $<${PATCHFIX_MSVC_FRONTEND}:
         /W4
         /wd4201
         $<$<BOOL:${PATCHFIX_WERROR}>:/WX>
+    >
+    $<$<AND:$<CXX_COMPILER_ID:Clang,AppleClang,GNU>,$<NOT:${PATCHFIX_MSVC_FRONTEND}>>:
+        -Wall -Wextra -Wpedantic
+        $<$<BOOL:${PATCHFIX_WERROR}>:-Werror>
     >
 )
 
