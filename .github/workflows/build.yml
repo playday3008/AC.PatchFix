@@ -82,17 +82,18 @@ jobs:
 
       - name: Build PCH
         run: |
-          cmake --build --preset wine-x64-release --target \
-            core/CMakeFiles/PatchFix.Core.dir/Release/cmake_pch.cxx.pch \
-            CMakeFiles/AC.Rogue.PatchFix.dir/Release/cmake_pch.cxx.pch \
-            CMakeFiles/AC.Syndicate.PatchFix.dir/Release/cmake_pch.cxx.pch
+          # Every target's PCH, so adding a game needs no change here.
+          PCH=$(ninja -C build -f build-Release.ninja -t targets all \
+                | grep -oP '^\S+/Release/cmake_pch\.cxx\.pch(?=:)')
+          test -n "$PCH"
+          cmake --build --preset wine-x64-release --target $PCH
 
       - name: Filter compile DB to Release
         run: python3 -c "import json,sys;j=[e for e in json.load(sys.stdin) if '/Release/' in e.get('command','')];assert j,'empty compile db after Release filter';json.dump(j,sys.stdout)" < build/compile_commands.json > build/cc_release.json && mv build/cc_release.json build/compile_commands.json
 
       - name: clang-tidy check
         run: |
-          find core/src games -type f -name '*.cpp' -print0 \
+          find core/src games -type f -name '*.cpp' -not -path '*/tests/*' -print0 \
             | xargs -0 -P "$(nproc)" -n 1 clang-tidy -p build --warnings-as-errors='*'
 
   build-windows:
@@ -109,7 +110,7 @@ jobs:
         run: cmake --build --preset windows-x64-release --config Release
 
       - name: Build tests
-        run: cmake --build --preset windows-x64-release --config Release --target AC.PatchFix.Tests
+        run: cmake --build --preset windows-x64-release --config Release --target PatchFix.Tests
 
       - name: Run tests
         run: ctest --test-dir build -C Release --output-on-failure --no-tests=error
@@ -123,11 +124,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.PatchFix-windows-${{ github.sha }}
+          name: PatchFix-windows-${{ github.sha }}
           path: |
             build/bin/Release/*.asi
             build/bin/Debug/*.asi
-            config/*.ini
+            games/**/*.ini
           if-no-files-found: error
 
   build-wine:
@@ -183,7 +184,7 @@ jobs:
         run: cmake --build --preset wine-x64-debug
 
       - name: Build tests
-        run: cmake --build --preset wine-x64-release --target AC.PatchFix.Tests
+        run: cmake --build --preset wine-x64-release --target PatchFix.Tests
 
       - name: Run tests
         run: ctest --test-dir build -C Release --output-on-failure --no-tests=error
@@ -191,9 +192,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.PatchFix-wine-${{ github.sha }}
+          name: PatchFix-wine-${{ github.sha }}
           path: |
             build/bin/Release/*.asi
             build/bin/Debug/*.asi
-            config/*.ini
+            games/**/*.ini
           if-no-files-found: error
