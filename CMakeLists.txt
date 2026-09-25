@@ -3,16 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 # spdlog's cmake_minimum_required(VERSION 3.10) is the binding constraint
 set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
-project(AC.PatchFix
-    LANGUAGES CXX
-    VERSION 3.3.0
-)
-
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp"
-    @ONLY
-)
+project(PatchFix LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -26,7 +17,9 @@ include(cmake/deps/Hooking.Patterns.cmake)
 include(cmake/deps/mINI.cmake)
 include(cmake/deps/spdlog.cmake)
 
-set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(PATCHFIX_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/core")
+set(PATCHFIX_GAMES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games")
+include(cmake/PatchFix.cmake)
 
 option(PATCHFIX_WERROR "Treat warnings as errors" OFF)
 
@@ -50,80 +43,7 @@ set(SHARED_COMPILE_DEFINITIONS
     NOMINMAX
 )
 
-add_library(AC.PatchFix.Core OBJECT
-    src/logger.cpp
-    src/patterns/signatures.cpp
-    src/config/file_watcher.cpp
-    src/dllmain.cpp
-    src/mem/protect.cpp
-    src/mem/hook.cpp
-    src/vmp/integrity_bypass.cpp
-    src/vmp/debug_breakin.cpp
-    src/vmp/pe_sections.cpp
-    src/win32/pe.cpp
-    src/win32/timer_resolution.cpp
-    src/diagnostics/stack_walker.cpp
-    src/diagnostics/crash_report.cpp
-    src/diagnostics/minidump.cpp
-    src/diagnostics/address_registry.cpp
-    src/diagnostics/crash_handler.cpp
-    src/diagnostics/seh_guard.cpp
-    src/diagnostics/crash_logger.cpp
-    src/diagnostics/patch_registry.cpp
-    src/diagnostics/hook_context.cpp
-    src/diagnostics/crash_journal.cpp
-)
-
-target_include_directories(AC.PatchFix.Core PUBLIC "${INC_DIR}")
-target_link_libraries(AC.PatchFix.Core PUBLIC
-    safetyhook
-    HookingPatterns
-    mINI
-    spdlog::spdlog_header_only
-    winmm
-)
-target_compile_definitions(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
-target_compile_options(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_OPTIONS})
-target_compile_options(AC.PatchFix.Core PUBLIC
-    $<$<CXX_COMPILER_ID:Clang>:/GS>
-    $<$<CXX_COMPILER_ID:MSVC>:/GS>
-)
-target_link_options(AC.PatchFix.Core PUBLIC
-    $<$<CXX_COMPILER_ID:Clang>:/DYNAMICBASE /NXCOMPAT>
-    $<$<CXX_COMPILER_ID:MSVC>:/DYNAMICBASE /NXCOMPAT>
-)
-set_target_properties(AC.PatchFix.Core PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-)
-
-target_precompile_headers(AC.PatchFix.Core PUBLIC
-    <Windows.h>
-    <mini/ini.h>
-    <spdlog/spdlog.h>
-)
-
-function(add_game GAME_TAG)
-    string(TOLOWER "${GAME_TAG}" GAME_TAG_LOWER)
-    set(GAME_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/games/${GAME_TAG_LOWER}")
-    file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS "${GAME_SRC_DIR}/*.cpp")
-
-    set(TARGET_NAME "AC.${GAME_TAG}.PatchFix")
-
-    add_library(${TARGET_NAME} SHARED ${GAME_SOURCES})
-    target_link_libraries(${TARGET_NAME} PRIVATE AC.PatchFix.Core)
-    set_target_properties(${TARGET_NAME} PROPERTIES
-        CXX_STANDARD 23
-        CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF
-        SUFFIX ".asi"
-        PREFIX ""
-    )
-endfunction()
-
-add_game(Rogue)
-add_game(Syndicate)
+add_subdirectory(core)
 
 option(PATCHFIX_BUILD_TESTS "Build unit tests" OFF)
 if(PATCHFIX_BUILD_TESTS)
@@ -131,3 +51,6 @@ if(PATCHFIX_BUILD_TESTS)
     include(cmake/deps/catch2.cmake)
     add_subdirectory(tests)
 endif()
+
+# After tests/, so games can add their own test sources to PatchFix.Tests.
+add_subdirectory(games)

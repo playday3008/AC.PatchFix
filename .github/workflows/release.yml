@@ -6,6 +6,13 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      game:
+        description: "Game to release (directory under games/)"
+        required: true
+        type: choice
+        options:
+          - ac/rogue
+          - ac/syndicate
       prerelease:
         description: "Mark as prerelease"
         required: false
@@ -17,7 +24,7 @@ env:
   MSVC_WINE_COMMIT: '514f8ea34842cd6d831804d0e9658d3a32870ae1'
 
 concurrency:
-  group: release
+  group: release-${{ inputs.game }}
   cancel-in-progress: false
 
 jobs:
@@ -29,6 +36,9 @@ jobs:
       contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      target: ${{ steps.version.outputs.target }}
+      notes_from: ${{ steps.version.outputs.notes_from }}
     defaults:
       run:
         shell: bash
@@ -37,30 +47,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve version from CMakeLists.txt
+      - name: Resolve version from the game's CMakeLists.txt
         id: version
         env:
           GH_TOKEN: ${{ github.token }}
+          GAME: ${{ inputs.game }}
+          PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          BASE=$(sed -n '/^project(AC\.PatchFix/,/^)/p' CMakeLists.txt \
+          CMAKE_FILE="games/$GAME/CMakeLists.txt"
+          BASE=$(sed -n '/^project(/,/)/p' "$CMAKE_FILE" \
                  | grep -m1 -oP '^\s*VERSION \K[0-9]+\.[0-9]+\.[0-9]+' || true)
           if [ -z "$BASE" ]; then
-            echo "::error::No project() VERSION found in CMakeLists.txt. Expected: X.Y.Z"
+            echo "::error::No project() VERSION found in $CMAKE_FILE. Expected: X.Y.Z"
             exit 1
           fi
 
-          if git rev-parse -q --verify "refs/tags/v$BASE" >/dev/null; then
-            echo "::error::Tag 'v$BASE' already exists. Bump VERSION in CMakeLists.txt."
+          TARGET=${GAME//\//-}
+          PREFIX="$TARGET/v"
+
+          if git rev-parse -q --verify "refs/tags/$PREFIX$BASE" >/dev/null; then
+            echo "::error::Tag '$PREFIX$BASE' already exists. Bump VERSION in $CMAKE_FILE."
             exit 1
           fi
 
-          # Prereleases are excluded: v3.4.0-rc1 must not block v3.4.0.
-          LATEST=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
-          LATEST=${LATEST#v}
+          # Prereleases are excluded: X.Y.Z-rc1 must not block X.Y.Z. Until a
+          # game has a tag of its own, the repo-wide v* tags that bundled every
+          # game are its history.
+          LATEST_TAG=$(git tag --list "$PREFIX*" | grep -P "^\Q$PREFIX\E[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1 || true)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
+          fi
+          LATEST=${LATEST_TAG##*v}
           if [ -n "$LATEST" ] \
              && { [ "$BASE" = "$LATEST" ] \
                   || [ "$(printf '%s\n%s\n' "$BASE" "$LATEST" | sort -V | head -1)" != "$LATEST" ]; }; then
-            echo "::error::Version '$BASE' is not greater than the latest release '$LATEST'"
+            echo "::error::Version '$BASE' is not greater than the latest release '$LATEST_TAG'"
             exit 1
           fi
 
@@ -68,23 +89,28 @@ jobs:
           # purpose: a transient failure must not read as "nothing exists".
           RELEASES=$(gh release list --limit 200 --json tagName --jq '.[].tagName')
 
-          if [ "${{ inputs.prerelease }}" = "true" ]; then
+          if [ "$PRERELEASE" = "true" ]; then
             # Published tags plus every release, so a cancelled draft rc still
             # advances the counter instead of colliding with itself.
-            LAST_RC=$( { git tag --list "v$BASE-rc*"; echo "$RELEASES"; } \
-                       | grep -oP "^v\Q$BASE\E-rc\K[0-9]+$" | sort -n | tail -1 || true)
+            LAST_RC=$( { git tag --list "$PREFIX$BASE-rc*"; echo "$RELEASES"; } \
+                       | grep -oP "^\Q$PREFIX$BASE\E-rc\K[0-9]+$" | sort -n | tail -1 || true)
             VERSION="$BASE-rc$(( ${LAST_RC:-0} + 1 ))"
           else
             VERSION="$BASE"
           fi
 
-          if echo "$RELEASES" | grep -qxF "v$VERSION"; then
-            echo "::error::Release 'v$VERSION' already exists (possibly a draft). Delete it or bump VERSION in CMakeLists.txt."
+          if echo "$RELEASES" | grep -qxF "$PREFIX$VERSION"; then
+            echo "::error::Release '$PREFIX$VERSION' already exists (possibly a draft). Delete it or bump VERSION in $CMAKE_FILE."
             exit 1
           fi
 
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Releasing v$VERSION (previous: ${LATEST:-none})" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "version=$VERSION"
+            echo "tag=$PREFIX$VERSION"
+            echo "target=$TARGET"
+            echo "notes_from=$LATEST_TAG"
+          } >> "$GITHUB_OUTPUT"
+          echo "Releasing $PREFIX$VERSION (previous: ${LATEST_TAG:-none})" >> "$GITHUB_STEP_SUMMARY"
 
   build-windows:
     name: Build (Windows)
@@ -98,12 +124,12 @@ jobs:
         run: cmake --preset windows-x64-release
 
       - name: Build Release
-        run: cmake --build --preset windows-x64-release --config Release
+        run: cmake --build --preset windows-x64-release --config Release --target ${{ needs.validate.outputs.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.PatchFix-windows
+          name: PatchFix-windows
           path: build/bin/Release/*.asi
           if-no-files-found: error
 
@@ -149,12 +175,12 @@ jobs:
         run: cmake --preset wine-x64
 
       - name: Build Release
-        run: cmake --build --preset wine-x64-release
+        run: cmake --build --preset wine-x64-release --target ${{ needs.validate.outputs.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: AC.PatchFix-wine
+          name: PatchFix-wine
           path: build/bin/Release/*.asi
           if-no-files-found: error
 
@@ -174,13 +200,13 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: AC.PatchFix-windows
+          name: PatchFix-windows
           path: artifacts/windows
 
       - name: Download Wine artifact
         uses: actions/download-artifact@v8
         with:
-          name: AC.PatchFix-wine
+          name: PatchFix-wine
           path: artifacts/wine
 
       - name: Prepare release assets
@@ -192,16 +218,30 @@ jobs:
             name="$(basename "$asi" .asi)"
             cp "$asi" "${name}-wine.asi"
           done
-          cp config/*.ini .
+          cp "games/${{ inputs.game }}"/*.ini .
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          PREVIOUS: ${{ needs.validate.outputs.notes_from }}
+        run: |
+          # The default notes would diff against the newest tag of any game.
+          ARGS=(-f tag_name="$TAG" -f target_commitish="$GITHUB_SHA")
+          if [ -n "$PREVIOUS" ]; then
+            ARGS+=(-f previous_tag_name="$PREVIOUS")
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" "${ARGS[@]}" --jq .body > notes.md
 
       - name: Create draft release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ needs.validate.outputs.version }}
-          name: v${{ needs.validate.outputs.version }}
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: ${{ needs.validate.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           draft: true
           prerelease: ${{ inputs.prerelease }}
-          generate_release_notes: true
+          body_path: notes.md
           files: |
             *.asi
             *.ini
