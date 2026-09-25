@@ -17,16 +17,14 @@
 #include "core/diagnostics/crash_logger.hpp"
 #include "core/mem/protect.hpp"
 #include "core/patterns/signatures.hpp"
-#include "core/version.hpp"
 #include "core/vmp/debug_breakin.hpp"
 #include "core/vmp/integrity_bypass.hpp"
 #include "core/win32/pe.hpp"
 
+#include "games/entry.hpp"
 #include "games/game_data.hpp"
 
-auto watcher() -> std::unique_ptr<FileWatcher> &;
-
-void game_init(HMODULE hModule, const std::stop_token &stop);
+#include "plugin_info.hpp"
 
 template<typename G, typename Registry>
 void init_game(Registry                    &registry,
@@ -54,8 +52,7 @@ void init_game(Registry                    &registry,
         log::get()->info("DbgUiRemoteBreakin: {}", vmp::breakin_state_name(breakin));
     }
 
-    auto journal_path = ini_path.parent_path() /
-                        (std::string("AC.") + std::string(Data::name) + ".PatchFix.journal");
+    auto journal_path = ini_path.parent_path() / (std::string(plugin::output_name) + ".journal");
     diagnostics::crash_journal::open(journal_path.string());
 
     auto prev = diagnostics::crash_journal::read_previous();
@@ -134,12 +131,11 @@ void game_init_impl(HMODULE hModule, const std::stop_token &stop, Registry &regi
         return;
     }
 
-    auto name     = games::game_data<G>::name;
-    auto log_name = std::string("AC.") + std::string(name) + ".PatchFix";
+    auto log_name = std::string(plugin::output_name);
 
     log::init((dll_dir / (log_name + ".log")).string());
     diagnostics::init_log();
-    log::get()->info("{} v{} initializing for {}", log_name, version::string, exe_name);
+    log::get()->info("{} v{} initializing for {}", log_name, plugin::version::string, exe_name);
 
     auto ini_path = dll_dir / (log_name + ".ini");
     init_game<G>(registry, ini_path, stop);

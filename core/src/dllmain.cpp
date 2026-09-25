@@ -12,7 +12,7 @@
 #include "core/vmp/integrity_bypass.hpp"
 #include "core/win32/timer_resolution.hpp"
 
-#include "games/game_init.hpp"
+#include "games/entry.hpp"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"

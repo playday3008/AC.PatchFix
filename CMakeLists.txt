@@ -8,12 +8,6 @@ project(AC.PatchFix
     VERSION 3.3.0
 )
 
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/core/include/core/version.hpp.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/core/include/core/version.hpp"
-    @ONLY
-)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -61,7 +55,14 @@ function(add_game GAME_TAG)
 
     add_library(${TARGET_NAME} SHARED ${GAME_SOURCES})
     target_link_libraries(${TARGET_NAME} PRIVATE PatchFix.Core)
-    target_include_directories(${TARGET_NAME} PRIVATE "${INC_DIR}")
+    target_include_directories(${TARGET_NAME} PRIVATE "${INC_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}")
+
+    set(PATCHFIX_OUTPUT_NAME "${TARGET_NAME}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin_info.hpp.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}/plugin_info.hpp"
+        @ONLY
+    )
     set_target_properties(${TARGET_NAME} PROPERTIES
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED ON
