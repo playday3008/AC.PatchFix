@@ -9,8 +9,8 @@ project(AC.PatchFix
 )
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/core/version.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/include/core/version.hpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/include/core/version.hpp"
     @ONLY
 )
 
@@ -50,59 +50,7 @@ set(SHARED_COMPILE_DEFINITIONS
     NOMINMAX
 )
 
-add_library(AC.PatchFix.Core OBJECT
-    src/logger.cpp
-    src/patterns/signatures.cpp
-    src/config/file_watcher.cpp
-    src/dllmain.cpp
-    src/mem/protect.cpp
-    src/mem/hook.cpp
-    src/vmp/integrity_bypass.cpp
-    src/vmp/debug_breakin.cpp
-    src/vmp/pe_sections.cpp
-    src/win32/pe.cpp
-    src/win32/timer_resolution.cpp
-    src/diagnostics/stack_walker.cpp
-    src/diagnostics/crash_report.cpp
-    src/diagnostics/minidump.cpp
-    src/diagnostics/address_registry.cpp
-    src/diagnostics/crash_handler.cpp
-    src/diagnostics/seh_guard.cpp
-    src/diagnostics/crash_logger.cpp
-    src/diagnostics/patch_registry.cpp
-    src/diagnostics/hook_context.cpp
-    src/diagnostics/crash_journal.cpp
-)
-
-target_include_directories(AC.PatchFix.Core PUBLIC "${INC_DIR}")
-target_link_libraries(AC.PatchFix.Core PUBLIC
-    safetyhook
-    HookingPatterns
-    mINI
-    spdlog::spdlog_header_only
-    winmm
-)
-target_compile_definitions(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_DEFINITIONS})
-target_compile_options(AC.PatchFix.Core PUBLIC ${SHARED_COMPILE_OPTIONS})
-target_compile_options(AC.PatchFix.Core PUBLIC
-    $<$<CXX_COMPILER_ID:Clang>:/GS>
-    $<$<CXX_COMPILER_ID:MSVC>:/GS>
-)
-target_link_options(AC.PatchFix.Core PUBLIC
-    $<$<CXX_COMPILER_ID:Clang>:/DYNAMICBASE /NXCOMPAT>
-    $<$<CXX_COMPILER_ID:MSVC>:/DYNAMICBASE /NXCOMPAT>
-)
-set_target_properties(AC.PatchFix.Core PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-)
-
-target_precompile_headers(AC.PatchFix.Core PUBLIC
-    <Windows.h>
-    <mini/ini.h>
-    <spdlog/spdlog.h>
-)
+add_subdirectory(core)
 
 function(add_game GAME_TAG)
     string(TOLOWER "${GAME_TAG}" GAME_TAG_LOWER)
@@ -112,7 +60,8 @@ function(add_game GAME_TAG)
     set(TARGET_NAME "AC.${GAME_TAG}.PatchFix")
 
     add_library(${TARGET_NAME} SHARED ${GAME_SOURCES})
-    target_link_libraries(${TARGET_NAME} PRIVATE AC.PatchFix.Core)
+    target_link_libraries(${TARGET_NAME} PRIVATE PatchFix.Core)
+    target_include_directories(${TARGET_NAME} PRIVATE "${INC_DIR}")
     set_target_properties(${TARGET_NAME} PROPERTIES
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED ON

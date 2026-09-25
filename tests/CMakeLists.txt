@@ -14,6 +14,7 @@ target_link_libraries(AC.PatchFix.Tests PRIVATE
 
 target_include_directories(AC.PatchFix.Tests PRIVATE
     "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_SOURCE_DIR}/core/include"
 )
 
 target_compile_definitions(AC.PatchFix.Tests PRIVATE ${SHARED_COMPILE_DEFINITIONS})
